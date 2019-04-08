@@ -101,6 +101,3 @@ void loop()
 {
   //put your code here
 }
-
-
-

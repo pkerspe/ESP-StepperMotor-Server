@@ -10,14 +10,9 @@ Since these modules contain a WiFi module they are perfectly suited for web cont
 
 Once the ESPp Stepper Motor Server has been uploaded to the ESP module, all further configuration and controlling can be done vie the web UI without the need to code another line in the Arduino or PlatformIO IDE.
 
-#Dependencies:
+## Prerequisites / Dependencies:
 
-In order to function, this library requires the following 3rd party extensions to be installed:
-- the ESP8266 or ESP32 libraries need to be installed in your IDE (in Arduino IDE or PlatformIO use the board manager to install the required files), especially the FS, Wifi libraries are needed
-- for the webserver and rest API the ESP Async WebServer as well as the ArduinoJSON library are needed
-- for the actual stepper motor controll the FlexyStepper library is needed
-Prerequisites / dependencies:
-The ESPStepperMotorServer Library uses the follwing external libraries, which need to be installed in order to compile this sketch:
+In order to compile your project with the ESP-StepperMotor-Server Library, the the following 3rd party extensions need to be installed on your system:
 - ESPAsyncWebserver (https://github.com/me-no-dev/ESPAsyncWebServer)
 - AsyncTCP: https://github.com/me-no-dev/AsyncTCP (for ESP32 ) OR ESPAsyncTCP: https://github.com/me-no-dev/ESPAsyncTCP (for ESP8266)
 - ArduinoJSON (NOTE: must version 6.x, version 5 will not work): https://arduinojson.org/
@@ -35,7 +30,7 @@ If you use PlatformIO you can simply setup your project with the provided paltfo
 ## Documentation:
 for further documentations see 
 - the provided example files,
-- the github repository and included README files on: https://github.com/pkerspe/ESP-StepperMotor-Server
+- the github repository and included README files and examples on: https://github.com/pkerspe/ESP-StepperMotor-Server
 - and the wiki on the github page: https://github.com/pkerspe/ESP-StepperMotor-Server/wiki
 
 ## License:

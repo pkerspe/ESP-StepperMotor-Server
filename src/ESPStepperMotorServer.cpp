@@ -38,8 +38,11 @@
 //
 //    For each stepper, declare a global object outside of all functions as
 //    follows:
-//        FlexyStepper stepper1;
-//        FlexyStepper stepper2;
+//        FlexyStepper flexyStepper1;
+//        FlexyStepper flexyStepper2;
+//    and then "wrap" it in a ESPStepperMotorServer_Stepper class:
+//        ESPStepperMotorServer_Stepper stepper1(*flexyStepper1);
+//        ESPStepperMotorServer_Stepper stepper2(*flexyStepper2);
 //    also declare the server instance here along with the required settings:
 //    e.g. to start the server and enable the web based uster interface, the REST API and the serial server use:
 //        ESPStepperMotorServer server(ESPServerRestApiEnabled|ESPServerWebserverEnabled|ESPServerSerialEnabled);
@@ -47,11 +50,11 @@
 //        ESPStepperMotorServer server(ESPServerWebserverEnabled);
 //
 //    In Setup(), assign pin numbers of the ESP where the step and direction inputs of the stepper driver module are connected to ESP:
-//        stepper1.connectToPins(10, 11); //bye stepPinNumber, byte directionPinNumber
-//        stepper2.connectToPins(12, 14);
+//        flexyStepper1.connectToPins(10, 11); //bye stepPinNumber, byte directionPinNumber
+//        flexyStepper1.connectToPins(12, 14);
 //    And then add the steppers to the server and start the server
-//        server.addStepper(stepper1);
-//        server.addStepper(stepper2);
+//        server.addStepper(*stepper1);
+//        server.addStepper(*stepper2);
 //    if the server is started with the ESPServerWebserverEnabled or ESPServerRestApiEnabled flag, you can specify a http port (default is port 80), for the server to listen for connections (e.g. port 80 in this example) if only starting in serial mode, you can ommit this step
 //        server.setHttpPort(80);
 //
@@ -107,7 +110,7 @@ void ESPStepperMotorServer::setHttpPort(int portNumber)
   this->httpPortNumber = portNumber;
 }
 
-int ESPStepperMotorServer::addStepper(FlexyStepper *stepper)
+int ESPStepperMotorServer::addStepper(ESPStepperMotorServer_Stepper *stepper)
 {
   if (this->configuredStepperIndex >= ESPServerMaxSteppers)
   {
@@ -116,9 +119,53 @@ int ESPStepperMotorServer::addStepper(FlexyStepper *stepper)
     this->logWarning("The value can only be increased during compile time, by modifying the value of ESPServerMaxSteppers in ESPStepperMotorServer.h");
     return -1;
   }
+  stepper->setId(this->configuredStepperIndex);
   this->configuredSteppers[this->configuredStepperIndex] = stepper;
   this->configuredStepperIndex++;
   return this->configuredStepperIndex - 1;
+}
+
+void ESPStepperMotorServer::removeStepper(int id)
+{
+  ESPStepperMotorServer_Stepper *stepperToRemove = this->configuredSteppers[id];
+  if (stepperToRemove != NULL && stepperToRemove->getId() == id)
+  {
+    this->removeStepper(stepperToRemove);
+  }
+  else
+  {
+    sprintf(this->logString, "stepper configuration index %i is invalid, no stepper pointer present at this configuration index or stepper IDs do not match, removeStepper() canceled", id);
+    logWarning(this->logString);
+  }
+}
+
+void ESPStepperMotorServer::removeStepper(ESPStepperMotorServer_Stepper *stepper)
+{
+  if (stepper != NULL && this->configuredSteppers[stepper->getId()]->getId() == stepper->getId())
+  {
+    // check if any switch is configured for the stepper to be removed, if so remove switches first
+    for (int i = 0; i < ESPServerMaxSwitches; i++)
+    {
+      if (this->configuredPositionSwitches[i].stepperIndex == stepper->getId())
+      {
+        positionSwitch posSwitchToRemove = this->configuredPositionSwitches[i];
+        positionSwitch blankPosSwitch;
+        this->detachInterruptForPositionSwitch(&posSwitchToRemove);
+        sprintf(this->logString, "removed position switch %s (idx: %i) from configured position switches since related stepper will be removed next", posSwitchToRemove.positionName, i);
+        logDebug(this->logString);
+        this->configuredPositionSwitches[i] = blankPosSwitch;
+        this->configuredPositionSwitchIoPins[i] = ESPServerPositionSwitchUnsetPinNumber;
+        //by default null the emergency switch flag, even if swith was not an emergency switch
+        this->emergencySwitchIndexes[i] = 0;
+      }
+    }
+    //now remove the stepper configuration itself
+    this->configuredSteppers[stepper->getId()] = NULL;
+  }
+  else
+  {
+    logInfo("Invalid stepper given. The ID does not match the configured stepper. RemoveStepper failed");
+  }
 }
 
 int ESPStepperMotorServer::addPositionSwitch(byte stepperIndex, byte ioPinNumber, byte switchType, const char *positionName, long switchPosition)
@@ -422,6 +469,41 @@ void ESPStepperMotorServer::startWebserver()
   }
 }
 
+
+
+// Perform an HTTP GET request to a remote page
+bool ESPStepperMotorServer::downloadFileToSpiffs(const char *url, const char *targetPath)
+{
+  HTTPClient client;
+  
+  Serial.println("Connecing to server for Web UI Download");
+  if (client.begin("https://raw.githubusercontent.com/pkerspe/ESP-StepperMotor-Server/master/LICENSE.txt"))
+  {
+    int httpCode = client.GET();
+    if (httpCode > 0)
+    {
+      // HTTP header has been send and Server response header has been handled
+      Serial.printf("[HTTPS] GET... code: %d\n", httpCode);
+
+      // file found at server
+      if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY)
+      {
+        String payload = client.getString();
+        Serial.println(payload);
+      }
+    }
+    else
+    {
+      Serial.printf("[HTTPS] GET... failed, error: %s\n", client.errorToString(httpCode).c_str());
+    }
+
+    client.end();
+  }
+
+  Serial.println("done");
+  return true;
+}
+
 void ESPStepperMotorServer::registerRestApiEndpoints()
 {
   // GET /api/status
@@ -459,10 +541,10 @@ void ESPStepperMotorServer::registerRestApiEndpoints()
 
       StaticJsonDocument<100> doc;
       JsonObject root = doc.to<JsonObject>();
-      FlexyStepper *stepper = this->configuredSteppers[stepperIndex];
-      root["mm"] = stepper->getCurrentPositionInMillimeters();
-      root["revs"] = stepper->getCurrentPositionInRevolutions();
-      root["steps"] = stepper->getCurrentPositionInSteps();
+      ESPStepperMotorServer_Stepper *stepper = this->configuredSteppers[stepperIndex];
+      root["mm"] = stepper->getFlexyStepper()->getCurrentPositionInMillimeters();
+      root["revs"] = stepper->getFlexyStepper()->getCurrentPositionInRevolutions();
+      root["steps"] = stepper->getFlexyStepper()->getCurrentPositionInSteps();
       serializeJson(root, output);
       AsyncWebServerResponse *response = request->beginResponse(200, "application/json", output);
       request->send(response);
@@ -474,7 +556,49 @@ void ESPStepperMotorServer::registerRestApiEndpoints()
     }
   });
 
+  // POST /api/steppers/moveby
+  // endpoint to set a new RELATIVE target position for the stepper motor in either mm, revs or steps
+  // post parameters: id, unit, value
+  httpServer->on("/api/steppers/moveby", HTTP_POST, [this](AsyncWebServerRequest *request) {
+    if (request->hasParam("id", true))
+    {
+      int stepperIndex = request->getParam("id", true)->value().toInt();
+      if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->configuredSteppers[stepperIndex] == NULL)
+      {
+        request->send(404);
+        return;
+      }
+      if (request->hasParam("value", true) && request->hasParam("unit", true))
+      {
+        String unit = request->getParam("unit", true)->value();
+        float distance = request->getParam("value", true)->value().toFloat();
+        if (unit == "mm")
+        {
+          this->configuredSteppers[stepperIndex]->getFlexyStepper()->moveRelativeInMillimeters(distance);
+        }
+        else if (unit == "revs")
+        {
+          this->configuredSteppers[stepperIndex]->getFlexyStepper()->moveRelativeInRevolutions(distance);
+        }
+        else if (unit == "steps")
+        {
+          this->configuredSteppers[stepperIndex]->getFlexyStepper()->moveRelativeInSteps(distance);
+        }
+        else
+        {
+          request->send(400);
+          return;
+        }
+
+        request->send(204);
+        return;
+      }
+    }
+    request->send(400);
+  });
+
   // POST /api/steppers/position
+  // endpoint to set a new absolute target position for the stepper motor in either mm, revs or steps
   // post parameters: id, unit, value
   httpServer->on("/api/steppers/position", HTTP_POST, [this](AsyncWebServerRequest *request) {
     if (request->hasParam("id", true))
@@ -491,15 +615,15 @@ void ESPStepperMotorServer::registerRestApiEndpoints()
         float position = request->getParam("value", true)->value().toFloat();
         if (unit == "mm")
         {
-          this->configuredSteppers[stepperIndex]->setCurrentPositionInMillimeters(position);
+          this->configuredSteppers[stepperIndex]->getFlexyStepper()->moveToPositionInMillimeters(position);
         }
         else if (unit == "revs")
         {
-          this->configuredSteppers[stepperIndex]->setCurrentPositionInRevolutions(position);
+          this->configuredSteppers[stepperIndex]->getFlexyStepper()->moveToPositionInRevolutions(position);
         }
         else if (unit == "steps")
         {
-          this->configuredSteppers[stepperIndex]->setCurrentPositionInSteps(position);
+          this->configuredSteppers[stepperIndex]->getFlexyStepper()->moveToPositionInSteps(position);
         }
         else
         {
@@ -516,6 +640,7 @@ void ESPStepperMotorServer::registerRestApiEndpoints()
 
   // GET /api/steppers
   // GET /api/steppers?id=<id>
+  // endpoint to list all configured steppers or a specific one if "id" query parameter is given
   httpServer->on("/api/steppers", HTTP_GET, [this](AsyncWebServerRequest *request) {
     String output;
 
@@ -559,7 +684,7 @@ void ESPStepperMotorServer::registerRestApiEndpoints()
       int stepperIndex = request->getParam(0)->value().toInt();
       if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->configuredSteppers[stepperIndex] != NULL)
       {
-        this->configuredSteppers[stepperIndex] = NULL;
+        this->removeStepper(stepperIndex);
         request->send(204);
       }
       else
@@ -622,26 +747,26 @@ void ESPStepperMotorServer::registerWebInterfaceUrls()
 }
 
 // ---------------------------------------------------------------------------------
-//             internal helper functions for FlexyStepper communication
+//             internal helper functions for stepper communication
 // ---------------------------------------------------------------------------------
 
-void ESPStepperMotorServer::populateStepperDetailsToJsonObject(JsonObject &stepperDetails, FlexyStepper *stepper, int index)
+void ESPStepperMotorServer::populateStepperDetailsToJsonObject(JsonObject &stepperDetails, ESPStepperMotorServer_Stepper *stepper, int index)
 {
   stepperDetails["id"] = index;
   stepperDetails["configured"] = (stepper == NULL) ? "false" : "true";
   if (stepper != NULL)
   {
     JsonObject position = stepperDetails.createNestedObject("position");
-    position["mm"] = stepper->getCurrentPositionInMillimeters();
-    position["revs"] = stepper->getCurrentPositionInRevolutions();
-    position["steps"] = stepper->getCurrentPositionInSteps();
+    position["mm"] = stepper->getFlexyStepper()->getCurrentPositionInMillimeters();
+    position["revs"] = stepper->getFlexyStepper()->getCurrentPositionInRevolutions();
+    position["steps"] = stepper->getFlexyStepper()->getCurrentPositionInSteps();
 
     JsonObject stepperStatus = stepperDetails.createNestedObject("velocity");
-    stepperStatus["rev_s"] = stepper->getCurrentVelocityInRevolutionsPerSecond();
-    stepperStatus["mm_s"] = stepper->getCurrentVelocityInMillimetersPerSecond();
-    stepperStatus["steps_s"] = stepper->getCurrentVelocityInStepsPerSecond();
+    stepperStatus["rev_s"] = stepper->getFlexyStepper()->getCurrentVelocityInRevolutionsPerSecond();
+    stepperStatus["mm_s"] = stepper->getFlexyStepper()->getCurrentVelocityInMillimetersPerSecond();
+    stepperStatus["steps_s"] = stepper->getFlexyStepper()->getCurrentVelocityInStepsPerSecond();
 
-    stepperDetails["motionComplete"] = stepper->motionComplete();
+    stepperDetails["motionComplete"] = stepper->getFlexyStepper()->motionComplete();
   }
 }
 

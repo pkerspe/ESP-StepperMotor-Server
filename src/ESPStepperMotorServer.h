@@ -34,11 +34,11 @@
 
 #include <arduino.h>
 #include <FlexyStepper.h>
-#include <FS.h>
-//#include <AsyncJson.h> not working in current Release of AsyncWebserver in combination with ArduinoJSON 6 -> https://github.com/me-no-dev/ESPAsyncWebServer/pull/491
+#include <ESPStepperMotorServer_Stepper.h>
+#include <SPIFFS.h>
 #include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
-#include <WiFi.h>
+#include <HTTPClient.h>
 
 #define ESPServerWifiModeClient 0
 #define ESPServerWifiModeAccessPoint 1
@@ -89,16 +89,19 @@ public:
   void setWifiCredentials(const char *ssid, const char *pwd);
   void setWifiMode(byte wifiMode);
   void printWifiStatus();
-  int addStepper(FlexyStepper *stepper);
+  int addStepper(ESPStepperMotorServer_Stepper *stepper);
   int addPositionSwitch(byte stepperIndex, byte ioPinNumber, byte switchType, const char *positionName, long switchPosition = -1);
   int addPositionSwitch(positionSwitch posSwitchToAdd);
   void removePositionSwitch(int positionSwitchIndex);
   void removePositionSwitch(positionSwitch *posSwitchToRemove);
+  void removeStepper(int stepperConfigurationIndex);
+  void removeStepper(ESPStepperMotorServer_Stepper *stepper);
   void printPositionSwitchStatus();
   void start();
   void stop();
   void setLogLevel(byte);
   byte getPositionSwitchStatus(int positionSwitchIndex);
+
   //
   // public member variables
   //
@@ -125,6 +128,7 @@ private:
   void printSPIFFSStats();
   int getSPIFFSFreeSpace();
   void printSPIFFSRootFolderContents();
+  bool downloadFileToSpiffs(const char *url, const char *targetPath);
 
   static void staticPositionSwitchISR();
   void internalPositionSwitchISR();
@@ -135,7 +139,7 @@ private:
   void setPositionSwitchStatus(int positionSwitchIndex, byte status);
   void printBinaryWithLeaingZeros(char *result, byte var);
 
-  void populateStepperDetailsToJsonObject(JsonObject &detailsObjecToPopulate, FlexyStepper *stepper, int index);
+  void populateStepperDetailsToJsonObject(JsonObject &detailsObjecToPopulate, ESPStepperMotorServer_Stepper *stepper, int index);
 
   //
   // private member variables
@@ -153,7 +157,7 @@ private:
   const char *version = "0.0.1";
   char logString[200];
 
-  FlexyStepper *configuredSteppers[ESPServerMaxSteppers] = {NULL};
+  ESPStepperMotorServer_Stepper *configuredSteppers[ESPServerMaxSteppers] = {NULL};
   byte configuredStepperIndex = 0;
   static ESPStepperMotorServer *anchor; //used for self-reference in ISR
   positionSwitch configuredPositionSwitches[ESPServerMaxSwitches];
