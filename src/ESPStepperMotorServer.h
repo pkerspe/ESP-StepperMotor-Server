@@ -101,6 +101,8 @@ public:
   void stop();
   void setLogLevel(byte);
   byte getPositionSwitchStatus(int positionSwitchIndex);
+  bool downloadFileToSpiffs(const char *url, const char *targetPath);
+  void printSPIFFSRootFolderContents();
 
   //
   // public member variables
@@ -111,6 +113,7 @@ public:
   volatile boolean positionSwitchUpdateAvailable = false;
   // a boolean indicating if a position switch that has been configure as emegrency switch, has been triggered
   volatile boolean emergencySwitchIsActive = false;
+  
 
 private:
   void scanWifiNetworks();
@@ -127,8 +130,8 @@ private:
   void startSPIFFS();
   void printSPIFFSStats();
   int getSPIFFSFreeSpace();
-  void printSPIFFSRootFolderContents();
-  bool downloadFileToSpiffs(const char *url, const char *targetPath);
+  bool checkIfGuiExistsInSpiffs();
+  
 
   static void staticPositionSwitchISR();
   void internalPositionSwitchISR();
@@ -155,7 +158,12 @@ private:
   boolean isWebserverEnabled = false;
   boolean isRestApiEnabled = false;
   const char *version = "0.0.1";
-  char logString[200];
+  const char *webUiIndexFile = "/index.html";
+  const char *webUiJsFile = "/dist/build.js.gz";
+  const char *webUiLogoFile = "/dist/logo.png";
+  const char *webUiFaviconFile = "/favicon.ico.gz";
+  const char *webUiRepositoryBasePath = "https://raw.githubusercontent.com/pkerspe/ESP-StepperMotor-Server/master/data";
+  char logString[400];
 
   ESPStepperMotorServer_Stepper *configuredSteppers[ESPServerMaxSteppers] = {NULL};
   byte configuredStepperIndex = 0;

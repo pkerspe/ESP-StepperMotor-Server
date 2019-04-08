@@ -433,8 +433,8 @@ void ESPStepperMotorServer::printSPIFFSRootFolderContents()
     File file = root.openNextFile();
     while (file)
     {
-      logInfo("File: ", false, true);
-      logInfo(file.name(), true, true);
+      sprintf(this->logString, "File: %s (%i) %ld", file.name(), file.size(), file.getLastWrite());
+      logInfo(this->logString);
       file = root.openNextFile();
     }
     root.close();
@@ -458,7 +458,10 @@ void ESPStepperMotorServer::startWebserver()
 
     if (isWebserverEnabled)
     {
-      this->registerWebInterfaceUrls();
+      if (checkIfGuiExistsInSpiffs())
+      {
+        this->registerWebInterfaceUrls();
+      }
     }
     if (isRestApiEnabled)
     {
@@ -469,39 +472,111 @@ void ESPStepperMotorServer::startWebserver()
   }
 }
 
-
-
-// Perform an HTTP GET request to a remote page
-bool ESPStepperMotorServer::downloadFileToSpiffs(const char *url, const char *targetPath)
+bool ESPStepperMotorServer::checkIfGuiExistsInSpiffs()
 {
-  HTTPClient client;
-  
-  Serial.println("Connecing to server for Web UI Download");
-  if (client.begin("https://raw.githubusercontent.com/pkerspe/ESP-StepperMotor-Server/master/LICENSE.txt"))
-  {
-    int httpCode = client.GET();
-    if (httpCode > 0)
-    {
-      // HTTP header has been send and Server response header has been handled
-      Serial.printf("[HTTPS] GET... code: %d\n", httpCode);
+  this->logDebug("Checking if web UI is installed in SPIFFS");
+  bool uiComplete = true;
+  const char *notPresent = "The file %s could not be found on SPIFFS";
+  const char *files[4] = {this->webUiIndexFile, this->webUiJsFile, this->webUiLogoFile, this->webUiFaviconFile};
 
-      // file found at server
-      if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY)
+  for (int i = 0; i < 4; i++)
+  {
+    if (!SPIFFS.exists(files[i]))
+    {
+      sprintf(this->logString, notPresent, files[i]);
+      this->logInfo(this->logString);
+      if (this->wifiMode == ESPServerWifiModeClient && WiFi.isConnected())
       {
-        String payload = client.getString();
-        Serial.println(payload);
+        char downloadUrl[200];
+        strcpy(downloadUrl, webUiRepositoryBasePath);
+        strcat(downloadUrl, files[i]);
+        if (!this->downloadFileToSpiffs(downloadUrl, files[i]))
+        {
+          uiComplete = false;
+        }
+      }
+      else
+      {
+        uiComplete = false;
       }
     }
-    else
-    {
-      Serial.printf("[HTTPS] GET... failed, error: %s\n", client.errorToString(httpCode).c_str());
-    }
-
-    client.end();
   }
 
-  Serial.println("done");
-  return true;
+  if (!uiComplete && this->wifiMode == ESPServerWifiModeAccessPoint)
+  {
+    this->logWarning("The UI does not seem to be installed completely on SPIFFS. Automatic download failed since the server is in Access Point mode and not connected to the internet");
+    this->logWarning("Start the server in wifi client (STA) mode to enable automatic download of the web interface files to SPIFFS");
+  }
+  else if (uiComplete)
+  {
+    this->logDebug("Check completed successfully");
+  }
+  else if (!uiComplete)
+  {
+    this->logDebug("Check failed, one or more UI files are missing and could not be downloaded automatically");
+  }
+  return uiComplete;
+}
+
+HTTPClient http;
+// Perform an HTTP GET request to a remote page to downloa a file to SPIFFS
+bool ESPStepperMotorServer::downloadFileToSpiffs(const char *url, const char *targetPath)
+{
+  sprintf(this->logString, "downloading %s from %s", targetPath, url);
+  this->logDebug(this->logString);
+
+  if (http.begin(url))
+  {
+    int httpCode = http.GET();
+    sprintf(this->logString, "server responded with %i", httpCode);
+    this->logDebug(this->logString);
+
+    //////////////////
+    // get length of document (is -1 when Server sends no Content-Length header)
+    int len = http.getSize();
+    uint8_t buff[128] = {0};
+
+    sprintf(this->logString, "starting download stream for file size %i", len);
+    this->logDebug(this->logString);
+
+    WiFiClient *stream = &http.getStream();
+
+    this->logDebug("opening file for writing");
+    File f = SPIFFS.open(targetPath, "w+");
+
+    // read all data from server
+    while (http.connected() && (len > 0 || len == -1))
+    {
+      // get available data size
+      size_t size = stream->available();
+
+      sprintf(this->logString, "%i bytes available to read from stream", size);
+      this->logDebug(this->logString);
+
+      if (size)
+      {
+        // read up to 128 byte
+        int c = stream->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));
+        // write it to file
+        for (int i = 0; i < c; i++)
+        {
+          f.write(buff[i]);
+        }
+        if (len > 0)
+        {
+          len -= c;
+        }
+      }
+      delay(1);
+    }
+    this->logDebug("Closing file handler");
+    f.close();
+    sprintf(this->logString, "Download of %s completed", targetPath);
+    this->logInfo(this->logString);
+    http.end(); //Close connection
+  }
+
+  return SPIFFS.exists(targetPath);
 }
 
 void ESPStepperMotorServer::registerRestApiEndpoints()
@@ -728,21 +803,21 @@ void ESPStepperMotorServer::registerWebInterfaceUrls()
 {
   //httpServer->serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
 
-  httpServer->on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(SPIFFS, "/index.html");
+  httpServer->on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, this->webUiIndexFile);
   });
-  httpServer->on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/favicon.ico.gz", "image/x-icon");
+  httpServer->on("/favicon.ico", HTTP_GET, [this](AsyncWebServerRequest *request) {
+    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiFaviconFile, "image/x-icon");
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);
   });
-  httpServer->on("/dist/build.js", HTTP_GET, [](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/dist/build.js.gz", "text/javascript");
+  httpServer->on("/dist/build.js", HTTP_GET, [this](AsyncWebServerRequest *request) {
+    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiJsFile, "text/javascript");
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);
   });
-  httpServer->on("/dist/logo.png", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(SPIFFS, "/dist/logo.png");
+  httpServer->on("/dist/logo.png", HTTP_GET, [this](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, this->webUiLogoFile);
   });
 }
 
