@@ -39,5 +39,8 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .travis.yml
+<<<<<<< HEAD
 >>>>>>> initial commit
+=======
+>>>>>>> added .gitignore
 .vscode
