@@ -32,9 +32,10 @@
 #ifndef ESPStepperMotorServer_h
 #define ESPStepperMotorServer_h
 
-#include <arduino.h>
+#include <Arduino.h>
 #include <FlexyStepper.h>
 #include <ESPStepperMotorServer_Stepper.h>
+#include <ESPStepperMotorServer_Logger.h>
 #include <SPIFFS.h>
 #include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
@@ -48,11 +49,6 @@
 #define ESPServerWebserverEnabled 4
 #define ESPServerSerialEnabled 8
 
-#define ESPServerLogLevel_ALL 4
-#define ESPServerLogLevel_DEBUG 3
-#define ESPServerLogLevel_INFO 2
-#define ESPServerLogLevel_WARNING 1
-
 #define ESPServerSwitchType_ActiveHigh 1
 #define ESPServerSwitchType_ActiveLow 2
 
@@ -65,14 +61,17 @@
 #define ESPServerSwitchStatusRegisterCount 2 //NOTE: this value must be chosen according to the value of ESPServerMaxSwitches: val = ceil(ESPServerMaxSwitches / 8)
 #define ESPServerMaxSteppers 10
 
+#define ESPStepperMotorServer_SwitchDisplayName_MaxLength 20
+
 #define ESPServerPositionSwitchUnsetPinNumber 255
+#define ESPStepperHighestAllowedIoPin 50
 
 typedef struct positionSwitch
 {
   byte stepperIndex;
   byte ioPinNumber = ESPServerPositionSwitchUnsetPinNumber;
   byte switchType;
-  const char *positionName;
+  String positionName;
   long switchPosition;
 } positionSwitch;
 
@@ -90,7 +89,7 @@ public:
   void setWifiMode(byte wifiMode);
   void printWifiStatus();
   int addStepper(ESPStepperMotorServer_Stepper *stepper);
-  int addPositionSwitch(byte stepperIndex, byte ioPinNumber, byte switchType, const char *positionName, long switchPosition = -1);
+  int addPositionSwitch(byte stepperIndex, byte ioPinNumber, byte switchType, String positionName, long switchPosition = -1);
   int addPositionSwitch(positionSwitch posSwitchToAdd);
   void removePositionSwitch(int positionSwitchIndex);
   void removePositionSwitch(positionSwitch *posSwitchToRemove);
@@ -99,31 +98,23 @@ public:
   void printPositionSwitchStatus();
   void start();
   void stop();
-  void setLogLevel(byte);
   byte getPositionSwitchStatus(int positionSwitchIndex);
-  bool downloadFileToSpiffs(const char *url, const char *targetPath);
-  void printSPIFFSRootFolderContents();
+  //delegator functions only
+  void setLogLevel(byte);
 
   //
   // public member variables
   //
   int wifiClientConnectionTimeoutSeconds = 25;
-
   //this boolean value indicates wether a state change has occurred on one of the position switches or not
   volatile boolean positionSwitchUpdateAvailable = false;
   // a boolean indicating if a position switch that has been configure as emegrency switch, has been triggered
   volatile boolean emergencySwitchIsActive = false;
-  
 
 private:
   void scanWifiNetworks();
   void connectToWifiNetwork();
   void startAccessPoint();
-  void log(const char *level, const char *msg, boolean newLine, boolean ommitLogLevel);
-  void logDebug(const char *msg, boolean newLine = true, boolean ommitLogLevel = false);
-  void logDebug(String msg, boolean newLine = true, boolean ommitLogLevel = false);
-  void logInfo(const char *msg, boolean newLine = true, boolean ommitLogLevel = false);
-  void logWarning(const char *msg, boolean newLine = true, boolean ommitLogLevel = false);
   void startWebserver();
   void registerRestApiEndpoints();
   void registerWebInterfaceUrls();
@@ -131,25 +122,25 @@ private:
   void printSPIFFSStats();
   int getSPIFFSFreeSpace();
   bool checkIfGuiExistsInSpiffs();
-  
-
-  static void staticPositionSwitchISR();
-  void internalPositionSwitchISR();
+  void printSPIFFSRootFolderContents();
+  bool downloadFileToSpiffs(const char *url, const char *targetPath);
   void setupPositionSwitchIOPin(positionSwitch *posSwitchToAdd);
   void detachInterruptForPositionSwitch(positionSwitch *posSwitch);
   void detachAllInterrupts();
   void attachAllInterrupts();
   void setPositionSwitchStatus(int positionSwitchIndex, byte status);
   void printBinaryWithLeaingZeros(char *result, byte var);
-
   void populateStepperDetailsToJsonObject(JsonObject &detailsObjecToPopulate, ESPStepperMotorServer_Stepper *stepper, int index);
+  void populateSwitchDetailsToJsonObject(JsonObject &detailsObjecToPopulate, positionSwitch positionSwitch, int index);
+  static void staticPositionSwitchISR();
+  void internalPositionSwitchISR();
+  bool isIoPinUsed(int);
 
   //
   // private member variables
   //
   int httpPortNumber;
   byte wifiMode;
-  byte logLevel;
   const char *accessPointSSID;
   const char *accessPointPassword;
   const char *wifiClientSsid;

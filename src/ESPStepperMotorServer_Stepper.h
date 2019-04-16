@@ -32,21 +32,34 @@
 #ifndef ESPStepperMotorServer_Stepper_h
 #define ESPStepperMotorServer_Stepper_h
 
+#include <ESPStepperMotorServer_Logger.h>
 #include <FlexyStepper.h>
+
+#define ESPStepperMotorServer_Stepper_DisplayName_MaxLength 20
+
 class ESPStepperMotorServer_Stepper
 {
-  public:
-    ESPStepperMotorServer_Stepper(FlexyStepper *flexyStepper);
-    FlexyStepper* getFlexyStepper();
-    void setId(byte id);
-    byte getId();
+public:
+  ESPStepperMotorServer_Stepper(byte stepIoPin, byte directionIoPin);
+  FlexyStepper *getFlexyStepper();
+  void setId(byte id);
+  byte getId();
+  String getDisplayName();
+  void setDisplayName(String displayName);
+  byte getStepIoPin();
+  byte getDirectionIoPin();
 
-  private:
-    //
-    // private member variables
-    //
-    FlexyStepper *_flexyStepper;
-    byte _stepperIndex = 0;
+  const static byte ESPServerStepperUnsetIoPinNumber = 255;
+
+private:
+  //
+  // private member variables
+  //
+  FlexyStepper *_flexyStepper;
+  byte _stepperIndex = 0;
+  String _displayName;
+  byte _stepIoPin = ESPServerStepperUnsetIoPinNumber;
+  byte _directionIoPin = ESPServerStepperUnsetIoPinNumber;
 };
 // ------------------------------------ End ---------------------------------
 #endif

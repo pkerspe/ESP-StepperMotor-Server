@@ -36,19 +36,53 @@
 //
 // constructor for the stepper wrapper class
 //
-ESPStepperMotorServer_Stepper::ESPStepperMotorServer_Stepper(FlexyStepper *flexyStepper)
+ESPStepperMotorServer_Stepper::ESPStepperMotorServer_Stepper(byte stepIoPin, byte directionIoPin)
 {
-    this->_flexyStepper = flexyStepper;
+    this->_stepIoPin = stepIoPin;
+    this->_directionIoPin = directionIoPin;
+    this->_flexyStepper = new FlexyStepper();
+    this->_flexyStepper->connectToPins(this->_stepIoPin, this->_directionIoPin);
 }
 
-FlexyStepper *ESPStepperMotorServer_Stepper::getFlexyStepper() {
+FlexyStepper *ESPStepperMotorServer_Stepper::getFlexyStepper()
+{
     return this->_flexyStepper;
 }
 
-void ESPStepperMotorServer_Stepper::setId(byte id) {
+void ESPStepperMotorServer_Stepper::setId(byte id)
+{
     this->_stepperIndex = id;
 }
 
-byte ESPStepperMotorServer_Stepper::getId() {
+byte ESPStepperMotorServer_Stepper::getId()
+{
     return this->_stepperIndex;
+}
+
+String ESPStepperMotorServer_Stepper::getDisplayName()
+{
+    return this->_displayName;
+}
+void ESPStepperMotorServer_Stepper::setDisplayName(String displayName)
+{
+    if (displayName.length() > ESPStepperMotorServer_Stepper_DisplayName_MaxLength)
+    {
+        char logString[160];
+        sprintf(logString, "ESPStepperMotorServer_Stepper::setDisplayName: The display name for stepper with id %i is to long. Max length is %i characters. Name will be trimmed", this->getId(), ESPStepperMotorServer_Stepper_DisplayName_MaxLength);
+        ESPStepperMotorServer_Logger::logWarning(logString);
+        this->_displayName = displayName.substring(0, ESPStepperMotorServer_Stepper_DisplayName_MaxLength);
+    }
+    else
+    {
+        this->_displayName = displayName;
+    }
+}
+
+byte ESPStepperMotorServer_Stepper::getStepIoPin()
+{
+    return this->_stepIoPin;
+}
+byte ESPStepperMotorServer_Stepper::getDirectionIoPin()
+{
+    return this->_directionIoPin;
 }
