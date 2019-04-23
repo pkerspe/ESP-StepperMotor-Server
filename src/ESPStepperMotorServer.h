@@ -7,6 +7,13 @@
 //      *                                                                *
 //      ******************************************************************
 
+// this project is not supposed to replace a controller of a CNC machine but more of a general approach on working with stepper motors
+// for a good Arduino/ESP base Gerber compatible controller Project see:
+// https://github.com/gnea/grbl
+// and for ESP32: https://github.com/bdring/Grbl_Esp32
+// currently no G-Code (http://linuxcnc.org/docs/html/gcode.html) parser is implemented, yet it might be part of a future release
+// other usefull informaion when connecting your ESP32 board to your driver boards and you are not sure which pins to use: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
+
 // MIT License
 //
 // Copyright (c) 2019 Paul Kerspe
@@ -34,7 +41,7 @@
 
 #include <Arduino.h>
 #include <FlexyStepper.h>
-#include <ESPStepperMotorServer_Stepper.h>
+#include <ESPStepperMotorServer_StepperConfiguration.h>
 #include <ESPStepperMotorServer_Logger.h>
 #include <SPIFFS.h>
 #include <ArduinoJson.h>
@@ -88,13 +95,13 @@ public:
   void setWifiCredentials(const char *ssid, const char *pwd);
   void setWifiMode(byte wifiMode);
   void printWifiStatus();
-  int addStepper(ESPStepperMotorServer_Stepper *stepper);
+  int addStepper(ESPStepperMotorServer_StepperConfiguration *stepper);
   int addPositionSwitch(byte stepperIndex, byte ioPinNumber, byte switchType, String positionName, long switchPosition = -1);
   int addPositionSwitch(positionSwitch posSwitchToAdd);
   void removePositionSwitch(int positionSwitchIndex);
   void removePositionSwitch(positionSwitch *posSwitchToRemove);
   void removeStepper(int stepperConfigurationIndex);
-  void removeStepper(ESPStepperMotorServer_Stepper *stepper);
+  void removeStepper(ESPStepperMotorServer_StepperConfiguration *stepper);
   void printPositionSwitchStatus();
   void start();
   void stop();
@@ -130,7 +137,7 @@ private:
   void attachAllInterrupts();
   void setPositionSwitchStatus(int positionSwitchIndex, byte status);
   void printBinaryWithLeaingZeros(char *result, byte var);
-  void populateStepperDetailsToJsonObject(JsonObject &detailsObjecToPopulate, ESPStepperMotorServer_Stepper *stepper, int index);
+  void populateStepperDetailsToJsonObject(JsonObject &detailsObjecToPopulate, ESPStepperMotorServer_StepperConfiguration *stepper, int index);
   void populateSwitchDetailsToJsonObject(JsonObject &detailsObjecToPopulate, positionSwitch positionSwitch, int index);
   static void staticPositionSwitchISR();
   void internalPositionSwitchISR();
@@ -156,7 +163,7 @@ private:
   const char *webUiRepositoryBasePath = "https://raw.githubusercontent.com/pkerspe/ESP-StepperMotor-Server/master/data";
   char logString[400];
 
-  ESPStepperMotorServer_Stepper *configuredSteppers[ESPServerMaxSteppers] = {NULL};
+  ESPStepperMotorServer_StepperConfiguration *configuredSteppers[ESPServerMaxSteppers] = {NULL};
   byte configuredStepperIndex = 0;
   static ESPStepperMotorServer *anchor; //used for self-reference in ISR
   positionSwitch configuredPositionSwitches[ESPServerMaxSwitches];

@@ -111,7 +111,7 @@ void ESPStepperMotorServer::setHttpPort(int portNumber)
   this->httpPortNumber = portNumber;
 }
 
-int ESPStepperMotorServer::addStepper(ESPStepperMotorServer_Stepper *stepper)
+int ESPStepperMotorServer::addStepper(ESPStepperMotorServer_StepperConfiguration *stepper)
 {
   if (this->configuredStepperIndex >= ESPServerMaxSteppers)
   {
@@ -120,8 +120,8 @@ int ESPStepperMotorServer::addStepper(ESPStepperMotorServer_Stepper *stepper)
     ESPStepperMotorServer_Logger::logWarning("The value can only be increased during compile time, by modifying the value of ESPServerMaxSteppers in ESPStepperMotorServer.h");
     return -1;
   }
-  if (stepper->getStepIoPin() == ESPStepperMotorServer_Stepper::ESPServerStepperUnsetIoPinNumber ||
-      stepper->getDirectionIoPin() == ESPStepperMotorServer_Stepper::ESPServerStepperUnsetIoPinNumber)
+  if (stepper->getStepIoPin() == ESPStepperMotorServer_StepperConfiguration::ESPServerStepperUnsetIoPinNumber ||
+      stepper->getDirectionIoPin() == ESPStepperMotorServer_StepperConfiguration::ESPServerStepperUnsetIoPinNumber)
   {
     sprintf(this->logString, "Either the step IO pin (%i) or direction IO (%i) pin, or both, are not set correctly. Use a valid IO Pin value between 0 and the highest available IO Pin on your ESP", stepper->getStepIoPin(), stepper->getDirectionIoPin());
     ESPStepperMotorServer_Logger::logWarning(this->logString);
@@ -141,7 +141,7 @@ int ESPStepperMotorServer::addStepper(ESPStepperMotorServer_Stepper *stepper)
 
 void ESPStepperMotorServer::removeStepper(int id)
 {
-  ESPStepperMotorServer_Stepper *stepperToRemove = this->configuredSteppers[id];
+  ESPStepperMotorServer_StepperConfiguration *stepperToRemove = this->configuredSteppers[id];
   if (stepperToRemove != NULL && stepperToRemove->getId() == id)
   {
     this->removeStepper(stepperToRemove);
@@ -153,7 +153,7 @@ void ESPStepperMotorServer::removeStepper(int id)
   }
 }
 
-void ESPStepperMotorServer::removeStepper(ESPStepperMotorServer_Stepper *stepper)
+void ESPStepperMotorServer::removeStepper(ESPStepperMotorServer_StepperConfiguration *stepper)
 {
   if (stepper != NULL && this->configuredSteppers[stepper->getId()]->getId() == stepper->getId())
   {
@@ -202,12 +202,12 @@ int ESPStepperMotorServer::addPositionSwitch(positionSwitch posSwitchToAdd)
     ESPStepperMotorServer_Logger::logWarning("the stepper instance has not been added to the server configuration");
     return -1;
   }
-  if (posSwitchToAdd.positionName.length() > ESPStepperMotorServer_Stepper_DisplayName_MaxLength)
+  if (posSwitchToAdd.positionName.length() > ESPSMS_Stepper_DisplayName_MaxLength)
   {
     char logString[160];
     sprintf(logString, "ESPStepperMotorServer::addPositionSwitch: The display name for the position switch is to long. Max length is %i characters. Name will be trimmed", ESPStepperMotorServer_SwitchDisplayName_MaxLength);
     ESPStepperMotorServer_Logger::logWarning(logString);
-    posSwitchToAdd.positionName = posSwitchToAdd.positionName.substring(0, ESPStepperMotorServer_Stepper_DisplayName_MaxLength);
+    posSwitchToAdd.positionName = posSwitchToAdd.positionName.substring(0, ESPSMS_Stepper_DisplayName_MaxLength);
   }
   //check if we have a blank configuration slot before the actual index (due to possible removal of previously configured position switches that might have been removed in the meantime)
   int freePositionSwitchIndex = this->configuredPositionSwitchIndex;
@@ -653,7 +653,7 @@ void ESPStepperMotorServer::registerRestApiEndpoints()
 
       StaticJsonDocument<docSize> doc;
       JsonObject root = doc.to<JsonObject>();
-      ESPStepperMotorServer_Stepper *stepper = this->configuredSteppers[stepperIndex];
+      ESPStepperMotorServer_StepperConfiguration *stepper = this->configuredSteppers[stepperIndex];
       root["mm"] = stepper->getFlexyStepper()->getCurrentPositionInMillimeters();
       root["revs"] = stepper->getFlexyStepper()->getCurrentPositionInRevolutions();
       root["steps"] = stepper->getFlexyStepper()->getCurrentPositionInSteps();
@@ -856,7 +856,7 @@ void ESPStepperMotorServer::registerRestApiEndpoints()
           } else if (isIoPinUsed(dirPin)) {
             request->send(400, "application/json", "{\"error\": \"The given DIRECTION IO pin is already used by another stepper or a switch configuration\"}");
           } else {
-            ESPStepperMotorServer_Stepper *stepperToAdd = new ESPStepperMotorServer_Stepper(stepPin, dirPin);
+            ESPStepperMotorServer_StepperConfiguration *stepperToAdd = new ESPStepperMotorServer_StepperConfiguration(stepPin, dirPin);
             stepperToAdd->setDisplayName(name);
             int newId = this->addStepper(stepperToAdd);
             sprintf(this->logString, "{\"id\": %i}", newId);
@@ -1070,7 +1070,7 @@ void ESPStepperMotorServer::populateSwitchDetailsToJsonObject(JsonObject &switch
   switchDetails["position"] = positionSwitch.switchPosition;
 }
 
-void ESPStepperMotorServer::populateStepperDetailsToJsonObject(JsonObject &stepperDetails, ESPStepperMotorServer_Stepper *stepper, int index)
+void ESPStepperMotorServer::populateStepperDetailsToJsonObject(JsonObject &stepperDetails, ESPStepperMotorServer_StepperConfiguration *stepper, int index)
 {
   stepperDetails["id"] = index;
 
