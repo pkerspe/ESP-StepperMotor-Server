@@ -159,8 +159,11 @@ private:
   const char *wifiPassword;
   const char *version = "0.0.1";
   const char *webUiIndexFile = "/index.html";
-  const char *webUiJsFile = "/dist/build.js.gz";
-  const char *webUiLogoFile = "/dist/logo.png";
+  const char *webUiJsFile = "/js/app.js.gz";
+  const char *webUiLogoFile = "/img/logo.svg";
+  const char *webUiEncoderGraphic = "/img/rotaryEncoderWheel.svg";
+  const char *webUiStepperGraphic = "/img/stepper.svg";
+  const char *webUiSwitchGraphic = "/img/switch.svg";
   const char *webUiFaviconFile = "/favicon.ico.gz";
   const char *webUiRepositoryBasePath = "https://raw.githubusercontent.com/pkerspe/ESP-StepperMotor-Server/master/data";
   boolean isWebserverEnabled = false;

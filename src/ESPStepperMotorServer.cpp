@@ -516,7 +516,7 @@ bool ESPStepperMotorServer::checkIfGuiExistsInSpiffs()
   ESPStepperMotorServer_Logger::logDebug("Checking if web UI is installed in SPIFFS");
   bool uiComplete = true;
   const char *notPresent = "The file %s could not be found on SPIFFS";
-  const char *files[4] = {this->webUiIndexFile, this->webUiJsFile, this->webUiLogoFile, this->webUiFaviconFile};
+  const char *files[7] = {this->webUiIndexFile, this->webUiJsFile, this->webUiLogoFile, this->webUiFaviconFile, this->webUiEncoderGraphic, this->webUiStepperGraphic, this->webUiSwitchGraphic};
 
   for (int i = 0; i < 4; i++)
   {
@@ -647,18 +647,30 @@ void ESPStepperMotorServer::registerWebInterfaceUrls()
   httpServer->on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
     request->send(SPIFFS, this->webUiIndexFile);
   });
+  httpServer->on("/index.html", HTTP_GET, [this](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, this->webUiIndexFile);
+  });
   httpServer->on("/favicon.ico", HTTP_GET, [this](AsyncWebServerRequest *request) {
     AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiFaviconFile, "image/x-icon");
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);
   });
-  httpServer->on("/dist/build.js", HTTP_GET, [this](AsyncWebServerRequest *request) {
+  httpServer->on("/js/app.js", HTTP_GET, [this](AsyncWebServerRequest *request) {
     AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiJsFile, "text/javascript");
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);
   });
-  httpServer->on("/dist/logo.png", HTTP_GET, [this](AsyncWebServerRequest *request) {
+  httpServer->on(this->webUiLogoFile, HTTP_GET, [this](AsyncWebServerRequest *request) {
     request->send(SPIFFS, this->webUiLogoFile);
+  });
+  httpServer->on(this->webUiStepperGraphic, HTTP_GET, [this](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, this->webUiStepperGraphic);
+  });
+  httpServer->on(this->webUiEncoderGraphic, HTTP_GET, [this](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, this->webUiEncoderGraphic);
+  });
+  httpServer->on(this->webUiEncoderGraphic, HTTP_GET, [this](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, this->webUiEncoderGraphic);
   });
 }
 
@@ -679,7 +691,7 @@ positionSwitch *ESPStepperMotorServer::getConfiguredSwitch(byte index)
 {
   if (index < 0 || index >= ESPServerMaxSwitches)
   {
-    sprintf(this->logString, "index %i for requsted switch is out of allowed range, must be between 0 and %i. Will retrun first entry instead" , index, ESPServerMaxSwitches);
+    sprintf(this->logString, "index %i for requsted switch is out of allowed range, must be between 0 and %i. Will retrun first entry instead", index, ESPServerMaxSwitches);
     ESPStepperMotorServer_Logger::logWarning(this->logString);
     index = 0;
   }
