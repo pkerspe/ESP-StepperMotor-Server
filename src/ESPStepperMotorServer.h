@@ -68,15 +68,29 @@
 #define ESPServerSwitchType_GeneralPositionSwitch 16
 #define ESPServerSwitchType_EmergencyStopSwitch 32
 
-#define ESPServerMaxSwitches 16
+#ifndef ESPServerMaxSwitches
+#define ESPServerMaxSwitches 10
+#endif
+
+#ifndef ESPServerSwitchStatusRegisterCount
 #define ESPServerSwitchStatusRegisterCount 2 //NOTE: this value must be chosen according to the value of ESPServerMaxSwitches: val = ceil(ESPServerMaxSwitches / 8)
-#define ESPServerMaxSteppers 10
-#define ESPServerMaxRotaryEncoders 4
+#endif
+
+#ifndef ESPServerMaxSteppers
+#define ESPServerMaxSteppers 5
+#endif
+
+#ifndef ESPServerMaxRotaryEncoders
+#define ESPServerMaxRotaryEncoders 5
+#endif
 
 #define ESPStepperMotorServer_SwitchDisplayName_MaxLength 20
 
 #define ESPServerPositionSwitchUnsetPinNumber 255
 #define ESPStepperHighestAllowedIoPin 50
+
+//just declare class here for compiler, since we have a circular dependency
+class ESPStepperMotorServer_RestAPI;
 
 //
 // the ESPStepperMotorServer class
@@ -93,7 +107,7 @@ public:
   void printWifiStatus();
   int addStepper(ESPStepperMotorServer_StepperConfiguration *stepper);
   int addPositionSwitch(byte stepperIndex, byte ioPinNumber, byte switchType, String positionName, long switchPosition = -1);
-  int addPositionSwitch(positionSwitch posSwitchToAdd);
+  int addPositionSwitch(positionSwitch posSwitchToAdd, int switchIndex = -1);
   int addRotaryEncoder(ESPStepperMotorServer_RotaryEncoder *rotaryEncoderToAdd);
   void removePositionSwitch(int positionSwitchIndex);
   void removePositionSwitch(positionSwitch *posSwitchToRemove);
@@ -171,6 +185,7 @@ private:
   boolean isServerStarted = false;
   char logString[400];
 
+  ESPStepperMotorServer_RestAPI *restApiHandler;
   ESPStepperMotorServer_StepperConfiguration *configuredSteppers[ESPServerMaxSteppers] = {NULL};
   byte configuredStepperIndex = 0;
   static ESPStepperMotorServer *anchor; //used for self-reference in ISR

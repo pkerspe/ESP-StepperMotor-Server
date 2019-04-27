@@ -94,6 +94,7 @@ ESPStepperMotorServer::ESPStepperMotorServer(byte serverMode)
   if ((this->enabledServices & ESPServerRestApiEnabled) == ESPServerRestApiEnabled)
   {
     this->isRestApiEnabled = true;
+    this->restApiHandler = new ESPStepperMotorServer_RestAPI(this);
   }
 
   if (ESPStepperMotorServer::anchor != NULL)
@@ -193,13 +194,13 @@ int ESPStepperMotorServer::addPositionSwitch(byte stepperIndex, byte ioPinNumber
   return this->addPositionSwitch(positionSwitchToAdd);
 }
 
-int ESPStepperMotorServer::addPositionSwitch(positionSwitch posSwitchToAdd)
+int ESPStepperMotorServer::addPositionSwitch(positionSwitch posSwitchToAdd, int switchIndex)
 {
   if (posSwitchToAdd.stepperIndex > this->configuredStepperIndex)
   {
     sprintf(this->logString, "invalid stepperIndex value given. The number of configured steppers is %i but index value of %i was given in addPositionSwitch() call.", this->configuredStepperIndex, posSwitchToAdd.stepperIndex);
     ESPStepperMotorServer_Logger::logWarning(this->logString);
-    ESPStepperMotorServer_Logger::logWarning("the stepper instance has not been added to the server configuration");
+    ESPStepperMotorServer_Logger::logWarning("the position switch has not been added");
     return -1;
   }
   if (posSwitchToAdd.positionName.length() > ESPSMS_Stepper_DisplayName_MaxLength)
@@ -209,31 +210,34 @@ int ESPStepperMotorServer::addPositionSwitch(positionSwitch posSwitchToAdd)
     ESPStepperMotorServer_Logger::logWarning(logString);
     posSwitchToAdd.positionName = posSwitchToAdd.positionName.substring(0, ESPSMS_Stepper_DisplayName_MaxLength);
   }
-  //check if we have a blank configuration slot before the actual index (due to possible removal of previously configured position switches that might have been removed in the meantime)
-  int freePositionSwitchIndex = this->configuredPositionSwitchIndex;
-  for (int i = 0; i < this->configuredPositionSwitchIndex; i++)
+  if (switchIndex == -1)
   {
-    if (this->configuredPositionSwitches[i].ioPinNumber == ESPServerPositionSwitchUnsetPinNumber)
+    //check if we have a blank configuration slot before the actual index (due to possible removal of previously configured position switches that might have been removed in the meantime)
+    switchIndex = this->configuredPositionSwitchIndex;
+    for (int i = 0; i < this->configuredPositionSwitchIndex; i++)
     {
-      freePositionSwitchIndex = i;
-      break;
+      if (this->configuredPositionSwitches[i].ioPinNumber == ESPServerPositionSwitchUnsetPinNumber)
+      {
+        switchIndex = i;
+        break;
+      }
     }
   }
 
-  this->configuredPositionSwitches[freePositionSwitchIndex] = posSwitchToAdd;
-  this->configuredPositionSwitchIoPins[freePositionSwitchIndex] = posSwitchToAdd.ioPinNumber;
-  this->emergencySwitchIndexes[freePositionSwitchIndex] = ((posSwitchToAdd.switchType & ESPServerSwitchType_EmergencyStopSwitch) == ESPServerSwitchType_EmergencyStopSwitch);
+  this->configuredPositionSwitches[switchIndex] = posSwitchToAdd;
+  this->configuredPositionSwitchIoPins[switchIndex] = posSwitchToAdd.ioPinNumber;
+  this->emergencySwitchIndexes[switchIndex] = ((posSwitchToAdd.switchType & ESPServerSwitchType_EmergencyStopSwitch) == ESPServerSwitchType_EmergencyStopSwitch);
   //Setup IO Pin
   this->setupPositionSwitchIOPin(&posSwitchToAdd);
 
-  sprintf(this->logString, "added position switch %s for IO pin %i at configuration index %i", this->configuredPositionSwitches[freePositionSwitchIndex].positionName.c_str(), this->configuredPositionSwitches[freePositionSwitchIndex].ioPinNumber, freePositionSwitchIndex);
+  sprintf(this->logString, "added position switch %s for IO pin %i at configuration index %i", this->configuredPositionSwitches[switchIndex].positionName.c_str(), this->configuredPositionSwitches[switchIndex].ioPinNumber, switchIndex);
   ESPStepperMotorServer_Logger::logInfo(this->logString);
 
-  if (this->configuredPositionSwitchIndex == freePositionSwitchIndex)
+  if (this->configuredPositionSwitchIndex == switchIndex)
   {
     this->configuredPositionSwitchIndex++;
   }
-  return configuredPositionSwitchIndex - 1;
+  return switchIndex;
 }
 
 void ESPStepperMotorServer::removePositionSwitch(int positionSwitchIndex)
@@ -636,8 +640,7 @@ void ESPStepperMotorServer::getStatusAsJsonString(String &statusString)
 
 void ESPStepperMotorServer::registerRestApiEndpoints()
 {
-  ESPStepperMotorServer_RestAPI restApiHandler = ESPStepperMotorServer_RestAPI(this);
-  restApiHandler.registerRestEndpoints(this->httpServer);
+  this->restApiHandler->registerRestEndpoints(this->httpServer);
 }
 
 void ESPStepperMotorServer::registerWebInterfaceUrls()
