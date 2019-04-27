@@ -41,12 +41,16 @@
 
 #include <Arduino.h>
 #include <FlexyStepper.h>
-#include <ESPStepperMotorServer_StepperConfiguration.h>
-#include <ESPStepperMotorServer_Logger.h>
 #include <SPIFFS.h>
 #include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
 #include <HTTPClient.h>
+
+#include <ESPStepperMotorServer_PositionSwitch.h>
+#include <ESPStepperMotorServer_StepperConfiguration.h>
+#include <ESPStepperMotorServer_RotaryEncoder.h>
+#include <ESPStepperMotorServer_Logger.h>
+#include <ESPStepperMotorServer_RestAPI.h>
 
 #define ESPServerWifiModeClient 0
 #define ESPServerWifiModeAccessPoint 1
@@ -67,20 +71,12 @@
 #define ESPServerMaxSwitches 16
 #define ESPServerSwitchStatusRegisterCount 2 //NOTE: this value must be chosen according to the value of ESPServerMaxSwitches: val = ceil(ESPServerMaxSwitches / 8)
 #define ESPServerMaxSteppers 10
+#define ESPServerMaxRotaryEncoders 4
 
 #define ESPStepperMotorServer_SwitchDisplayName_MaxLength 20
 
 #define ESPServerPositionSwitchUnsetPinNumber 255
 #define ESPStepperHighestAllowedIoPin 50
-
-typedef struct positionSwitch
-{
-  byte stepperIndex;
-  byte ioPinNumber = ESPServerPositionSwitchUnsetPinNumber;
-  byte switchType;
-  String positionName;
-  long switchPosition;
-} positionSwitch;
 
 //
 // the ESPStepperMotorServer class
@@ -98,16 +94,23 @@ public:
   int addStepper(ESPStepperMotorServer_StepperConfiguration *stepper);
   int addPositionSwitch(byte stepperIndex, byte ioPinNumber, byte switchType, String positionName, long switchPosition = -1);
   int addPositionSwitch(positionSwitch posSwitchToAdd);
+  int addRotaryEncoder(ESPStepperMotorServer_RotaryEncoder *rotaryEncoderToAdd);
   void removePositionSwitch(int positionSwitchIndex);
   void removePositionSwitch(positionSwitch *posSwitchToRemove);
   void removeStepper(int stepperConfigurationIndex);
   void removeStepper(ESPStepperMotorServer_StepperConfiguration *stepper);
+  void removeRotaryEncoder(int rotaryEncoderConfigurationIndex);
+  void removeRotaryEncoder(ESPStepperMotorServer_RotaryEncoder *rotaryEncoderToAdd);
   void printPositionSwitchStatus();
   void start();
   void stop();
   byte getPositionSwitchStatus(int positionSwitchIndex);
   //delegator functions only
   void setLogLevel(byte);
+  void getStatusAsJsonString(String &statusString);
+  ESPStepperMotorServer_StepperConfiguration *getConfiguredStepper(byte index);
+  positionSwitch *getConfiguredSwitch(byte index);
+  bool isIoPinUsed(int);
 
   //
   // public member variables
@@ -133,34 +136,36 @@ private:
   bool downloadFileToSpiffs(const char *url, const char *targetPath);
   void setupPositionSwitchIOPin(positionSwitch *posSwitchToAdd);
   void detachInterruptForPositionSwitch(positionSwitch *posSwitch);
+  void detachInterruptForRotaryEncoder(ESPStepperMotorServer_RotaryEncoder *rotaryEncoder);
   void detachAllInterrupts();
   void attachAllInterrupts();
   void setPositionSwitchStatus(int positionSwitchIndex, byte status);
   void printBinaryWithLeaingZeros(char *result, byte var);
-  void populateStepperDetailsToJsonObject(JsonObject &detailsObjecToPopulate, ESPStepperMotorServer_StepperConfiguration *stepper, int index);
-  void populateSwitchDetailsToJsonObject(JsonObject &detailsObjecToPopulate, positionSwitch positionSwitch, int index);
+  // ISR handling
   static void staticPositionSwitchISR();
   void internalPositionSwitchISR();
-  bool isIoPinUsed(int);
+  static void staticRotaryEncoderISR();
+  void internalRotaryEncoderISR();
 
   //
   // private member variables
   //
   int httpPortNumber;
   byte wifiMode;
+  byte enabledServices;
   const char *accessPointSSID;
   const char *accessPointPassword;
   const char *wifiClientSsid;
   const char *wifiPassword;
-  byte enabledServices;
-  boolean isWebserverEnabled = false;
-  boolean isRestApiEnabled = false;
   const char *version = "0.0.1";
   const char *webUiIndexFile = "/index.html";
   const char *webUiJsFile = "/dist/build.js.gz";
   const char *webUiLogoFile = "/dist/logo.png";
   const char *webUiFaviconFile = "/favicon.ico.gz";
   const char *webUiRepositoryBasePath = "https://raw.githubusercontent.com/pkerspe/ESP-StepperMotor-Server/master/data";
+  boolean isWebserverEnabled = false;
+  boolean isRestApiEnabled = false;
+  boolean isServerStarted = false;
   char logString[400];
 
   ESPStepperMotorServer_StepperConfiguration *configuredSteppers[ESPServerMaxSteppers] = {NULL};
@@ -176,6 +181,9 @@ private:
   volatile byte configuredPositionSwitchIoPins[ESPServerMaxSwitches];
   // an array of all position switch configuration indexes where a emergency switch is connected to
   volatile byte emergencySwitchIndexes[ESPServerMaxSwitches];
+  // an array to hold all configured rotary encoders
+  ESPStepperMotorServer_RotaryEncoder *configuredRotaryEncoders[ESPServerMaxRotaryEncoders] = {NULL};
+
   AsyncWebServer *httpServer;
 };
 

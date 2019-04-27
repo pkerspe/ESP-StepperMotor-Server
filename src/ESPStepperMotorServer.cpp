@@ -308,12 +308,15 @@ void ESPStepperMotorServer::start()
   this->startWebserver();
 
   this->attachAllInterrupts();
+
+  this->isServerStarted = true;
 }
 
 void ESPStepperMotorServer::stop()
 {
   ESPStepperMotorServer_Logger::logInfo("Stopping ESP-StepperMotor-Server");
   this->detachAllInterrupts();
+  this->isServerStarted = false;
 }
 
 // ---------------------------------------------------------------------------------
@@ -615,401 +618,26 @@ bool ESPStepperMotorServer::downloadFileToSpiffs(const char *url, const char *ta
   return SPIFFS.exists(targetPath);
 }
 
+void ESPStepperMotorServer::getStatusAsJsonString(String &statusString)
+{
+  StaticJsonDocument<200> doc;
+  JsonObject root = doc.to<JsonObject>();
+  root["version"] = this->version;
+
+  JsonObject wifiStatus = root.createNestedObject("wifi");
+  wifiStatus["mode"] = (this->wifiMode == ESPServerWifiModeAccessPoint) ? "ap" : "client";
+  wifiStatus["ip"] = (this->wifiMode == ESPServerWifiModeAccessPoint) ? WiFi.dnsIP().toString() : WiFi.localIP().toString();
+
+  JsonObject spiffsStatus = root.createNestedObject("spiffss");
+  spiffsStatus["total_space"] = (int)SPIFFS.totalBytes();
+  spiffsStatus["free_space"] = this->getSPIFFSFreeSpace();
+  serializeJson(root, statusString);
+}
+
 void ESPStepperMotorServer::registerRestApiEndpoints()
 {
-  // GET /api/status
-  httpServer->on("/api/status", HTTP_GET, [this](AsyncWebServerRequest *request) {
-    StaticJsonDocument<200> doc;
-    JsonObject root = doc.to<JsonObject>();
-    root["version"] = this->version;
-
-    JsonObject wifiStatus = root.createNestedObject("wifi");
-    wifiStatus["mode"] = (this->wifiMode == ESPServerWifiModeAccessPoint) ? "ap" : "client";
-    wifiStatus["ip"] = (this->wifiMode == ESPServerWifiModeAccessPoint) ? WiFi.dnsIP().toString() : WiFi.localIP().toString();
-
-    JsonObject spiffsStatus = root.createNestedObject("spiffss");
-    spiffsStatus["total_space"] = (int)SPIFFS.totalBytes();
-    spiffsStatus["free_space"] = getSPIFFSFreeSpace();
-
-    String output;
-    serializeJson(root, output);
-    AsyncWebServerResponse *response = request->beginResponse(200, "application/json", output);
-    request->send(response);
-  });
-
-  // GET /api/steppers/position?id=<id>
-  httpServer->on("/api/steppers/position", HTTP_GET, [this](AsyncWebServerRequest *request) {
-    String output;
-    const int docSize = 60;
-
-    if (request->hasParam("id"))
-    {
-      const int stepperIndex = request->getParam("id")->value().toInt();
-      if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->configuredSteppers[stepperIndex] == NULL)
-      {
-        request->send(404);
-        return;
-      }
-
-      StaticJsonDocument<docSize> doc;
-      JsonObject root = doc.to<JsonObject>();
-      ESPStepperMotorServer_StepperConfiguration *stepper = this->configuredSteppers[stepperIndex];
-      root["mm"] = stepper->getFlexyStepper()->getCurrentPositionInMillimeters();
-      root["revs"] = stepper->getFlexyStepper()->getCurrentPositionInRevolutions();
-      root["steps"] = stepper->getFlexyStepper()->getCurrentPositionInSteps();
-      serializeJson(root, output);
-      AsyncWebServerResponse *response = request->beginResponse(200, "application/json", output);
-      request->send(response);
-
-      sprintf(this->logString, "ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), docSize);
-      ESPStepperMotorServer_Logger::logDebug(this->logString);
-    }
-    else
-    {
-      request->send(404);
-      return;
-    }
-  });
-
-  // POST /api/steppers/moveby
-  // endpoint to set a new RELATIVE target position for the stepper motor in either mm, revs or steps
-  // post parameters: id, unit, value
-  httpServer->on("/api/steppers/moveby", HTTP_POST, [this](AsyncWebServerRequest *request) {
-    if (request->hasParam("id"))
-    {
-      int stepperIndex = request->getParam("id")->value().toInt();
-      if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->configuredSteppers[stepperIndex] == NULL)
-      {
-        request->send(404, "application/json", "{\"error\": \"No stepper configuration found for given id\"}");
-        return;
-      }
-      if (request->hasParam("speed"))
-      {
-        float speed = request->getParam("speed")->value().toFloat();
-        if (speed > 0)
-        {
-          this->configuredSteppers[stepperIndex]->getFlexyStepper()->setSpeedInStepsPerSecond(speed);
-        }
-      }
-      if (request->hasParam("accell"))
-      {
-        float accell = request->getParam("accell")->value().toFloat();
-        if(accell > 0){
-          this->configuredSteppers[stepperIndex]->getFlexyStepper()->setAccelerationInStepsPerSecondPerSecond(accell);
-        }
-      }
-
-      if (request->hasParam("value") && request->hasParam("unit"))
-      {
-        String unit = request->getParam("unit")->value();
-        float distance = request->getParam("value")->value().toFloat();
-        if (unit == "mm")
-        {
-          this->configuredSteppers[stepperIndex]->getFlexyStepper()->moveRelativeInMillimeters(distance);
-        }
-        else if (unit == "revs")
-        {
-          this->configuredSteppers[stepperIndex]->getFlexyStepper()->moveRelativeInRevolutions(distance);
-        }
-        else if (unit == "steps")
-        {
-          this->configuredSteppers[stepperIndex]->getFlexyStepper()->moveRelativeInSteps(distance);
-        }
-        else
-        {
-          request->send(400, "application/json", "{\"error\": \"Invalid unit given. Must be one of: revs, steps, mm\"}");
-          return;
-        }
-
-        request->send(204);
-        return;
-      }
-    }
-    request->send(400, "application/json", "{\"error\": \"Missing id paramter for stepper motor to move\"}");
-  });
-
-  // POST /api/steppers/position
-  // endpoint to set a new absolute target position for the stepper motor in either mm, revs or steps
-  // post parameters: id, unit, value
-  httpServer->on("/api/steppers/position", HTTP_POST, [this](AsyncWebServerRequest *request) {
-    if (request->hasParam("id", true))
-    {
-      int stepperIndex = request->getParam("id", true)->value().toInt();
-      if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->configuredSteppers[stepperIndex] == NULL)
-      {
-        request->send(404);
-        return;
-      }
-      if (request->hasParam("value", true) && request->hasParam("unit", true))
-      {
-        String unit = request->getParam("unit", true)->value();
-        float position = request->getParam("value", true)->value().toFloat();
-        if (unit == "mm")
-        {
-          this->configuredSteppers[stepperIndex]->getFlexyStepper()->moveToPositionInMillimeters(position);
-        }
-        else if (unit == "revs")
-        {
-          this->configuredSteppers[stepperIndex]->getFlexyStepper()->moveToPositionInRevolutions(position);
-        }
-        else if (unit == "steps")
-        {
-          this->configuredSteppers[stepperIndex]->getFlexyStepper()->moveToPositionInSteps(position);
-        }
-        else
-        {
-          request->send(400);
-          return;
-        }
-
-        request->send(204);
-        return;
-      }
-    }
-    request->send(400);
-  });
-
-  // GET /api/steppers
-  // GET /api/steppers?id=<id>
-  // endpoint to list all configured steppers or a specific one if "id" query parameter is given
-  httpServer->on("/api/steppers", HTTP_GET, [this](AsyncWebServerRequest *request) {
-    String output;
-
-    if (request->hasParam("id"))
-    {
-      int stepperIndex = request->getParam("id")->value().toInt();
-      if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers)
-      {
-        request->send(404);
-        return;
-      }
-
-      StaticJsonDocument<300> doc;
-      JsonObject root = doc.to<JsonObject>();
-      JsonObject stepperDetails = root.createNestedObject("stepper");
-      this->populateStepperDetailsToJsonObject(stepperDetails, this->configuredSteppers[stepperIndex], stepperIndex);
-      serializeJson(root, output);
-
-      //      Serial.println(doc.memoryUsage());
-    }
-    else
-    {
-      const int docSize = 300 * ESPServerMaxSteppers;
-      StaticJsonDocument<docSize> doc;
-      JsonObject root = doc.to<JsonObject>();
-      JsonArray steppers = root.createNestedArray("steppers");
-      for (int i = 0; i < ESPServerMaxSteppers; i++)
-      {
-        JsonObject stepperDetails = steppers.createNestedObject();
-        this->populateStepperDetailsToJsonObject(stepperDetails, this->configuredSteppers[i], i);
-      }
-      serializeJson(root, output);
-
-      //      Serial.println(doc.memoryUsage());
-    }
-
-    AsyncWebServerResponse *response = request->beginResponse(200, "application/json", output);
-    request->send(response);
-  });
-
-  // DELETE /api/steppers?id=<id>
-  httpServer->on("/api/steppers", HTTP_DELETE, [this](AsyncWebServerRequest *request) {
-    if (request->params() == 1 && request->getParam(0)->name() == "id")
-    {
-      int stepperIndex = request->getParam(0)->value().toInt();
-      if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->configuredSteppers[stepperIndex] != NULL)
-      {
-        this->removeStepper(stepperIndex);
-        request->send(204);
-      }
-      else
-      {
-        request->send(404);
-      }
-    }
-    else
-    {
-      request->send(404);
-    }
-  });
-
-  // POST /api/steppers
-  httpServer->on("/api/steppers", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-    StaticJsonDocument<300> doc;
-    DeserializationError error = deserializeJson(doc, (const char *)data);
-    if (error)
-    {
-      request->send(400, "application/json", "{\"error\": \"Invalid JSON request, deserialization failed\"}");
-    } 
-    else
-    {
-      if (doc.containsKey("name") && doc.containsKey("stepPin") && doc.containsKey("dirPin"))
-      {
-        const char *name = doc["name"];
-        int stepPin = doc["stepPin"];
-        int dirPin = doc["dirPin"];
-        if (stepPin >= 0 && stepPin <= ESPStepperHighestAllowedIoPin && dirPin >= 0 && dirPin <= ESPStepperHighestAllowedIoPin && dirPin != stepPin)
-        {
-          //check if pins are already in use by a stepper or switch configuration
-          if (isIoPinUsed(stepPin)) {
-            request->send(400, "application/json", "{\"error\": \"The given STEP IO pin is already used by another stepper or a switch configuration\"}");
-          } else if (isIoPinUsed(dirPin)) {
-            request->send(400, "application/json", "{\"error\": \"The given DIRECTION IO pin is already used by another stepper or a switch configuration\"}");
-          } else {
-            ESPStepperMotorServer_StepperConfiguration *stepperToAdd = new ESPStepperMotorServer_StepperConfiguration(stepPin, dirPin);
-            stepperToAdd->setDisplayName(name);
-            int newId = this->addStepper(stepperToAdd);
-            sprintf(this->logString, "{\"id\": %i}", newId);
-            request->send(200, "application/json", this->logString);
-          }
-        }
-        else
-        {
-          request->send(400, "application/json", "{\"error\": \"Invalid IO pin number given or step and dir pin are the same\"}");
-        }
-      }
-      else
-      {
-        request->send(400, "application/json", "{\"error\": \"Invalid request, missing one ore more required parameters: name, stepPin, dirPin\"}");
-      }
-    } });
-
-  // PUT /api/steppers?id=<id>
-  //optional parameter
-  //int id = (request->hasParam("id")) ? std::atoi(request->getParam("id")->value().c_str()) : -1;
-
-  // GET /api/switches
-  // GET /api/switches?id=<id>
-  // endpoint to list all configured position switches or a specific one if "id" query parameter is given
-  httpServer->on("/api/switches", HTTP_GET, [this](AsyncWebServerRequest *request) {
-    String output;
-    const int switchObjectSize = JSON_OBJECT_SIZE(8) + 80; //80 is for Strings names
-
-    if (request->hasParam("id"))
-    {
-      int switchIndex = request->getParam("id")->value().toInt();
-      if (switchIndex < 0 || switchIndex >= ESPServerMaxSwitches || this->configuredPositionSwitches[switchIndex].ioPinNumber == ESPServerPositionSwitchUnsetPinNumber)
-      {
-        request->send(404);
-        return;
-      }
-
-      StaticJsonDocument<switchObjectSize> doc;
-      JsonObject root = doc.to<JsonObject>();
-      this->populateSwitchDetailsToJsonObject(root, this->configuredPositionSwitches[switchIndex], switchIndex);
-      serializeJson(root, output);
-
-      sprintf(this->logString, "ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), switchObjectSize);
-      ESPStepperMotorServer_Logger::logDebug(this->logString);
-    }
-    else
-    {
-      const int docSize = switchObjectSize * ESPServerMaxSwitches;
-      StaticJsonDocument<docSize> doc;
-      JsonObject root = doc.to<JsonObject>();
-      JsonArray switches = root.createNestedArray("switches");
-      for (int i = 0; i < ESPServerMaxSwitches; i++)
-      {
-        if (this->configuredPositionSwitches[i].ioPinNumber != ESPServerPositionSwitchUnsetPinNumber)
-        {
-          JsonObject switchDetails = switches.createNestedObject();
-          this->populateSwitchDetailsToJsonObject(switchDetails, this->configuredPositionSwitches[i], i);
-        }
-      }
-      serializeJson(root, output);
-
-      sprintf(this->logString, "ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), docSize);
-      ESPStepperMotorServer_Logger::logDebug(this->logString);
-    }
-
-    AsyncWebServerResponse *response = request->beginResponse(200, "application/json", output);
-    request->send(response);
-  });
-
-  // GET /api/switches/status?id=<id>
-
-  // POST /api/switches
-  // endpoint to add a new switch
-  httpServer->on("/api/switches", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-    StaticJsonDocument<300> doc;
-    DeserializationError error = deserializeJson(doc, (const char *)data);
-    if (error)
-    {
-      request->send(400, "application/json", "{\"error\": \"Invalid JSON request, deserialization failed\"}");
-    } 
-    else
-    {
-      if (doc.containsKey("stepperId") && doc.containsKey("ioPinNumber") && doc.containsKey("positionName") && doc.containsKey("switchPosition") && doc.containsKey("switchType"))
-      {
-        byte stepperConfigIndex = doc["stepperId"];
-        byte ioPinNumber = doc["ioPinNumber"];
-        const char *name = doc["positionName"];
-        long switchPosition = doc["switchPosition"];
-        byte switchType = doc["switchType"];
-
-        if (ioPinNumber >= 0 && ioPinNumber <= ESPStepperHighestAllowedIoPin)
-        {
-          //check if pins are already in use by a stepper or switch configuration
-          if (isIoPinUsed(ioPinNumber))
-          {
-            request->send(400, "application/json", "{\"error\": \"The given IO pin is already used by another stepper or a switch configuration\"}");
-          }
-          else if (this->configuredSteppers[stepperConfigIndex] == NULL)
-          {
-            request->send(400, "application/json", "{\"error\": \"The given stepper id is invalid, no matching stepper configuration could be found\"}");
-          } else {
-            positionSwitch posSwitchToAdd;
-            posSwitchToAdd.ioPinNumber = ioPinNumber;
-            posSwitchToAdd.positionName = name;
-            posSwitchToAdd.stepperIndex = stepperConfigIndex;
-            posSwitchToAdd.switchPosition = switchPosition;
-            posSwitchToAdd.switchType = switchType;
-            int newId = this->addPositionSwitch(posSwitchToAdd);
-            sprintf(this->logString, "{\"id\": %i}", newId);
-            request->send(200, "application/json", this->logString);
-          }
-        }
-        else
-        {
-          request->send(400, "application/json", "{\"error\": \"Invalid IO pin number given\"}");
-        }
-      }
-      else
-      {
-        request->send(400, "application/json", "{\"error\": \"Invalid request, missing one ore more required parameters: name, stepPin, dirPin\"}");
-      }
-    } });
-
-  // PUT /api/switches?id=<id>
-
-  // DELETE /api/switches?id=<id>
-  httpServer->on("/api/switches", HTTP_DELETE, [this](AsyncWebServerRequest *request) {
-    if (request->params() == 1 && request->getParam(0)->name() == "id")
-    {
-      int switchIndex = request->getParam(0)->value().toInt();
-      if (switchIndex < 0 || switchIndex >= ESPServerMaxSwitches || this->configuredPositionSwitches[switchIndex].ioPinNumber != ESPServerPositionSwitchUnsetPinNumber)
-      {
-        this->removePositionSwitch(switchIndex);
-        request->send(204);
-      }
-      else
-      {
-        request->send(404);
-      }
-    }
-    else
-    {
-      request->send(404);
-    }
-  });
-
-  // GET /api/outputs
-  // GET /api/outputs?id=<id>
-  // GET /api/outputs/status?id=<id>
-  // PUT /api/outputs/status?id=<id>
-  // POST /api/outputs
-  // PUT /api/outputs?id=<id>
-  // DELETE /api/outputs?id=<id>
+  ESPStepperMotorServer_RestAPI restApiHandler = ESPStepperMotorServer_RestAPI(this);
+  restApiHandler.registerRestEndpoints(this->httpServer);
 }
 
 void ESPStepperMotorServer::registerWebInterfaceUrls()
@@ -1035,8 +663,28 @@ void ESPStepperMotorServer::registerWebInterfaceUrls()
 }
 
 // ---------------------------------------------------------------------------------
-//             internal helper functions for stepper communication
+//             helper functions for stepper communication
 // ---------------------------------------------------------------------------------
+
+ESPStepperMotorServer_StepperConfiguration *ESPStepperMotorServer::getConfiguredStepper(byte index)
+{
+  if (index < ESPServerMaxSteppers)
+  {
+    return this->configuredSteppers[index];
+  }
+  return NULL;
+}
+
+positionSwitch *ESPStepperMotorServer::getConfiguredSwitch(byte index)
+{
+  if (index < 0 || index >= ESPServerMaxSwitches)
+  {
+    sprintf(this->logString, "index %i for requsted switch is out of allowed range, must be between 0 and %i. Will retrun first entry instead" , index, ESPServerMaxSwitches);
+    ESPStepperMotorServer_Logger::logWarning(this->logString);
+    index = 0;
+  }
+  return &this->configuredPositionSwitches[index];
+}
 
 bool ESPStepperMotorServer::isIoPinUsed(int pinToCheck)
 {
@@ -1057,42 +705,6 @@ bool ESPStepperMotorServer::isIoPinUsed(int pinToCheck)
     }
   }
   return false;
-}
-
-void ESPStepperMotorServer::populateSwitchDetailsToJsonObject(JsonObject &switchDetails, positionSwitch positionSwitch, int index)
-{
-  switchDetails["id"] = index;
-  switchDetails["ioPin"] = positionSwitch.ioPinNumber;
-  switchDetails["name"] = positionSwitch.positionName;
-  switchDetails["stepperId"] = positionSwitch.stepperIndex;
-  switchDetails["stepperName"] = this->configuredSteppers[positionSwitch.stepperIndex]->getDisplayName();
-  switchDetails["type"] = positionSwitch.switchType;
-  switchDetails["position"] = positionSwitch.switchPosition;
-}
-
-void ESPStepperMotorServer::populateStepperDetailsToJsonObject(JsonObject &stepperDetails, ESPStepperMotorServer_StepperConfiguration *stepper, int index)
-{
-  stepperDetails["id"] = index;
-
-  stepperDetails["configured"] = (stepper == NULL) ? "false" : "true";
-  if (stepper != NULL)
-  {
-    stepperDetails["name"] = stepper->getDisplayName();
-    stepperDetails["stepPin"] = stepper->getStepIoPin();
-    stepperDetails["dirPin"] = stepper->getDirectionIoPin();
-    JsonObject position = stepperDetails.createNestedObject("position");
-
-    position["mm"] = stepper->getFlexyStepper()->getCurrentPositionInMillimeters();
-    position["revs"] = stepper->getFlexyStepper()->getCurrentPositionInRevolutions();
-    position["steps"] = stepper->getFlexyStepper()->getCurrentPositionInSteps();
-
-    JsonObject stepperStatus = stepperDetails.createNestedObject("velocity");
-    stepperStatus["rev_s"] = stepper->getFlexyStepper()->getCurrentVelocityInRevolutionsPerSecond();
-    stepperStatus["mm_s"] = stepper->getFlexyStepper()->getCurrentVelocityInMillimetersPerSecond();
-    stepperStatus["steps_s"] = stepper->getFlexyStepper()->getCurrentVelocityInStepsPerSecond();
-
-    stepperDetails["stopped"] = stepper->getFlexyStepper()->motionComplete();
-  }
 }
 
 // ---------------------------------------------------------------------------------
@@ -1277,6 +889,30 @@ void ESPStepperMotorServer::attachAllInterrupts()
       attachInterrupt(irqNum, staticPositionSwitchISR, CHANGE);
     }
   }
+
+  for (int i = 0; i < ESPServerMaxRotaryEncoders; i++)
+  {
+    ESPStepperMotorServer_RotaryEncoder *rotaryEncoder = this->configuredRotaryEncoders[i];
+    if (rotaryEncoder != NULL)
+    {
+      //we do a loop here to save some pgrogram memory, could also externalize code block in another function
+      const unsigned char pins[2] = {rotaryEncoder->getPinAIOPin(), rotaryEncoder->getPinBIOPin()};
+      for (int i = 0; i < 2; i++)
+      {
+        char irqNum = digitalPinToInterrupt(pins[i]);
+        if (irqNum == NOT_AN_INTERRUPT)
+        {
+          sprintf(this->logString, "Failed to determine IRQ# for given IO Pin %i, thus setting up of interrupt for the rotary encoder failed for pin %s", pins[i], rotaryEncoder->getDisplayName().c_str());
+          ESPStepperMotorServer_Logger::logWarning(this->logString);
+        }
+
+        sprintf(this->logString, "attaching interrupt service routine for rotary encoder %s on IO Pin %i", rotaryEncoder->getDisplayName().c_str(), pins[i]);
+        ESPStepperMotorServer_Logger::logDebug(this->logString);
+        _BV(irqNum); // clear potentially pending interrupts
+        attachInterrupt(irqNum, staticRotaryEncoderISR, CHANGE);
+      }
+    }
+  }
 }
 
 void ESPStepperMotorServer::detachInterruptForPositionSwitch(positionSwitch *posSwitch)
@@ -1284,6 +920,22 @@ void ESPStepperMotorServer::detachInterruptForPositionSwitch(positionSwitch *pos
   sprintf(this->logString, "detaching interrupt for position switch %s on IO Pin %i", posSwitch->positionName.c_str(), posSwitch->ioPinNumber);
   ESPStepperMotorServer_Logger::logDebug(this->logString);
   detachInterrupt(digitalPinToInterrupt(posSwitch->ioPinNumber));
+}
+
+void ESPStepperMotorServer::detachInterruptForRotaryEncoder(ESPStepperMotorServer_RotaryEncoder *rotaryEncoder)
+{
+  sprintf(this->logString, "detaching interrupts for rotary encoder %s on IO Pins %i and %i", rotaryEncoder->getDisplayName().c_str(), rotaryEncoder->getPinAIOPin(), rotaryEncoder->getPinBIOPin());
+  ESPStepperMotorServer_Logger::logDebug(this->logString);
+  //Pin A of rotary encoder
+  if (digitalPinToInterrupt(rotaryEncoder->getPinAIOPin()) != NOT_AN_INTERRUPT)
+  {
+    detachInterrupt(digitalPinToInterrupt(rotaryEncoder->getPinAIOPin()));
+  }
+  //Pin B of rotary encoder
+  if (digitalPinToInterrupt(rotaryEncoder->getPinBIOPin()) != NOT_AN_INTERRUPT)
+  {
+    detachInterrupt(digitalPinToInterrupt(rotaryEncoder->getPinBIOPin()));
+  }
 }
 
 /**
@@ -1297,6 +949,14 @@ void ESPStepperMotorServer::detachAllInterrupts()
     if (posSwitch.ioPinNumber != ESPServerPositionSwitchUnsetPinNumber)
     {
       this->detachInterruptForPositionSwitch(&posSwitch);
+    }
+  }
+  for (int i = 0; i < ESPServerMaxRotaryEncoders; i++)
+  {
+    ESPStepperMotorServer_RotaryEncoder *rotaryEncoder = this->configuredRotaryEncoders[i];
+    if (rotaryEncoder != NULL)
+    {
+      this->detachInterruptForRotaryEncoder(rotaryEncoder);
     }
   }
 }
@@ -1339,9 +999,34 @@ void ESPStepperMotorServer::internalPositionSwitchISR()
   this->positionSwitchUpdateAvailable = true;
 }
 
+void ESPStepperMotorServer::internalRotaryEncoderISR()
+{
+  for (int i = 0; i < ESPServerMaxRotaryEncoders; i++)
+  {
+    ESPStepperMotorServer_RotaryEncoder *rotaryEncoder = this->configuredRotaryEncoders[i];
+    if (rotaryEncoder != NULL)
+    {
+      unsigned char result = rotaryEncoder->process();
+      if (result == DIR_CW)
+      {
+        this->configuredSteppers[rotaryEncoder->getStepperIndex()]->getFlexyStepper()->setTargetPositionRelativeInSteps(1 * rotaryEncoder->getStepMultiplier());
+      }
+      else if (result == DIR_CCW)
+      {
+        this->configuredSteppers[rotaryEncoder->getStepperIndex()]->getFlexyStepper()->setTargetPositionRelativeInSteps(-1 * rotaryEncoder->getStepMultiplier());
+      }
+    }
+  }
+}
+
 void ESPStepperMotorServer::staticPositionSwitchISR()
 {
   anchor->internalPositionSwitchISR();
+}
+
+void ESPStepperMotorServer::staticRotaryEncoderISR()
+{
+  anchor->internalRotaryEncoderISR();
 }
 
 // ----------------- delegator functions to easy API usage -------------------------

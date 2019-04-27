@@ -1,6 +1,6 @@
 //      ******************************************************************
 //      *                                                                *
-//      *       Header file for ESPStepperMotorServer_Logger.cpp         *
+//      *       Header file for ESPStepperMotorServer_RestAPI.cpp        *
 //      *                                                                *
 //      *               Copyright (c) Paul Kerspe, 2019                  *
 //      *                                                                *
@@ -28,35 +28,35 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef ESPStepperMotorServer_Logger_h
-#define ESPStepperMotorServer_Logger_h
+#ifndef ESPStepperMotorServer_RestAPI_h
+#define ESPStepperMotorServer_RestAPI_h
 
 #include <Arduino.h>
+#include <ESPAsyncWebServer.h>
+#include <ArduinoJson.h>
+#include <ESPStepperMotorServer_PositionSwitch.h>
+#include <ESPStepperMotorServer_Logger.h>
+#include <ESPStepperMotorServer.h>
 
-#define ESPServerLogLevel_ALL 4
-#define ESPServerLogLevel_DEBUG 3
-#define ESPServerLogLevel_INFO 2
-#define ESPServerLogLevel_WARNING 1
+//just declare class here for compiler, since we have a circular dependency
+class ESPStepperMotorServer;
 
-//
-// the ESPStepperMotorServer_Logger class
-class ESPStepperMotorServer_Logger
+class ESPStepperMotorServer_RestAPI
 {
-  public:
-    ESPStepperMotorServer_Logger(String logName);
-    static void setLogLevel(byte);
-    static byte getLogLevel(void);
-    static void logDebug(const char *msg, boolean newLine = true, boolean ommitLogLevel = false);
-    static void logDebug(String msg, boolean newLine = true, boolean ommitLogLevel = false);
-    static void logInfo(const char *msg, boolean newLine = true, boolean ommitLogLevel = false);
-    static void logWarning(const char *msg, boolean newLine = true, boolean ommitLogLevel = false);
-    char logString[400];
+public:
+  ESPStepperMotorServer_RestAPI(ESPStepperMotorServer *stepperMotorServer);
+  /**
+     * register all rest endpoint handlers with the given ESP AsyncWebServer instance reference
+     */
+  void registerRestEndpoints(AsyncWebServer *server);
 
-  private:
-    static void log(const char *level, const char *msg, boolean newLine, boolean ommitLogLevel);
-    static void printBinaryWithLeaingZeros(char *result, byte var);
-    static byte _logLevel;
-    String loggerName;
+private:
+  bool initialized;
+  String version;
+  ESPStepperMotorServer_Logger *logger;
+  ESPStepperMotorServer *_stepperMotorServer;
+  void populateStepperDetailsToJsonObject(JsonObject &detailsObjecToPopulate, ESPStepperMotorServer_StepperConfiguration *stepper, int index);
+  void populateSwitchDetailsToJsonObject(JsonObject &detailsObjecToPopulate, positionSwitch *positionSwitch, int index);
 };
 
 #endif
