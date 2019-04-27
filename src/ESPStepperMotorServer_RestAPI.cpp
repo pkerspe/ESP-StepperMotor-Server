@@ -89,8 +89,11 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       AsyncWebServerResponse *response = request->beginResponse(200, "application/json", output);
       request->send(response);
 
-      sprintf(this->logger->logString, "ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), docSize);
-      ESPStepperMotorServer_Logger::logDebug(this->logger->logString);
+      if (this->logger->getLogLevel() >= ESPServerLogLevel_DEBUG)
+      {
+        sprintf(this->logger->logString, "ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), docSize);
+        ESPStepperMotorServer_Logger::logDebug(this->logger->logString);
+      }
     }
     else
     {
@@ -244,86 +247,69 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
   });
 
   // DELETE /api/steppers?id=<id>
+  // delete an existing stepper configuration
   httpServer->on("/api/steppers", HTTP_DELETE, [this](AsyncWebServerRequest *request) {
     this->logDebugRequestUrl(request);
-
-    if (request->params() == 1 && request->getParam(0)->name() == "id")
-    {
-      int stepperIndex = request->getParam(0)->value().toInt();
-      if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->_stepperMotorServer->getConfiguredStepper(stepperIndex) != NULL)
-      {
-        this->_stepperMotorServer->removeStepper(stepperIndex);
-        request->send(204);
-      }
-      else
-      {
-        request->send(404);
-      }
-    }
-    else
-    {
-      request->send(404);
-    }
-  });
+    this->handleDeleteStepperRequest(request, true); });
 
   // POST /api/steppers
-  httpServer->on("/api/steppers", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-    this->logDebugRequestUrl(request);
-
-    StaticJsonDocument<300> doc;
-    DeserializationError error = deserializeJson(doc, (const char *)data);
-    if (error)
-    {
-      request->send(400, "application/json", "{\"error\": \"Invalid JSON request, deserialization failed\"}");
-    } 
-    else
-    {
-      if (doc.containsKey("name") && doc.containsKey("stepPin") && doc.containsKey("dirPin"))
-      {
-        const char *name = doc["name"];
-        int stepPin = doc["stepPin"];
-        int dirPin = doc["dirPin"];
-        if (stepPin >= 0 && stepPin <= ESPStepperHighestAllowedIoPin && dirPin >= 0 && dirPin <= ESPStepperHighestAllowedIoPin && dirPin != stepPin)
-        {
-          //check if pins are already in use by a stepper or switch configuration
-          if (this->_stepperMotorServer->isIoPinUsed(stepPin))
-          {
-            request->send(400, "application/json", "{\"error\": \"The given STEP IO pin is already used by another stepper or a switch configuration\"}");
-          }
-          else if (this->_stepperMotorServer->isIoPinUsed(dirPin))
-          {
-            request->send(400, "application/json", "{\"error\": \"The given DIRECTION IO pin is already used by another stepper or a switch configuration\"}");
-          } else {
-            ESPStepperMotorServer_StepperConfiguration *stepperToAdd = new ESPStepperMotorServer_StepperConfiguration(stepPin, dirPin);
-            stepperToAdd->setDisplayName(name);
-            int newId = this->_stepperMotorServer->addStepper(stepperToAdd);
-            sprintf(this->logger->logString, "{\"id\": %i}", newId);
-            request->send(200, "application/json", this->logger->logString);
-          }
-        }
-        else
-        {
-          request->send(400, "application/json", "{\"error\": \"Invalid IO pin number given or step and dir pin are the same\"}");
-        }
-      }
-      else
-      {
-        request->send(400, "application/json", "{\"error\": \"Invalid request, missing one ore more required parameters: name, stepPin, dirPin\"}");
-      }
-    } });
+  // add a new stepper configuration
+  httpServer->on("/api/steppers", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) { 
+    this->logDebugRequestUrl(request); 
+    this->handlePostStepperRequest(request, data, len, index, total, -1); });
 
   // PUT /api/steppers?id=<id>
-  //optional parameter
-  //int id = (request->hasParam("id")) ? std::atoi(request->getParam("id")->value().c_str()) : -1;
+  // upate an existing stepper configuration
+  httpServer->on("/api/steppers", HTTP_PUT, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) { 
+    this->logDebugRequestUrl(request);
+    int deleteRC = this->handleDeleteStepperRequest(request, false);
+    if (deleteRC == 204)
+    {
+      int stepperIndex = request->getParam("id")->value().toInt();
+      this->handlePostStepperRequest(request, data, len, index, total, stepperIndex);
+    } else {
+      request->send(deleteRC, "application/json", "{\"error\": \"Failed to update stepper configuration\"}");
+    } });
+
+  // GET /api/switches/status
+  // GET /api/switches/status?id=<id>
+  // get the current switch status of either one specific switch or all switches (returned as a bit mask in MSB order)
+  httpServer->on("/api/switches/status", HTTP_GET, [this](AsyncWebServerRequest *request) {
+    this->logDebugRequestUrl(request);
+    if (request->hasParam("id"))
+    {
+      int switchIndex = request->getParam("id")->value().toInt();
+      if (switchIndex < 0 || switchIndex >= ESPServerMaxSwitches || this->_stepperMotorServer->getConfiguredSwitch(switchIndex)->ioPinNumber == ESPServerPositionSwitchUnsetPinNumber)
+      {
+        request->send(404);
+        return;
+      }
+      request->send(200, "application/json", (String) "{ status: " + this->_stepperMotorServer->getPositionSwitchStatus(switchIndex) + (String) "}");
+    }
+    else
+    {
+      byte regStatus[ESPServerSwitchStatusRegisterCount];
+      this->_stepperMotorServer->getButtonStatusRegister(regStatus);
+      String output = "{ status: ";
+      for (int i = ESPServerSwitchStatusRegisterCount - 1; i >= 0; i--)
+      {
+        String binary = String(regStatus[i], BIN);
+        for (int i = 0; i < 8 - binary.length(); i++)
+        {
+          output += "0";
+        }
+        output += binary;
+      }
+      request->send(200, "application/json", output + "}");
+    }
+  });
 
   // GET /api/switches
   // GET /api/switches?id=<id>
   // endpoint to list all configured position switches or a specific one if "id" query parameter is given
   httpServer->on("/api/switches", HTTP_GET, [this](AsyncWebServerRequest *request) {
     this->logDebugRequestUrl(request);
-
     String output;
-    
     const int switchObjectSize = JSON_OBJECT_SIZE(8) + 80; //80 is for Strings names
 
     if (request->hasParam("id"))
@@ -340,8 +326,11 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       this->populateSwitchDetailsToJsonObject(root, this->_stepperMotorServer->getConfiguredSwitch(switchIndex), switchIndex);
       serializeJson(root, output);
 
-      sprintf(this->logger->logString, "ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), switchObjectSize);
-      ESPStepperMotorServer_Logger::logDebug(this->logger->logString);
+      if (this->logger->getLogLevel() >= ESPServerLogLevel_DEBUG)
+      {
+        sprintf(this->logger->logString, "ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), switchObjectSize);
+        ESPStepperMotorServer_Logger::logDebug(this->logger->logString);
+      }
     }
     else
     {
@@ -359,15 +348,16 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       }
       serializeJson(root, output);
 
-      sprintf(this->logger->logString, "ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), docSize);
-      ESPStepperMotorServer_Logger::logDebug(this->logger->logString);
+      if (this->logger->getLogLevel() >= ESPServerLogLevel_DEBUG)
+      {
+        sprintf(this->logger->logString, "ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), docSize);
+        ESPStepperMotorServer_Logger::logDebug(this->logger->logString);
+      }
     }
 
     AsyncWebServerResponse *response = request->beginResponse(200, "application/json", output);
     request->send(response);
   });
-
-  // GET /api/switches/status?id=<id>
 
   // POST /api/switches
   // endpoint to add a new switch
@@ -382,7 +372,8 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     int deleteRC = this->handleDeleteSwitchRequest(request, false);
     if (deleteRC == 204)
     {
-      this->handlePostSwitchRequest(request, data, len, index, total); 
+      int switchIndex = request->getParam("id")->value().toInt();
+      this->handlePostSwitchRequest(request, data, len, index, total, switchIndex);
     } else {
       request->send(deleteRC, "application/json", "{\"error\": \"Failed to update position switch\"}");
     } });
@@ -457,6 +448,75 @@ void ESPStepperMotorServer_RestAPI::logDebugRequestUrl(AsyncWebServerRequest *re
 }
 
 // request handlers
+void ESPStepperMotorServer_RestAPI::handlePostStepperRequest(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total, int switchIndex)
+{
+  StaticJsonDocument<300> doc;
+  DeserializationError error = deserializeJson(doc, (const char *)data);
+  if (error)
+  {
+    request->send(400, "application/json", "{\"error\": \"Invalid JSON request, deserialization failed\"}");
+  }
+  else
+  {
+    if (doc.containsKey("name") && doc.containsKey("stepPin") && doc.containsKey("dirPin"))
+    {
+      const char *name = doc["name"];
+      int stepPin = doc["stepPin"];
+      int dirPin = doc["dirPin"];
+      if (stepPin >= 0 && stepPin <= ESPStepperHighestAllowedIoPin && dirPin >= 0 && dirPin <= ESPStepperHighestAllowedIoPin && dirPin != stepPin)
+      {
+        //check if pins are already in use by a stepper or switch configuration
+        if (this->_stepperMotorServer->isIoPinUsed(stepPin))
+        {
+          request->send(400, "application/json", "{\"error\": \"The given STEP IO pin is already used by another stepper or a switch configuration\"}");
+        }
+        else if (this->_stepperMotorServer->isIoPinUsed(dirPin))
+        {
+          request->send(400, "application/json", "{\"error\": \"The given DIRECTION IO pin is already used by another stepper or a switch configuration\"}");
+        }
+        else
+        {
+          ESPStepperMotorServer_StepperConfiguration *stepperToAdd = new ESPStepperMotorServer_StepperConfiguration(stepPin, dirPin);
+          stepperToAdd->setDisplayName(name);
+          int newId = this->_stepperMotorServer->addStepper(stepperToAdd);
+          sprintf(this->logger->logString, "{\"id\": %i}", newId);
+          request->send(200, "application/json", this->logger->logString);
+        }
+      }
+      else
+      {
+        request->send(400, "application/json", "{\"error\": \"Invalid IO pin number given or step and dir pin are the same\"}");
+      }
+    }
+    else
+    {
+      request->send(400, "application/json", "{\"error\": \"Invalid request, missing one ore more required parameters: name, stepPin, dirPin\"}");
+    }
+  }
+}
+
+int ESPStepperMotorServer_RestAPI::handleDeleteStepperRequest(AsyncWebServerRequest *request, boolean sendReponse)
+{
+  if (request->hasParam("id"))
+  {
+    int stepperIndex = request->getParam(0)->value().toInt();
+    if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->_stepperMotorServer->getConfiguredStepper(stepperIndex) != NULL)
+    {
+      this->_stepperMotorServer->removeStepper(stepperIndex);
+      if (sendReponse)
+      {
+        request->send(204);
+      }
+      return 204;
+    }
+  }
+  if (sendReponse)
+  {
+    request->send(404, "application/json", "{\"error\": \"Invalid stepper id\"}");
+  }
+  return 404;
+}
+
 int ESPStepperMotorServer_RestAPI::handleDeleteSwitchRequest(AsyncWebServerRequest *request, boolean sendReponse)
 {
   if (request->hasParam("id"))

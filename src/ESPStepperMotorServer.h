@@ -119,6 +119,8 @@ public:
   void start();
   void stop();
   byte getPositionSwitchStatus(int positionSwitchIndex);
+  void getButtonStatusRegister(byte buffer[ESPServerSwitchStatusRegisterCount]);
+
   //delegator functions only
   void setLogLevel(byte);
   void getStatusAsJsonString(String &statusString);
@@ -154,7 +156,6 @@ private:
   void detachAllInterrupts();
   void attachAllInterrupts();
   void setPositionSwitchStatus(int positionSwitchIndex, byte status);
-  void printBinaryWithLeaingZeros(char *result, byte var);
   // ISR handling
   static void staticPositionSwitchISR();
   void internalPositionSwitchISR();

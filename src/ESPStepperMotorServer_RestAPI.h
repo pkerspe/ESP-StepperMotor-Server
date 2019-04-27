@@ -58,8 +58,12 @@ private:
   void populateStepperDetailsToJsonObject(JsonObject &detailsObjecToPopulate, ESPStepperMotorServer_StepperConfiguration *stepper, int index);
   void populateSwitchDetailsToJsonObject(JsonObject &detailsObjecToPopulate, positionSwitch *positionSwitch, int index);
   void logDebugRequestUrl(AsyncWebServerRequest *request);
+  // SWITCH CONFIGURATION ENDPOINT HANDLER
   void handlePostSwitchRequest(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total, int switchIndex = -1);
   int handleDeleteSwitchRequest(AsyncWebServerRequest *request, boolean sendReponse);
+  // STEPPER CONFIGURATION ENDPOINT HANDLER
+  void handlePostStepperRequest(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total, int switchIndex = -1);
+  int handleDeleteStepperRequest(AsyncWebServerRequest *request, boolean sendReponse);
 };
 
 #endif

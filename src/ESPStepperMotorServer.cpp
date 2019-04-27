@@ -327,8 +327,22 @@ void ESPStepperMotorServer::stop()
 //                                  Status and Service Functions
 // ---------------------------------------------------------------------------------
 
+/**
+ * get the status register value for all configured buttons
+ * expects an array as buffer that will be filled with the current status registry values
+ */
+void ESPStepperMotorServer::getButtonStatusRegister(byte buffer[ESPServerSwitchStatusRegisterCount])
+{
+  for (int i = 0; i < ESPServerSwitchStatusRegisterCount; i++)
+  {
+    buffer[i] = this->buttonStatus[i];
+  }
+}
+
 void ESPStepperMotorServer::printPositionSwitchStatus()
 {
+
+  // TODO reuse code in REST API
   const int docSize = 150 * ESPServerMaxSwitches;
   StaticJsonDocument<docSize> doc;
   JsonObject root = doc.to<JsonObject>();
@@ -342,9 +356,15 @@ void ESPStepperMotorServer::printPositionSwitchStatus()
   {
     JsonObject positionSwitchRegister = data.createNestedObject();
     positionSwitchRegister["statusRegisterIndex"] = i;
-    char binaryString[9];
-    printBinaryWithLeaingZeros(binaryString, this->buttonStatus[i]);
-    positionSwitchRegister["status"] = binaryString;
+
+    String binaryPadded = "";
+    String binary = String(this->buttonStatus[i], BIN);
+    for (int i = 0; i < 8 - binary.length(); i++)
+    {
+      binaryPadded += "0";
+    }
+    binaryPadded += binary;
+    positionSwitchRegister["status"] = binaryPadded;
   }
 
   JsonArray switches = root.createNestedArray("positionSwitches");
