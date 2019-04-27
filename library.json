@@ -1,0 +1,22 @@
+{
+  "name":"ESP-StepperMotor-Server",
+  "description":"A complette stepper motor server with UI, REST API and serial interface on a ESP32",
+  "keywords":"stepper,servo,rest,api,server,webinterface,esp32,rotary encoder,switch,limit",
+  "authors":
+  {
+    "name": "Paul Kerspe",
+    "maintainer": true
+  },
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/pkerspe/ESP-StepperMotor-Server"
+  },
+  "version": "0.0.1",
+  "license": "MIT",
+  "frameworks": "arduino",
+  "platforms": "esp32",
+  "build": {
+    "libCompatMode": 2
+  }  
+}
