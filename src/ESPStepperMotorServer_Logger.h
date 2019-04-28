@@ -43,6 +43,7 @@
 class ESPStepperMotorServer_Logger
 {
   public:
+    ESPStepperMotorServer_Logger();
     ESPStepperMotorServer_Logger(String logName);
     static void setLogLevel(byte);
     static byte getLogLevel(void);
@@ -56,7 +57,7 @@ class ESPStepperMotorServer_Logger
     static void log(const char *level, const char *msg, boolean newLine, boolean ommitLogLevel);
     static void printBinaryWithLeaingZeros(char *result, byte var);
     static byte _logLevel;
-    String loggerName;
+    String _loggerName;
 };
 
 #endif

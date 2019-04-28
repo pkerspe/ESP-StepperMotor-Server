@@ -279,7 +279,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     if (request->hasParam("id"))
     {
       int switchIndex = request->getParam("id")->value().toInt();
-      if (switchIndex < 0 || switchIndex >= ESPServerMaxSwitches || this->_stepperMotorServer->getConfiguredSwitch(switchIndex)->ioPinNumber == ESPServerPositionSwitchUnsetPinNumber)
+      if (switchIndex < 0 || switchIndex >= ESPServerMaxSwitches || this->_stepperMotorServer->getConfiguredSwitch(switchIndex)->getIoPinNumber() == ESPServerPositionSwitchUnsetPinNumber)
       {
         request->send(404);
         return;
@@ -315,7 +315,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     if (request->hasParam("id"))
     {
       int switchIndex = request->getParam("id")->value().toInt();
-      if (switchIndex < 0 || switchIndex >= ESPServerMaxSwitches || this->_stepperMotorServer->getConfiguredSwitch(switchIndex)->ioPinNumber == ESPServerPositionSwitchUnsetPinNumber)
+      if (switchIndex < 0 || switchIndex >= ESPServerMaxSwitches || this->_stepperMotorServer->getConfiguredSwitch(switchIndex)->getIoPinNumber() == ESPServerPositionSwitchUnsetPinNumber)
       {
         request->send(404);
         return;
@@ -340,7 +340,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       JsonArray switches = root.createNestedArray("switches");
       for (int i = 0; i < ESPServerMaxSwitches; i++)
       {
-        if (this->_stepperMotorServer->getConfiguredSwitch(i)->ioPinNumber != ESPServerPositionSwitchUnsetPinNumber)
+        if (this->_stepperMotorServer->getConfiguredSwitch(i)->getIoPinNumber() != ESPServerPositionSwitchUnsetPinNumber)
         {
           JsonObject switchDetails = switches.createNestedObject();
           this->populateSwitchDetailsToJsonObject(switchDetails, this->_stepperMotorServer->getConfiguredSwitch(i), i);
@@ -393,15 +393,15 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
   // DELETE /api/outputs?id=<id>
 }
 
-void ESPStepperMotorServer_RestAPI::populateSwitchDetailsToJsonObject(JsonObject &switchDetails, positionSwitch *positionSwitch, int index)
+void ESPStepperMotorServer_RestAPI::populateSwitchDetailsToJsonObject(JsonObject &switchDetails, ESPStepperMotorServer_PositionSwitch *positionSwitch, int index)
 {
   switchDetails["id"] = index;
-  switchDetails["ioPin"] = positionSwitch->ioPinNumber;
-  switchDetails["name"] = positionSwitch->positionName;
-  switchDetails["stepperId"] = positionSwitch->stepperIndex;
-  switchDetails["stepperName"] = this->_stepperMotorServer->getConfiguredStepper(positionSwitch->stepperIndex)->getDisplayName();
-  switchDetails["type"] = positionSwitch->switchType;
-  switchDetails["position"] = positionSwitch->switchPosition;
+  switchDetails["ioPin"] = positionSwitch->getIoPinNumber();
+  switchDetails["name"] = positionSwitch->getPositionName();
+  switchDetails["stepperId"] = positionSwitch->getStepperIndex();
+  switchDetails["stepperName"] = this->_stepperMotorServer->getConfiguredStepper(positionSwitch->getStepperIndex())->getDisplayName();
+  switchDetails["type"] = positionSwitch->getSwitchType();
+  switchDetails["position"] = positionSwitch->getSwitchPosition();
 }
 
 void ESPStepperMotorServer_RestAPI::populateStepperDetailsToJsonObject(JsonObject &stepperDetails, ESPStepperMotorServer_StepperConfiguration *stepper, int index)
@@ -522,7 +522,7 @@ int ESPStepperMotorServer_RestAPI::handleDeleteSwitchRequest(AsyncWebServerReque
   if (request->hasParam("id"))
   {
     int switchIndex = request->getParam(0)->value().toInt();
-    if (switchIndex < 0 || switchIndex >= ESPServerMaxSwitches || this->_stepperMotorServer->getConfiguredSwitch(switchIndex)->ioPinNumber != ESPServerPositionSwitchUnsetPinNumber)
+    if (switchIndex < 0 || switchIndex >= ESPServerMaxSwitches || this->_stepperMotorServer->getConfiguredSwitch(switchIndex)->getIoPinNumber() != ESPServerPositionSwitchUnsetPinNumber)
     {
       this->_stepperMotorServer->removePositionSwitch(switchIndex);
       if (sendReponse)
@@ -570,12 +570,9 @@ void ESPStepperMotorServer_RestAPI::handlePostSwitchRequest(AsyncWebServerReques
         }
         else
         {
-          positionSwitch posSwitchToAdd;
-          posSwitchToAdd.ioPinNumber = ioPinNumber;
-          posSwitchToAdd.positionName = name;
-          posSwitchToAdd.stepperIndex = stepperConfigIndex;
-          posSwitchToAdd.switchPosition = switchPosition;
-          posSwitchToAdd.switchType = switchType;
+          ESPStepperMotorServer_PositionSwitch posSwitchToAdd = ESPStepperMotorServer_PositionSwitch(ioPinNumber, stepperConfigIndex, switchType, name);
+          posSwitchToAdd.setSwitchPosition(switchPosition);
+          
           if (switchIndex > -1)
           {
             this->_stepperMotorServer->removePositionSwitch(switchIndex);

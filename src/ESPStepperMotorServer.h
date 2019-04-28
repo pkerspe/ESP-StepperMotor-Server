@@ -107,10 +107,10 @@ public:
   void printWifiStatus();
   int addStepper(ESPStepperMotorServer_StepperConfiguration *stepper);
   int addPositionSwitch(byte stepperIndex, byte ioPinNumber, byte switchType, String positionName, long switchPosition = -1);
-  int addPositionSwitch(positionSwitch posSwitchToAdd, int switchIndex = -1);
+  int addPositionSwitch(ESPStepperMotorServer_PositionSwitch posSwitchToAdd, int switchIndex = -1);
   int addRotaryEncoder(ESPStepperMotorServer_RotaryEncoder *rotaryEncoderToAdd);
   void removePositionSwitch(int positionSwitchIndex);
-  void removePositionSwitch(positionSwitch *posSwitchToRemove);
+  void removePositionSwitch(ESPStepperMotorServer_PositionSwitch *posSwitchToRemove);
   void removeStepper(int stepperConfigurationIndex);
   void removeStepper(ESPStepperMotorServer_StepperConfiguration *stepper);
   void removeRotaryEncoder(int rotaryEncoderConfigurationIndex);
@@ -125,7 +125,7 @@ public:
   void setLogLevel(byte);
   void getStatusAsJsonString(String &statusString);
   ESPStepperMotorServer_StepperConfiguration *getConfiguredStepper(byte index);
-  positionSwitch *getConfiguredSwitch(byte index);
+  ESPStepperMotorServer_PositionSwitch *getConfiguredSwitch(byte index);
   bool isIoPinUsed(int);
 
   //
@@ -150,8 +150,8 @@ private:
   bool checkIfGuiExistsInSpiffs();
   void printSPIFFSRootFolderContents();
   bool downloadFileToSpiffs(const char *url, const char *targetPath);
-  void setupPositionSwitchIOPin(positionSwitch *posSwitchToAdd);
-  void detachInterruptForPositionSwitch(positionSwitch *posSwitch);
+  void setupPositionSwitchIOPin(ESPStepperMotorServer_PositionSwitch *posSwitchToAdd);
+  void detachInterruptForPositionSwitch(ESPStepperMotorServer_PositionSwitch *posSwitch);
   void detachInterruptForRotaryEncoder(ESPStepperMotorServer_RotaryEncoder *rotaryEncoder);
   void detachAllInterrupts();
   void attachAllInterrupts();
@@ -190,7 +190,7 @@ private:
   ESPStepperMotorServer_StepperConfiguration *configuredSteppers[ESPServerMaxSteppers] = {NULL};
   byte configuredStepperIndex = 0;
   static ESPStepperMotorServer *anchor; //used for self-reference in ISR
-  positionSwitch configuredPositionSwitches[ESPServerMaxSwitches];
+  ESPStepperMotorServer_PositionSwitch configuredPositionSwitches[ESPServerMaxSwitches];
   // this byte indicated the index on the configuration array for position switches where the next configuration will be stored
   // the last added position switch thus has the index value configuredPositionSwitchIndex-1
   byte configuredPositionSwitchIndex = 0;

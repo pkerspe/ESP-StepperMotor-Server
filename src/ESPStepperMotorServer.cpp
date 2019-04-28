@@ -161,17 +161,9 @@ void ESPStepperMotorServer::removeStepper(ESPStepperMotorServer_StepperConfigura
     // check if any switch is configured for the stepper to be removed, if so remove switches first
     for (int i = 0; i < ESPServerMaxSwitches; i++)
     {
-      if (this->configuredPositionSwitches[i].stepperIndex == stepper->getId())
+      if (this->configuredPositionSwitches[i].getStepperIndex() == stepper->getId())
       {
-        positionSwitch posSwitchToRemove = this->configuredPositionSwitches[i];
-        positionSwitch blankPosSwitch;
-        this->detachInterruptForPositionSwitch(&posSwitchToRemove);
-        sprintf(this->logString, "removed position switch %s (idx: %i) from configured position switches since related stepper will be removed next", posSwitchToRemove.positionName.c_str(), i);
-        ESPStepperMotorServer_Logger::logDebug(this->logString);
-        this->configuredPositionSwitches[i] = blankPosSwitch;
-        this->configuredPositionSwitchIoPins[i] = ESPServerPositionSwitchUnsetPinNumber;
-        //by default null the emergency switch flag, even if swith was not an emergency switch
-        this->emergencySwitchIndexes[i] = 0;
+        this->removePositionSwitch(i);
       }
     }
     //now remove the stepper configuration itself
@@ -185,30 +177,26 @@ void ESPStepperMotorServer::removeStepper(ESPStepperMotorServer_StepperConfigura
 
 int ESPStepperMotorServer::addPositionSwitch(byte stepperIndex, byte ioPinNumber, byte switchType, String positionName, long switchPosition)
 {
-  positionSwitch positionSwitchToAdd;
-  positionSwitchToAdd.stepperIndex = stepperIndex;
-  positionSwitchToAdd.ioPinNumber = ioPinNumber;
-  positionSwitchToAdd.switchType = switchType;
-  positionSwitchToAdd.positionName = positionName;
-  positionSwitchToAdd.switchPosition = switchPosition;
+  ESPStepperMotorServer_PositionSwitch positionSwitchToAdd(ioPinNumber, stepperIndex, switchType, positionName);
+  positionSwitchToAdd.setSwitchPosition(switchPosition);
   return this->addPositionSwitch(positionSwitchToAdd);
 }
 
-int ESPStepperMotorServer::addPositionSwitch(positionSwitch posSwitchToAdd, int switchIndex)
+int ESPStepperMotorServer::addPositionSwitch(ESPStepperMotorServer_PositionSwitch posSwitchToAdd, int switchIndex)
 {
-  if (posSwitchToAdd.stepperIndex > this->configuredStepperIndex)
+  if (posSwitchToAdd.getStepperIndex() > this->configuredStepperIndex)
   {
-    sprintf(this->logString, "invalid stepperIndex value given. The number of configured steppers is %i but index value of %i was given in addPositionSwitch() call.", this->configuredStepperIndex, posSwitchToAdd.stepperIndex);
+    sprintf(this->logString, "invalid stepperIndex value given. The number of configured steppers is %i but index value of %i was given in addPositionSwitch() call.", this->configuredStepperIndex, posSwitchToAdd.getStepperIndex());
     ESPStepperMotorServer_Logger::logWarning(this->logString);
     ESPStepperMotorServer_Logger::logWarning("the position switch has not been added");
     return -1;
   }
-  if (posSwitchToAdd.positionName.length() > ESPSMS_Stepper_DisplayName_MaxLength)
+  if (posSwitchToAdd.getPositionName().length() > ESPSMS_Stepper_DisplayName_MaxLength)
   {
     char logString[160];
     sprintf(logString, "ESPStepperMotorServer::addPositionSwitch: The display name for the position switch is to long. Max length is %i characters. Name will be trimmed", ESPStepperMotorServer_SwitchDisplayName_MaxLength);
     ESPStepperMotorServer_Logger::logWarning(logString);
-    posSwitchToAdd.positionName = posSwitchToAdd.positionName.substring(0, ESPSMS_Stepper_DisplayName_MaxLength);
+    posSwitchToAdd.setPositionName(posSwitchToAdd.getPositionName().substring(0, ESPSMS_Stepper_DisplayName_MaxLength));
   }
   if (switchIndex == -1)
   {
@@ -216,7 +204,7 @@ int ESPStepperMotorServer::addPositionSwitch(positionSwitch posSwitchToAdd, int 
     switchIndex = this->configuredPositionSwitchIndex;
     for (int i = 0; i < this->configuredPositionSwitchIndex; i++)
     {
-      if (this->configuredPositionSwitches[i].ioPinNumber == ESPServerPositionSwitchUnsetPinNumber)
+      if (this->configuredPositionSwitches[i].getIoPinNumber() == ESPServerPositionSwitchUnsetPinNumber)
       {
         switchIndex = i;
         break;
@@ -225,12 +213,12 @@ int ESPStepperMotorServer::addPositionSwitch(positionSwitch posSwitchToAdd, int 
   }
 
   this->configuredPositionSwitches[switchIndex] = posSwitchToAdd;
-  this->configuredPositionSwitchIoPins[switchIndex] = posSwitchToAdd.ioPinNumber;
-  this->emergencySwitchIndexes[switchIndex] = ((posSwitchToAdd.switchType & ESPServerSwitchType_EmergencyStopSwitch) == ESPServerSwitchType_EmergencyStopSwitch);
+  this->configuredPositionSwitchIoPins[switchIndex] = posSwitchToAdd.getIoPinNumber();
+  this->emergencySwitchIndexes[switchIndex] = ((posSwitchToAdd.getSwitchType() & ESPServerSwitchType_EmergencyStopSwitch) == ESPServerSwitchType_EmergencyStopSwitch);
   //Setup IO Pin
   this->setupPositionSwitchIOPin(&posSwitchToAdd);
 
-  sprintf(this->logString, "added position switch %s for IO pin %i at configuration index %i", this->configuredPositionSwitches[switchIndex].positionName.c_str(), this->configuredPositionSwitches[switchIndex].ioPinNumber, switchIndex);
+  sprintf(this->logString, "added position switch %s for IO pin %i at configuration index %i", this->configuredPositionSwitches[switchIndex].getPositionName().c_str(), this->configuredPositionSwitches[switchIndex].getIoPinNumber(), switchIndex);
   ESPStepperMotorServer_Logger::logInfo(this->logString);
 
   if (this->configuredPositionSwitchIndex == switchIndex)
@@ -242,8 +230,8 @@ int ESPStepperMotorServer::addPositionSwitch(positionSwitch posSwitchToAdd, int 
 
 void ESPStepperMotorServer::removePositionSwitch(int positionSwitchIndex)
 {
-  positionSwitch *posSwitch = &this->configuredPositionSwitches[positionSwitchIndex];
-  if (posSwitch->ioPinNumber != ESPServerPositionSwitchUnsetPinNumber)
+  ESPStepperMotorServer_PositionSwitch *posSwitch = &this->configuredPositionSwitches[positionSwitchIndex];
+  if (posSwitch->getIoPinNumber() != ESPServerPositionSwitchUnsetPinNumber)
   {
     this->removePositionSwitch(posSwitch);
   }
@@ -254,17 +242,17 @@ void ESPStepperMotorServer::removePositionSwitch(int positionSwitchIndex)
   }
 }
 
-void ESPStepperMotorServer::removePositionSwitch(positionSwitch *posSwitchToRemove)
+void ESPStepperMotorServer::removePositionSwitch(ESPStepperMotorServer_PositionSwitch *posSwitchToRemove)
 {
-  if (posSwitchToRemove->ioPinNumber != ESPServerPositionSwitchUnsetPinNumber)
+  if (posSwitchToRemove->getIoPinNumber() != ESPServerPositionSwitchUnsetPinNumber)
   {
     for (int i = 0; i < ESPServerMaxSwitches; i++)
     {
-      if (this->configuredPositionSwitches[i].ioPinNumber == posSwitchToRemove->ioPinNumber)
+      if (this->configuredPositionSwitches[i].getIoPinNumber() == posSwitchToRemove->getIoPinNumber())
       {
-        positionSwitch blankPosSwitch;
+        ESPStepperMotorServer_PositionSwitch blankPosSwitch;
         this->detachInterruptForPositionSwitch(posSwitchToRemove);
-        sprintf(this->logString, "removed position switch %s (idx: %i) from configured position switches", posSwitchToRemove->positionName.c_str(), i);
+        sprintf(this->logString, "removed position switch %s (idx: %i) from configured position switches", posSwitchToRemove->getPositionName().c_str(), i);
         ESPStepperMotorServer_Logger::logDebug(this->logString);
         this->configuredPositionSwitches[i] = blankPosSwitch;
         this->configuredPositionSwitchIoPins[i] = ESPServerPositionSwitchUnsetPinNumber;
@@ -370,18 +358,18 @@ void ESPStepperMotorServer::printPositionSwitchStatus()
   JsonArray switches = root.createNestedArray("positionSwitches");
   for (int i = 0; i < this->configuredPositionSwitchIndex; i++)
   {
-    if (this->configuredPositionSwitches[i].ioPinNumber != ESPServerPositionSwitchUnsetPinNumber)
+    if (this->configuredPositionSwitches[i].getIoPinNumber() != ESPServerPositionSwitchUnsetPinNumber)
     {
       JsonObject positionSwitch = switches.createNestedObject();
       positionSwitch["id"] = i;
-      positionSwitch["name"] = this->configuredPositionSwitches[i].positionName;
-      positionSwitch["ioPin"] = this->configuredPositionSwitches[i].ioPinNumber;
-      positionSwitch["position"] = this->configuredPositionSwitches[i].switchPosition;
-      positionSwitch["stepperId"] = this->configuredPositionSwitches[i].stepperIndex;
+      positionSwitch["name"] = this->configuredPositionSwitches[i].getPositionName();
+      positionSwitch["ioPin"] = this->configuredPositionSwitches[i].getIoPinNumber();
+      positionSwitch["position"] = this->configuredPositionSwitches[i].getSwitchPosition();
+      positionSwitch["stepperId"] = this->configuredPositionSwitches[i].getStepperIndex();
       positionSwitch["active"] = this->getPositionSwitchStatus(i);
 
       JsonObject positionSwichType = positionSwitch.createNestedObject("type");
-      if ((this->configuredPositionSwitches[i].switchType & ESPServerSwitchType_ActiveHigh) == ESPServerSwitchType_ActiveHigh)
+      if ((this->configuredPositionSwitches[i].getSwitchType() & ESPServerSwitchType_ActiveHigh) == ESPServerSwitchType_ActiveHigh)
       {
         positionSwichType["pinMode"] = "Active High";
       }
@@ -389,19 +377,19 @@ void ESPStepperMotorServer::printPositionSwitchStatus()
       {
         positionSwichType["pinMode"] = "Active Low";
       }
-      if ((this->configuredPositionSwitches[i].switchType & ESPServerSwitchType_HomingSwitchBegin) == ESPServerSwitchType_HomingSwitchBegin)
+      if ((this->configuredPositionSwitches[i].getSwitchType() & ESPServerSwitchType_HomingSwitchBegin) == ESPServerSwitchType_HomingSwitchBegin)
       {
         positionSwichType["switchType"] = "Homing switch (start-position)";
       }
-      else if ((this->configuredPositionSwitches[i].switchType & ESPServerSwitchType_HomingSwitchEnd) == ESPServerSwitchType_HomingSwitchEnd)
+      else if ((this->configuredPositionSwitches[i].getSwitchType() & ESPServerSwitchType_HomingSwitchEnd) == ESPServerSwitchType_HomingSwitchEnd)
       {
         positionSwichType["switchType"] = "Homing switch (end-position)";
       }
-      else if ((this->configuredPositionSwitches[i].switchType & ESPServerSwitchType_GeneralPositionSwitch) == ESPServerSwitchType_GeneralPositionSwitch)
+      else if ((this->configuredPositionSwitches[i].getSwitchType() & ESPServerSwitchType_GeneralPositionSwitch) == ESPServerSwitchType_GeneralPositionSwitch)
       {
         positionSwichType["switchType"] = "General position switch";
       }
-      else if ((this->configuredPositionSwitches[i].switchType & ESPServerSwitchType_EmergencyStopSwitch) == ESPServerSwitchType_EmergencyStopSwitch)
+      else if ((this->configuredPositionSwitches[i].getSwitchType() & ESPServerSwitchType_EmergencyStopSwitch) == ESPServerSwitchType_EmergencyStopSwitch)
       {
         positionSwichType["switchType"] = "Emergency shut down switch";
       }
@@ -421,13 +409,13 @@ void ESPStepperMotorServer::printPositionSwitchStatus()
 byte ESPStepperMotorServer::getPositionSwitchStatus(int positionSwitchIndex)
 {
   byte buttonRegisterIndex = (byte)(ceil)((positionSwitchIndex + 1) / 8);
-  positionSwitch posSwitch = this->configuredPositionSwitches[positionSwitchIndex];
+  ESPStepperMotorServer_PositionSwitch posSwitch = this->configuredPositionSwitches[positionSwitchIndex];
   byte bitVal = (1 << positionSwitchIndex % 8);
   byte buttonState = ((this->buttonStatus[buttonRegisterIndex] & bitVal) == bitVal);
 
-  if (posSwitch.ioPinNumber != ESPServerPositionSwitchUnsetPinNumber)
+  if (posSwitch.getIoPinNumber() != ESPServerPositionSwitchUnsetPinNumber)
   {
-    if ((posSwitch.switchType & ESPServerSwitchType_ActiveHigh) == ESPServerSwitchType_ActiveHigh)
+    if ((posSwitch.getSwitchType() & ESPServerSwitchType_ActiveHigh) == ESPServerSwitchType_ActiveHigh)
     {
       return (buttonState) ? 1 : 0;
     }
@@ -710,7 +698,7 @@ ESPStepperMotorServer_StepperConfiguration *ESPStepperMotorServer::getConfigured
   return NULL;
 }
 
-positionSwitch *ESPStepperMotorServer::getConfiguredSwitch(byte index)
+ESPStepperMotorServer_PositionSwitch *ESPStepperMotorServer::getConfiguredSwitch(byte index)
 {
   if (index < 0 || index >= ESPServerMaxSwitches)
   {
@@ -889,15 +877,15 @@ void ESPStepperMotorServer::scanWifiNetworks()
 /**
  * setup the IO Pin to INPUT mode
  */
-void ESPStepperMotorServer::setupPositionSwitchIOPin(positionSwitch *posSwitchToAdd)
+void ESPStepperMotorServer::setupPositionSwitchIOPin(ESPStepperMotorServer_PositionSwitch *posSwitchToAdd)
 {
-  if (posSwitchToAdd->switchType & ESPServerSwitchType_ActiveHigh)
+  if (posSwitchToAdd->getSwitchType() & ESPServerSwitchType_ActiveHigh)
   {
-    pinMode(posSwitchToAdd->ioPinNumber, INPUT);
+    pinMode(posSwitchToAdd->getIoPinNumber(), INPUT);
   }
   else
   {
-    pinMode(posSwitchToAdd->ioPinNumber, INPUT_PULLUP);
+    pinMode(posSwitchToAdd->getIoPinNumber(), INPUT_PULLUP);
   }
 }
 
@@ -908,17 +896,17 @@ void ESPStepperMotorServer::attachAllInterrupts()
 {
   for (int i = 0; i < ESPServerMaxSwitches; i++)
   {
-    positionSwitch posSwitch = this->configuredPositionSwitches[i];
-    if (posSwitch.ioPinNumber != ESPServerPositionSwitchUnsetPinNumber)
+    ESPStepperMotorServer_PositionSwitch posSwitch = this->configuredPositionSwitches[i];
+    if (posSwitch.getIoPinNumber() != ESPServerPositionSwitchUnsetPinNumber)
     {
-      char irqNum = digitalPinToInterrupt(posSwitch.ioPinNumber);
+      char irqNum = digitalPinToInterrupt(posSwitch.getIoPinNumber());
       if (irqNum == NOT_AN_INTERRUPT)
       {
-        sprintf(this->logString, "Failed to determine IRQ# for given IO Pin %i, thus setting up of interrupt for the position switch failed for pin %s", posSwitch.ioPinNumber, posSwitch.positionName.c_str());
+        sprintf(this->logString, "Failed to determine IRQ# for given IO Pin %i, thus setting up of interrupt for the position switch failed for pin %s", posSwitch.getIoPinNumber(), posSwitch.getPositionName().c_str());
         ESPStepperMotorServer_Logger::logWarning(this->logString);
       }
 
-      sprintf(this->logString, "attaching interrupt service routine for position switch %s on IO Pin %i", posSwitch.positionName.c_str(), posSwitch.ioPinNumber);
+      sprintf(this->logString, "attaching interrupt service routine for position switch %s on IO Pin %i", posSwitch.getPositionName().c_str(), posSwitch.getIoPinNumber());
       ESPStepperMotorServer_Logger::logDebug(this->logString);
       _BV(irqNum); // clear potentially pending interrupts
       attachInterrupt(irqNum, staticPositionSwitchISR, CHANGE);
@@ -950,11 +938,11 @@ void ESPStepperMotorServer::attachAllInterrupts()
   }
 }
 
-void ESPStepperMotorServer::detachInterruptForPositionSwitch(positionSwitch *posSwitch)
+void ESPStepperMotorServer::detachInterruptForPositionSwitch(ESPStepperMotorServer_PositionSwitch *posSwitch)
 {
-  sprintf(this->logString, "detaching interrupt for position switch %s on IO Pin %i", posSwitch->positionName.c_str(), posSwitch->ioPinNumber);
+  sprintf(this->logString, "detaching interrupt for position switch %s on IO Pin %i", posSwitch->getPositionName().c_str(), posSwitch->getIoPinNumber());
   ESPStepperMotorServer_Logger::logDebug(this->logString);
-  detachInterrupt(digitalPinToInterrupt(posSwitch->ioPinNumber));
+  detachInterrupt(digitalPinToInterrupt(posSwitch->getIoPinNumber()));
 }
 
 void ESPStepperMotorServer::detachInterruptForRotaryEncoder(ESPStepperMotorServer_RotaryEncoder *rotaryEncoder)
@@ -980,8 +968,8 @@ void ESPStepperMotorServer::detachAllInterrupts()
 {
   for (int i = 0; i < ESPServerMaxSwitches; i++)
   {
-    positionSwitch posSwitch = this->configuredPositionSwitches[i];
-    if (posSwitch.ioPinNumber != ESPServerPositionSwitchUnsetPinNumber)
+    ESPStepperMotorServer_PositionSwitch posSwitch = this->configuredPositionSwitches[i];
+    if (posSwitch.getIoPinNumber() != ESPServerPositionSwitchUnsetPinNumber)
     {
       this->detachInterruptForPositionSwitch(&posSwitch);
     }
@@ -1012,7 +1000,7 @@ void ESPStepperMotorServer::internalPositionSwitchISR()
     byte pinStateType = 0;
     if (isEmergencySwitch)
     {
-      pinStateType = ((this->configuredPositionSwitches[i].switchType & ESPServerSwitchType_ActiveHigh) == ESPServerSwitchType_ActiveHigh) ? ESPServerSwitchType_ActiveHigh : ESPServerSwitchType_ActiveLow;
+      pinStateType = ((this->configuredPositionSwitches[i].getSwitchType() & ESPServerSwitchType_ActiveHigh) == ESPServerSwitchType_ActiveHigh) ? ESPServerSwitchType_ActiveHigh : ESPServerSwitchType_ActiveLow;
     }
     if (pinNumber != ESPServerPositionSwitchUnsetPinNumber && digitalRead(pinNumber))
     {

@@ -36,7 +36,12 @@ char logString[400];
 
 ESPStepperMotorServer_Logger::ESPStepperMotorServer_Logger(String loggerName)
 {
-    this->loggerName = loggerName;
+    this->_loggerName = loggerName;
+}
+
+ESPStepperMotorServer_Logger::ESPStepperMotorServer_Logger()
+{
+    this->_loggerName = "root";
 }
 
 void ESPStepperMotorServer_Logger::printBinaryWithLeaingZeros(char *result, byte var)

@@ -56,7 +56,7 @@ private:
   ESPStepperMotorServer_Logger *logger;
   ESPStepperMotorServer *_stepperMotorServer;
   void populateStepperDetailsToJsonObject(JsonObject &detailsObjecToPopulate, ESPStepperMotorServer_StepperConfiguration *stepper, int index);
-  void populateSwitchDetailsToJsonObject(JsonObject &detailsObjecToPopulate, positionSwitch *positionSwitch, int index);
+  void populateSwitchDetailsToJsonObject(JsonObject &detailsObjecToPopulate, ESPStepperMotorServer_PositionSwitch *positionSwitch, int index);
   void logDebugRequestUrl(AsyncWebServerRequest *request);
   // SWITCH CONFIGURATION ENDPOINT HANDLER
   void handlePostSwitchRequest(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total, int switchIndex = -1);
