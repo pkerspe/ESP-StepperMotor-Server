@@ -91,7 +91,8 @@ void loop()
      // put your own code that that should be executed 
 }
  ```
-NOTE: Replace "<YOUR WIFI SSID HERE>" with the name of your WiFI and "<YOUR WIFI PASSWORD>" with your WiFi password
+*NOTE:* Replace `<YOUR WIFI SSID HERE>` with the name of your WiFI and `<YOUR WIFI PASSWORD>` with your WiFi password
+
 6. [Build/compile and upload the project](http://docs.platformio.org/en/latest/tutorials/espressif32/arduino_debugging_unit_testing.html#compiling-and-uploading-the-firmware) to your connected ESP32 module and open the console Monitor in PlatformIO (or connect to the board using your prefered serial terminal console) to see the output of the ESP-StepperMotor-Server starting up.
 In the output on the serial monitor you should see that some output similar to this:
 ```
