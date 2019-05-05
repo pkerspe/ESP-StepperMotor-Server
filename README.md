@@ -10,18 +10,42 @@ Since these modules contain a WiFi module they are perfectly suited for web cont
 
 Once the ESPp Stepper Motor Server has been uploaded to the ESP module, all further configuration and controlling can be done vie the web UI without the need to code another line in the Arduino or PlatformIO IDE.
 
+## Installation
+
+### Using PlatformIO
+
+[PlatformIO](http://platformio.org) is an open source ecosystem for IoT development with cross platform build system, library manager and full support for Espressif ESP8266/ESP32 development. It works on the popular host OS: Mac OS X, Windows, Linux 32/64, Linux ARM (like Raspberry Pi, BeagleBone, CubieBoard).
+
+1. Install [PlatformIO IDE](http://platformio.org/platformio-ide)
+2. Create new project using "PlatformIO Home > New Project"
+3. Update dev/platform to staging version:
+   - [Instruction for Espressif 8266](http://docs.platformio.org/en/latest/platforms/espressif8266.html#using-arduino-framework-with-staging-version)
+   - [Instruction for Espressif 32](http://docs.platformio.org/en/latest/platforms/espressif32.html#using-arduino-framework-with-staging-version)
+ 4. Add "ESP-StepperMotor-Server" to project using [Project Configuration File `platformio.ini`](http://docs.platformio.org/page/projectconf.html) and [lib_deps](http://docs.platformio.org/page/projectconf/section_env_library.html#lib-deps) option:
+```ini
+[env:esp32dev]
+platform = espressif32
+board = esp32dev
+framework = arduino
+
+lib_deps = ESP-StepperMotor-Server
+
+monitor_speed = 115200
+```
+ 5. Happy coding with PlatformIO!
+
 ## Prerequisites / Dependencies:
 
-In order to compile your project with the ESP-StepperMotor-Server Library, the the following 3rd party extensions need to be installed on your system:
+In order to compile your project with the ESP-StepperMotor-Server Library, the following 3rd party extensions need to be installed on your system (if you use PlatformIO all needed dependencies will be installed for you when you follow the instructions in the [Using PlatformIO2] section above):
 - ESPAsyncWebserver (https://github.com/me-no-dev/ESPAsyncWebServer)
-- AsyncTCP: https://github.com/me-no-dev/AsyncTCP (for ESP32 ) OR ESPAsyncTCP: https://github.com/me-no-dev/ESPAsyncTCP (for ESP8266)
+- AsyncTCP: https://github.com/me-no-dev/AsyncTCP (for ESP32 )
 - ArduinoJSON (NOTE: must version 6.x, version 5 will not work): https://arduinojson.org/
 - FlexyStepper: https://github.com/Stan-Reifel/FlexyStepper
 - FS file system wrapper: should be installed with the ESP32 libraries already if you setup your IDE for these modules)
-- WiFi: should be installed with the ESP8266 or ESP32 libraries already if you setup your IDE for these modules)
+- WiFi: should be installed with the ESP32 libraries already if you setup your IDE for these modules)
 
 When using PlatformIO add these dependencies to you platfromio.ini project file and let PlatfromIO install the required dependencies for you:
-'lib_deps = ESP Async WebServer, ArduinoJSON, FlexyStepper, ESP-StepperMotor-Server'
+'lib_deps = ESP-StepperMotor-Server'
 
 When using Arduino you need to install these libraries using the Library Manager.
 
