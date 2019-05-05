@@ -36,7 +36,7 @@ monitor_speed = 115200
 
 ## Prerequisites / Dependencies:
 
-In order to compile your project with the ESP-StepperMotor-Server Library, the following 3rd party extensions need to be installed on your system (if you use PlatformIO all needed dependencies will be installed for you when you follow the instructions in the [Using PlatformIO] (#using-platformio) section above):
+In order to compile your project with the ESP-StepperMotor-Server Library, the following 3rd party extensions need to be installed on your system (if you use PlatformIO all needed dependencies will be installed for you when you follow the instructions in the [Using PlatformIO](#using-platformio) section above):
 - ESPAsyncWebserver: https://github.com/me-no-dev/ESPAsyncWebServer
 - AsyncTCP: https://github.com/me-no-dev/AsyncTCP
 - ArduinoJSON (NOTE: must version 6.x, version 5 will not work): https://arduinojson.org/
