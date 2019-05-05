@@ -1,0 +1,33 @@
+{
+    "name": "ESP-StepperMotor-Server",
+    "description": "A complete stepper motor control server for ESP32 modules, that provides a Web UI, a REST API and a serial conrol interface",
+    "keywords": "stepper,motor,http,websocket,webserver,rest,api,serial,controller,server",
+    "authors": {
+        "name": "Paul Kerspe",
+        "maintainer": true
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/pkerspe/ESP-StepperMotor-Server.git"
+    },
+    "version": "0.0.1",
+    "license": "MIT",
+    "frameworks": "arduino",
+    "platforms": [
+        "espressif32"
+    ],
+    "dependencies": [
+        {
+            "name": "ESP Async WebServer",
+            "platforms": "espressif32"
+        },
+        {
+            "name": "FlexyStepper",
+            "platforms": "arduino"
+        },
+        {
+            "name": "ArduinoJSON",
+            "platforms": "arduino"
+        }
+    ]
+}

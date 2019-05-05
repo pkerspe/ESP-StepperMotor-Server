@@ -120,6 +120,7 @@ public:
   void stop();
   byte getPositionSwitchStatus(int positionSwitchIndex);
   void getButtonStatusRegister(byte buffer[ESPServerSwitchStatusRegisterCount]);
+  void onWebSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
 
   //delegator functions only
   void setLogLevel(byte);
@@ -156,8 +157,10 @@ private:
   void detachAllInterrupts();
   void attachAllInterrupts();
   void setPositionSwitchStatus(int positionSwitchIndex, byte status);
+  
   // ISR handling
-  static void staticPositionSwitchISR();
+  static void
+  staticPositionSwitchISR();
   void internalPositionSwitchISR();
   static void staticRotaryEncoderISR();
   void internalRotaryEncoderISR();
@@ -204,6 +207,7 @@ private:
   ESPStepperMotorServer_RotaryEncoder *configuredRotaryEncoders[ESPServerMaxRotaryEncoders] = {NULL};
 
   AsyncWebServer *httpServer;
+  AsyncWebSocket *webSockerServer;
 };
 
 // ------------------------------------ End ---------------------------------
