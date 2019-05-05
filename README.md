@@ -36,16 +36,18 @@ monitor_speed = 115200
 
 ## Prerequisites / Dependencies:
 
-In order to compile your project with the ESP-StepperMotor-Server Library, the following 3rd party extensions need to be installed on your system (if you use PlatformIO all needed dependencies will be installed for you when you follow the instructions in the [Using PlatformIO2] section above):
-- ESPAsyncWebserver (https://github.com/me-no-dev/ESPAsyncWebServer)
-- AsyncTCP: https://github.com/me-no-dev/AsyncTCP (for ESP32 )
+In order to compile your project with the ESP-StepperMotor-Server Library, the following 3rd party extensions need to be installed on your system (if you use PlatformIO all needed dependencies will be installed for you when you follow the instructions in the [Using PlatformIO] (#using-platformio) section above):
+- ESPAsyncWebserver: https://github.com/me-no-dev/ESPAsyncWebServer
+- AsyncTCP: https://github.com/me-no-dev/AsyncTCP
 - ArduinoJSON (NOTE: must version 6.x, version 5 will not work): https://arduinojson.org/
 - FlexyStepper: https://github.com/Stan-Reifel/FlexyStepper
 - FS file system wrapper: should be installed with the ESP32 libraries already if you setup your IDE for these modules)
-- WiFi: should be installed with the ESP32 libraries already if you setup your IDE for these modules)
+- WiFi: should be installed with the ESP32 libraries already when you setup your IDE for these modules
 
 When using PlatformIO add these dependencies to you platfromio.ini project file and let PlatfromIO install the required dependencies for you:
-'lib_deps = ESP-StepperMotor-Server'
+```ini
+lib_deps = ESP-StepperMotor-Server
+```
 
 When using Arduino you need to install these libraries using the Library Manager.
 
