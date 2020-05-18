@@ -5,10 +5,10 @@ Connect one ore more stepper controllers with step and direction input, and opti
 
 ## Introduction
 
-This library started as a fork for the FlexyStepper library (https://github.com/Stan-Reifel/FlexyStepper). While the FlexyStepper Library is a general Arduino compatible library this fork has a focus on the ESP32 modules form Espressif. It also became much more than a modfied version of FlexyStepper but turned into a complete application to turn a regular ESP32 module into a complete stepper server.
+This library started as a fork for the FlexyStepper library (https://github.com/Stan-Reifel/FlexyStepper). While the FlexyStepper Library is a general Arduino compatible library this fork has a focus on the ESP32 modules form Espressif. It also became much more than a modfied version of FlexyStepper but turned into a stand alone application to turn a regular ESP32 module into a stepper motor control server.
 Since these modules contain a WiFi module they are perfectly suited for web controlled stepper server and since they have enough memory and processing power they are ideal as low cost, low energy consumption standalone server component, that allows configuration and controlling of one to many stepper motor drivers with limit-switches and outputs (e.g. for Relays and LEDs).
 
-Once the ESPp Stepper Motor Server has been uploaded to the ESP module, all further configuration and controlling can be done vie the web UI without the need to code another line in the Arduino or PlatformIO IDE.
+Once the ESP Stepper Motor Server has been uploaded to the ESP module, all further configuration and controlling can be done vie the web UI without the need to code another line in the Arduino or PlatformIO IDE.
 
 ### What this library is NOT
 
@@ -37,16 +37,14 @@ If you use PlatformIO you can simply setup your project with the provided paltfo
 ## Setting up your ESP-StepperMotor-Server
 
 In order to get started you need the following elements:
-- A ESP32 board of your choice (boards with USB-Serial Chips are recommended for the ease of programming them, ohter boards just work as well, yet you have to figure out how to flash the firmware yourself, since this proces will not be covered in this manual)
+- A *ESP32* board of your choice (boards with USB-Serial Chips are recommended for the ease of programming them, ohter boards just work as well, yet you have to figure out how to flash the firmware yourself, since this proces will not be covered in this manual)
 - A configured, Arduino compatible IDE ([Arduino](https://www.arduino.cc/en/Main/Software) or [PlatformIO](http://platformio.org))
-- A stepper motor
-- A power supply that fits to your stepper motors specs
-- A stepper driver board that fits to your stepper motors specs
+- A *stepper motor*
+- A *power supply* that fits to your stepper motors and drivers specs
+- A *stepper driver* board that fits to your stepper motors specs
 Optional:
 - Limit switches 
 - Rotary Encoders
-
-The following chapers describe the setup of a simple project with 2 stepper motors, limit switches and connected rotary encoders. The use of the limit switches and rotary encorders can be skipped if you do not need those
 
 ### 1. Firmware installation
 
@@ -107,15 +105,16 @@ In the output on the serial monitor you should see that some output similar to t
 [INFO] Strength: -45 dBm
 ...
 ```
-During Startup the ESP32 will check if the User Interface is installed on the ESP32s SPI Flash File System (SPIFFS). If it cannot find one ore more required files it will attemtp to downloa the files via WiFi from the git hub repository. In case your WiFi does not provide an open internet connection, you need to upload the files manually using he "Upload File System image" Task from PlatformIO. More Details can be found in the section [Insallation of the Web UI](#insallation-of-the-web-ui)
-
-#### Using Arduino IDE
-
+During Startup the ESP32 will check if the User Interface is installed on the ESP32s SPI Flash File System (SPIFFS). If it cannot find one ore more required files it will attemtp to download the files via WiFi from the git hub repository. In case your WiFi does not provide an open internet connection, you need to upload the files manually using he "Upload File System image" Task from PlatformIO. More Details can be found in the section [Insallation of the Web UI](#insallation-of-the-web-ui)
 
 ### Connecting the hardware
 
 
 ## Insallation of the Web UI
+Once you uploaded the comiled sketch to your ESP32 (dont forget to enter your SSID and Wifi Password in the sketch!) the ESP will connect to the WiFi and check if the UI files are already installed in the SPI Flash File System (SPIFFS) of the ESP. If not it will try to download it.
+Once all is done you can enter the IP Adress of you ESP32 module in the browser and you will see the UI of the Stepper Motor Server, where you can configure the stepper motors and controls.
+
+To figure out the IP Adresse of your ESP-32 module, you can either check your routers admin ui or you can connect to the serial port of the ESP-32 and check the output. Once the connection to you WiFi has been established, the module will print the IP address to the serial console.
 
 ## General API Documentation:
 for further documentations see 
