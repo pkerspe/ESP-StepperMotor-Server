@@ -943,7 +943,8 @@ void ESPStepperMotorServer::connectToWifiNetwork()
 
   if (timeoutCounter > 0)
   {
-    ESPStepperMotorServer_Logger::logInfo("Connected to network");
+    sprintf(logString, "Connected to network with IP address %s",  WiFi.localIP().toString().c_str());
+    ESPStepperMotorServer_Logger::logInfo(logString);
   }
   else
   {

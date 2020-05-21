@@ -97,15 +97,26 @@ In the output on the serial monitor you should see that some output similar to t
 [INFO] Starting ESP-StepperMotor-Server (v. 0.0.1)
 [INFO] Trying to connect to WiFi with ssid TEST-WIFI
 ...[INFO] 
-[INFO] Connected to network
-[INFO] ESPStepperMotorServer WiFi details:
-[INFO] WiFi status: server acts as wifi client in existing network with DHCP
-[INFO] SSID: HITRON-9480
-[INFO] IP address: 192.168.0.22
-[INFO] Strength: -45 dBm
+[INFO] Connected to network with address XXX.XXX.XXX.XXX
 ...
 ```
-During Startup the ESP32 will check if the User Interface is installed on the ESP32s SPI Flash File System (SPIFFS). If it cannot find one ore more required files it will attemtp to download the files via WiFi from the git hub repository. In case your WiFi does not provide an open internet connection, you need to upload the files manually using he "Upload File System image" Task from PlatformIO. More Details can be found in the section [Insallation of the Web UI](#insallation-of-the-web-ui)
+During Startup the ESP32 will check if the User Interface is installed on the ESP32s SPI Flash File System (SPIFFS). If it cannot find one ore more required files it will attemtp to download the files via WiFi from the git hub repository (if the SPIFFS has ben initialized at leas once befire). In case your WiFi does not provide an open internet connection, you need to upload the files manually using he "Upload File System image" Task from PlatformIO. More Details can be found in the section [Insallation of the Web UI](#insallation-of-the-web-ui)
+If the UI is installed on the SPIFFS you should see the following (or a similar) output in the serial console after startup:
+```
+[INFO] Listing files in root folder of SPIFFS:
+[INFO] File: /index.html (615) -1
+[INFO] File: /js/app.js.gz (266875) -1
+[INFO] File: /img/rotaryEncoderWheel.svg (13750) -1
+[INFO] File: /img/stepper.svg (22739) -1
+[INFO] File: /img/switch.svg (19709) -1
+[INFO] File: /img/logo.svg (25066) -1
+[INFO] File: /favicon.ico.gz (1565) -1
+```
+
+Now that it is started, you can open the UI in a browser on you PC connected to the same WiFi network, by typing the IP Address you saw in the serial console before into the address bar of your browser prefixed with "http://".
+
+You should now see the start screen of the ESP StepperMotor Server:
+![alt text][startup_screen]
 
 ### Connecting the hardware
 
@@ -124,3 +135,5 @@ for further documentations see
 
 ## License:
 Copyright (c) 2019 Paul Kerspe - Licensed under the MIT license.
+
+[startup_screen]: ./doc/images/server_startup_screen.png "ESP StepperMotor Server startup screen"
