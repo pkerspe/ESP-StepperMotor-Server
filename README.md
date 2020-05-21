@@ -136,4 +136,4 @@ for further documentations see
 ## License:
 Copyright (c) 2019 Paul Kerspe - Licensed under the MIT license.
 
-[startup_screen]: ./doc/images/server_startup_screen.png "ESP StepperMotor Server startup screen"
+[startup_screen]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png "ESP StepperMotor Server startup screen"
