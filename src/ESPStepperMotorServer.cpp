@@ -486,21 +486,25 @@ void ESPStepperMotorServer::onWebSocketEvent(AsyncWebSocket *server, AsyncWebSoc
 {
   if (type == WS_EVT_CONNECT)
   {
-    Serial.printf("ws[%s][%u] connect\n", server->url(), client->id());
+    sprintf(this->logString, "ws[%s][%u] connect\n", server->url(), client->id());
+    ESPStepperMotorServer_Logger::logInfo(this->logString);
     client->printf("Hello Client %u :)", client->id());
     client->ping();
   }
   else if (type == WS_EVT_DISCONNECT)
   {
-    Serial.printf("ws[%s][%i] disconnect: %i\n", server->url(), client->id(), client->id());
+    sprintf(this->logString, "ws[%s][%i] disconnect: %i\n", server->url(), client->id(), client->id());
+    ESPStepperMotorServer_Logger::logInfo(this->logString);
   }
   else if (type == WS_EVT_ERROR)
   {
-    Serial.printf("ws[%s][%u] error(%i): %s\n", server->url(), client->id(), *((uint16_t *)arg), (char *)data);
+    sprintf(this->logString, "ws[%s][%u] error(%i): %s\n", server->url(), client->id(), *((uint16_t *)arg), (char *)data);
+    ESPStepperMotorServer_Logger::logWarning(this->logString);
   }
   else if (type == WS_EVT_PONG)
   {
-    Serial.printf("ws[%s][%i] pong[%u]: %s\n", server->url(), client->id(), len, (len) ? (char *)data : "");
+    sprintf(this->logString, "ws[%s][%i] pong[%u]: %s\n", server->url(), client->id(), len, (len) ? (char *)data : "");
+    ESPStepperMotorServer_Logger::logInfo(this->logString);
   }
   else if (type == WS_EVT_DATA)
   {
@@ -773,6 +777,11 @@ void ESPStepperMotorServer::registerWebInterfaceUrls()
     request->send(response);
   });
   httpServer->on("/js/app.js", HTTP_GET, [this](AsyncWebServerRequest *request) {
+    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiJsFile, "text/javascript");
+    response->addHeader("Content-Encoding", "gzip");
+    request->send(response);
+  });
+  httpServer->on("/js/app.js.gz", HTTP_GET, [this](AsyncWebServerRequest *request) {
     AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiJsFile, "text/javascript");
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);

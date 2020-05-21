@@ -175,7 +175,7 @@ private:
   const char *accessPointPassword;
   const char *wifiClientSsid;
   const char *wifiPassword;
-  const char *version = "0.0.1";
+  const char *version = "0.0.2";
   const char *webUiIndexFile = "/index.html";
   const char *webUiJsFile = "/js/app.js.gz";
   const char *webUiLogoFile = "/img/logo.svg";
@@ -187,7 +187,7 @@ private:
   boolean isWebserverEnabled = false;
   boolean isRestApiEnabled = false;
   boolean isServerStarted = false;
-  char logString[400];
+  char logString[1000];
 
   ESPStepperMotorServer_RestAPI *restApiHandler;
   ESPStepperMotorServer_StepperConfiguration *configuredSteppers[ESPServerMaxSteppers] = {NULL};

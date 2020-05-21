@@ -32,7 +32,6 @@
 #include "ESPStepperMotorServer_RestAPI.h"
 
 bool initialized = false;
-String version = "0.0.1";
 ESPStepperMotorServer_Logger *logger;
 ESPStepperMotorServer *_stepperMotorServer;
 // ---------------------------------------------------------------------------------
@@ -59,7 +58,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     this->logDebugRequestUrl(request);
 
     String output = String("");
-    this->_stepperMotorServer->getStatusAsJsonString(output);
+    this->_stepperMotorServer->getStatusAsJsonString(output); //populate string with json
     AsyncWebServerResponse *response = request->beginResponse(200, "application/json", output);
     request->send(response);
   });
