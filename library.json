@@ -31,6 +31,6 @@
         }
     ],
     "examples": [
-        "[Ee]xamples/*/*/*.ino"
+        "[Ee]xamples/*/*.ino"
     ]
 }
