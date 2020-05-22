@@ -88,38 +88,50 @@ byte ESPStepperMotorServer_StepperConfiguration::getDirectionIoPin()
     return this->_directionIoPin;
 }
 
-void ESPStepperMotorServer_StepperConfiguration::setStepsPerRev(unsigned int stepsPerRev){
+void ESPStepperMotorServer_StepperConfiguration::setStepsPerRev(unsigned int stepsPerRev)
+{
     this->stepsPerRev = stepsPerRev;
 }
 
-unsigned int ESPStepperMotorServer_StepperConfiguration::getStepsPerRev(){
+unsigned int ESPStepperMotorServer_StepperConfiguration::getStepsPerRev()
+{
     return this->stepsPerRev;
 }
 
-void ESPStepperMotorServer_StepperConfiguration::setMicrostepsPerStep(unsigned int microstepsPerStep){
+void ESPStepperMotorServer_StepperConfiguration::setMicrostepsPerStep(unsigned int microstepsPerStep)
+{
     //check for power of two value, since others are not allowed in micro step sizes
-    if(microstepsPerStep && !(microstepsPerStep & (microstepsPerStep-1)) == 0){
+    if (microstepsPerStep && !(microstepsPerStep & (microstepsPerStep - 1)) == 0)
+    {
         this->microsteppingDivisor = microstepsPerStep;
-    } else {
-    ESPStepperMotorServer_Logger::logWarning("ESPStepperMotorServer_StepperConfiguration::setMicrostepsPerStep: Invalid microstepping value given. Only values which are power of two are allowed");
+    }
+    else
+    {
+        ESPStepperMotorServer_Logger::logWarning("ESPStepperMotorServer_StepperConfiguration::setMicrostepsPerStep: Invalid microstepping value given. Only values which are power of two are allowed");
     }
 }
 
-unsigned int ESPStepperMotorServer_StepperConfiguration::getMicrostepsPerStep(){
+unsigned int ESPStepperMotorServer_StepperConfiguration::getMicrostepsPerStep()
+{
     return this->microsteppingDivisor;
 }
 
-void ESPStepperMotorServer_StepperConfiguration::setRpmLimit(unsigned int rpmLimit){
-if(rpmLimit > ESPSMS_MAX_UPPER_RPM_LMIT){
-    char logString[170];
-    sprintf(logString, "ESPStepperMotorServer_StepperConfiguration::setRpmLimit: The given rpm limit value %i exceeds the allowed maximum rpm limit of %i, will set to %i", rpmLimit, ESPSMS_MAX_UPPER_RPM_LMIT, ESPSMS_MAX_UPPER_RPM_LMIT);
-    ESPStepperMotorServer_Logger::logWarning(logString);
-    this->rpmLimit = ESPSMS_MAX_UPPER_RPM_LMIT;
-} else {
-    this->rpmLimit = rpmLimit;
+void ESPStepperMotorServer_StepperConfiguration::setRpmLimit(unsigned int rpmLimit)
+{
+    if (rpmLimit > ESPSMS_MAX_UPPER_RPM_LMIT)
+    {
+        char logString[170];
+        sprintf(logString, "ESPStepperMotorServer_StepperConfiguration::setRpmLimit: The given rpm limit value %i exceeds the allowed maximum rpm limit of %i, will set to %i", rpmLimit, ESPSMS_MAX_UPPER_RPM_LMIT, ESPSMS_MAX_UPPER_RPM_LMIT);
+        ESPStepperMotorServer_Logger::logWarning(logString);
+        this->rpmLimit = ESPSMS_MAX_UPPER_RPM_LMIT;
+    }
+    else
+    {
+        this->rpmLimit = rpmLimit;
+    }
 }
-}
-  
-  unsigned int ESPStepperMotorServer_StepperConfiguration::getRpmLimit(){
+
+unsigned int ESPStepperMotorServer_StepperConfiguration::getRpmLimit()
+{
     return this->rpmLimit;
-  }
+}

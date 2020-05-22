@@ -57,6 +57,8 @@ private:
   ESPStepperMotorServer *_stepperMotorServer;
   void populateStepperDetailsToJsonObject(JsonObject &detailsObjecToPopulate, ESPStepperMotorServer_StepperConfiguration *stepper, int index);
   void populateSwitchDetailsToJsonObject(JsonObject &detailsObjecToPopulate, ESPStepperMotorServer_PositionSwitch *positionSwitch, int index);
+  void populateRotaryEncoderDetailsToJsonObject(JsonObject &detailsObjecToPopulate, ESPStepperMotorServer_RotaryEncoder *rotaryEncoder, int index);
+  
   void logDebugRequestUrl(AsyncWebServerRequest *request);
   // SWITCH CONFIGURATION ENDPOINT HANDLER
   void handlePostSwitchRequest(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total, int switchIndex = -1);
@@ -64,6 +66,9 @@ private:
   // STEPPER CONFIGURATION ENDPOINT HANDLER
   void handlePostStepperRequest(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total, int switchIndex = -1);
   int handleDeleteStepperRequest(AsyncWebServerRequest *request, boolean sendReponse);
+  // ROTARY ENCODER CONFIGURATION ENDPOINT HANDLER
+  void handlePostRotaryEncoderRequest(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total, int encoderIndex = -1);
+  int handleDeleteRotaryEncoderRequest(AsyncWebServerRequest *request, boolean sendReponse);
 };
 
 #endif

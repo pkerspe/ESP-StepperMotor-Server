@@ -112,9 +112,40 @@ void ESPStepperMotorServer::setHttpPort(int portNumber)
   this->httpPortNumber = portNumber;
 }
 
-int ESPStepperMotorServer::addStepper(ESPStepperMotorServer_StepperConfiguration *stepper)
+int ESPStepperMotorServer::addOrUpdateRotaryEncoder(ESPStepperMotorServer_RotaryEncoder *encoder, int encoderIndex)
 {
-  if (this->configuredStepperIndex >= ESPServerMaxSteppers)
+  //find first available empty configuration slot for stepper config
+  byte idToSet = (encoderIndex > -1) ? encoderIndex : this->getFirstAvailableConfigurationSlotForRotaryEncoder();
+
+  if (idToSet >= ESPServerMaxRotaryEncoders)
+  {
+    sprintf(this->logString, "The maximum amount of encoders (%i) that can be configured has been reached, no more steppers can be added", ESPServerMaxRotaryEncoders);
+    ESPStepperMotorServer_Logger::logWarning(this->logString);
+    ESPStepperMotorServer_Logger::logWarning("The value can only be increased during compile time, by modifying the value of ESPServerMaxRotaryEncoders in ESPStepperMotorServer.h");
+    return -1;
+  }
+  if (encoder->getPinAIOPin() == ESPStepperMotorServer_StepperConfiguration::ESPServerStepperUnsetIoPinNumber ||
+      encoder->getPinBIOPin() == ESPStepperMotorServer_StepperConfiguration::ESPServerStepperUnsetIoPinNumber)
+  {
+    sprintf(this->logString, "Either the Pin A IO pin (%i) or Pin B IO (%i) pin, or both, are not set correctly. Use a valid IO Pin value between 0 and the highest available IO Pin on your ESP", encoder->getPinAIOPin(), encoder->getPinBIOPin());
+    ESPStepperMotorServer_Logger::logWarning(this->logString);
+    return -1;
+  }
+  encoder->setId(idToSet);
+  //set Pins for encoder
+  pinMode(encoder->getPinAIOPin(), INPUT);
+  pinMode(encoder->getPinBIOPin(), INPUT);
+  //add stepper to configuration
+  this->configuredRotaryEncoders[idToSet] = encoder;
+  return idToSet;
+}
+
+int ESPStepperMotorServer::addOrUpdateStepper(ESPStepperMotorServer_StepperConfiguration *stepper, int stepperIndex)
+{
+  //find first available empty configuration slot for stepper config
+  byte idToSet = (stepperIndex > -1) ? stepperIndex : this->getFirstAvailableConfigurationSlotForStepper();
+
+  if (idToSet >= ESPServerMaxSteppers)
   {
     sprintf(this->logString, "The maximum amount of steppers (%i) that can be configured has been reached, no more steppers can be added", ESPServerMaxSteppers);
     ESPStepperMotorServer_Logger::logWarning(this->logString);
@@ -128,16 +159,15 @@ int ESPStepperMotorServer::addStepper(ESPStepperMotorServer_StepperConfiguration
     ESPStepperMotorServer_Logger::logWarning(this->logString);
     return -1;
   }
-  stepper->setId(this->configuredStepperIndex);
+  stepper->setId(idToSet);
   //set IO Pins for stepper
   pinMode(stepper->getDirectionIoPin(), OUTPUT);
   digitalWrite(stepper->getDirectionIoPin(), LOW);
   pinMode(stepper->getStepIoPin(), OUTPUT);
   digitalWrite(stepper->getStepIoPin(), LOW);
   //add stepper to configuration
-  this->configuredSteppers[this->configuredStepperIndex] = stepper;
-  this->configuredStepperIndex++;
-  return this->configuredStepperIndex - 1;
+  this->configuredSteppers[idToSet] = stepper;
+  return idToSet;
 }
 
 void ESPStepperMotorServer::removeStepper(int id)
@@ -184,9 +214,9 @@ int ESPStepperMotorServer::addPositionSwitch(byte stepperIndex, byte ioPinNumber
 
 int ESPStepperMotorServer::addPositionSwitch(ESPStepperMotorServer_PositionSwitch posSwitchToAdd, int switchIndex)
 {
-  if (posSwitchToAdd.getStepperIndex() > this->configuredStepperIndex)
+  if (this->getConfiguredStepper(posSwitchToAdd.getStepperIndex()) == NULL)
   {
-    sprintf(this->logString, "invalid stepperIndex value given. The number of configured steppers is %i but index value of %i was given in addPositionSwitch() call.", this->configuredStepperIndex, posSwitchToAdd.getStepperIndex());
+    sprintf(this->logString, "invalid stepperIndex value given. No Stepper is configured at index %i was given in addPositionSwitch() call.", posSwitchToAdd.getStepperIndex());
     ESPStepperMotorServer_Logger::logWarning(this->logString);
     ESPStepperMotorServer_Logger::logWarning("the position switch has not been added");
     return -1;
@@ -264,6 +294,32 @@ void ESPStepperMotorServer::removePositionSwitch(ESPStepperMotorServer_PositionS
   else
   {
     ESPStepperMotorServer_Logger::logInfo("Invalid position switch given, IO pin was not set");
+  }
+}
+
+void ESPStepperMotorServer::removeRotaryEncoder(int id)
+{
+  ESPStepperMotorServer_RotaryEncoder *encoderToRemove = this->configuredRotaryEncoders[id];
+  if (encoderToRemove != NULL && encoderToRemove->getId() == id)
+  {
+    this->removeRotaryEncoder(encoderToRemove);
+  }
+  else
+  {
+    sprintf(this->logString, "rotary encoder index %i is invalid, no rotary encoder pointer present at this configuration index or rotary encoder IDs do not match, removeRotaryEncoder() canceled", id);
+    ESPStepperMotorServer_Logger::logWarning(this->logString);
+  }
+}
+
+void ESPStepperMotorServer::removeRotaryEncoder(ESPStepperMotorServer_RotaryEncoder *encoder)
+{
+  if (encoder != NULL && this->configuredRotaryEncoders[encoder->getId()]->getId() == encoder->getId())
+  {
+    this->configuredRotaryEncoders[encoder->getId()] = NULL;
+  }
+  else
+  {
+    ESPStepperMotorServer_Logger::logInfo("Invalid stepper given. The ID does not match the configured stepper. RemoveStepper failed");
   }
 }
 
@@ -816,16 +872,52 @@ ESPStepperMotorServer_StepperConfiguration *ESPStepperMotorServer::getConfigured
   return NULL;
 }
 
+byte ESPStepperMotorServer::getFirstAvailableConfigurationSlotForStepper()
+{
+  for(byte stepperIndex = 0; stepperIndex < ESPServerMaxSteppers ; stepperIndex++){
+    if(this->configuredSteppers[stepperIndex] == NULL){
+      return stepperIndex;
+    }
+  } 
+  return ESPServerMaxSteppers;
+}
+
+
+byte ESPStepperMotorServer::getFirstAvailableConfigurationSlotForRotaryEncoder()
+{
+  for(byte encoderIndex = 0; encoderIndex < ESPServerMaxRotaryEncoders ; encoderIndex++){
+    if(this->configuredRotaryEncoders[encoderIndex] == NULL){
+      return encoderIndex;
+    }
+  } 
+  return ESPServerMaxRotaryEncoders;
+}
+
+
+
+
 ESPStepperMotorServer_PositionSwitch *ESPStepperMotorServer::getConfiguredSwitch(byte index)
 {
   if (index < 0 || index >= ESPServerMaxSwitches)
   {
-    sprintf(this->logString, "index %i for requsted switch is out of allowed range, must be between 0 and %i. Will retrun first entry instead", index, ESPServerMaxSwitches);
+    sprintf(this->logString, "index %i for requested switch is out of allowed range, must be between 0 and %i. Will retrun first entry instead", index, ESPServerMaxSwitches);
     ESPStepperMotorServer_Logger::logWarning(this->logString);
     index = 0;
   }
   return &this->configuredPositionSwitches[index];
 }
+
+ESPStepperMotorServer_RotaryEncoder *ESPStepperMotorServer::getConfiguredRotaryEncoder(byte index)
+{
+  if (index < 0 || index >= ESPServerMaxRotaryEncoders)
+  {
+    sprintf(this->logString, "index %i for requested rotary encoder is out of allowed range, must be between 0 and %i. Will retrun first entry instead", index, ESPServerMaxRotaryEncoders);
+    ESPStepperMotorServer_Logger::logWarning(this->logString);
+    index = 0;
+  }
+  return this->configuredRotaryEncoders[index];
+}
+
 
 bool ESPStepperMotorServer::isIoPinUsed(int pinToCheck)
 {

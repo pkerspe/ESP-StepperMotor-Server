@@ -32,20 +32,20 @@
 byte _stepperIndex;
 byte _ioPinNumber = 255;
 byte _switchType;
+byte _switchTypeActiveState;
 String _positionName;
 long _switchPosition;
 ESPStepperMotorServer_Logger _logger = ESPStepperMotorServer_Logger((String) "ESPStepperMotorServer_PositionSwitch");
 
 ESPStepperMotorServer_PositionSwitch::ESPStepperMotorServer_PositionSwitch()
 {
-    
 }
 
 ESPStepperMotorServer_PositionSwitch::ESPStepperMotorServer_PositionSwitch(byte ioPin, byte stepperIndex, byte switchType, String name)
 {
     this->_ioPinNumber = ioPin;
     this->_stepperIndex = stepperIndex;
-    this->_switchType = switchType;
+    this->_switchType = switchType; //this is a bit mask representing the active state (bit 1 and 2) and the general type (homing/limit/position or emergency stop switch) in one byte
     this->_positionName = name;
 }
 
@@ -80,4 +80,13 @@ long ESPStepperMotorServer_PositionSwitch::getSwitchPosition(void)
 void ESPStepperMotorServer_PositionSwitch::setSwitchPosition(long position)
 {
     this->_switchPosition = position;
+}
+
+bool ESPStepperMotorServer_PositionSwitch::isActiveHigh()
+{
+    return this->isTypeBitSet(SWITCHTYPE_STATE_ACTIVE_HIGH_BIT);
+}
+
+bool ESPStepperMotorServer_PositionSwitch::isTypeBitSet(byte bitToCheck){
+    return this->_switchType & (1 << (bitToCheck - 1));
 }

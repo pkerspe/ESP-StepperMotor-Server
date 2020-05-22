@@ -254,13 +254,15 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
 
   // POST /api/steppers
   // add a new stepper configuration entry
-  httpServer->on("/api/steppers", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) { 
+  httpServer->on(
+      "/api/steppers", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) { 
     this->logDebugRequestUrl(request); 
     this->handlePostStepperRequest(request, data, len, index, total, -1); });
 
   // PUT /api/steppers?id=<id>
   // upate an existing stepper configuration entry
-  httpServer->on("/api/steppers", HTTP_PUT, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) { 
+  httpServer->on(
+      "/api/steppers", HTTP_PUT, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) { 
     this->logDebugRequestUrl(request);
     int deleteRC = this->handleDeleteStepperRequest(request, false);
     if (deleteRC == 204)
@@ -363,7 +365,8 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
   // endpoint to add a new switch configuration
   httpServer->on("/api/switches", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
     this->logDebugRequestUrl(request);
-    this->handlePostSwitchRequest(request, data, len, index, total); });
+    this->handlePostSwitchRequest(request, data, len, index, total); 
+  });
 
   // PUT /api/switches?id=<id>
   // endpoint to update an existing switch configuration (will effectively delete the old switch configuraiton and write a new one at the same position)
@@ -376,7 +379,8 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       this->handlePostSwitchRequest(request, data, len, index, total, switchIndex);
     } else {
       request->send(deleteRC, "application/json", "{\"error\": \"Failed to update position switch\"}");
-    } });
+    } 
+  });
 
   // DELETE /api/switches?id=<id>
   // delete a specific switch configuration
@@ -384,6 +388,90 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     this->logDebugRequestUrl(request);
     this->handleDeleteSwitchRequest(request, true);
   });
+
+  // GET /api/encoders
+  // GET /api/encoders?id=<id>
+  // endpoint to list all rotary encoder configurations or a specific configuration if the "id" query parameter is given
+  httpServer->on("/api/encoders", HTTP_GET, [this](AsyncWebServerRequest *request) {
+    this->logDebugRequestUrl(request);
+    String output;
+    const int rotaryEncoderObjectSize = JSON_OBJECT_SIZE(8) + 80; //80 is for Strings names
+
+    if (request->hasParam("id"))
+    {
+      int rotaryEncoderIndex = request->getParam("id")->value().toInt();
+      if (rotaryEncoderIndex < 0 || rotaryEncoderIndex >= ESPServerMaxRotaryEncoders || this->_stepperMotorServer->getConfiguredRotaryEncoder(rotaryEncoderIndex) == NULL)
+      {
+        request->send(404);
+        return;
+      }
+
+      StaticJsonDocument<rotaryEncoderObjectSize> doc;
+      JsonObject root = doc.to<JsonObject>();
+      this->populateRotaryEncoderDetailsToJsonObject(root, this->_stepperMotorServer->getConfiguredRotaryEncoder(rotaryEncoderIndex), rotaryEncoderIndex);
+      serializeJson(root, output);
+
+      if (this->logger->getLogLevel() >= ESPServerLogLevel_DEBUG)
+      {
+        sprintf(this->logger->logString, "ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), rotaryEncoderObjectSize);
+        ESPStepperMotorServer_Logger::logDebug(this->logger->logString);
+      }
+    }
+    else
+    {
+      const int docSize = rotaryEncoderObjectSize * ESPServerMaxRotaryEncoders;
+      StaticJsonDocument<docSize> doc;
+      JsonObject root = doc.to<JsonObject>();
+      JsonArray encoders = root.createNestedArray("rotaryEncoders");
+      for (int i = 0; i < ESPServerMaxRotaryEncoders; i++)
+      {
+        if (this->_stepperMotorServer->getConfiguredRotaryEncoder(i) != NULL)
+        {
+          JsonObject encoderDetails = encoders.createNestedObject();
+          this->populateRotaryEncoderDetailsToJsonObject(encoderDetails, this->_stepperMotorServer->getConfiguredRotaryEncoder(i), i);
+        }
+      }
+      serializeJson(root, output);
+
+      if (this->logger->getLogLevel() >= ESPServerLogLevel_DEBUG)
+      {
+        sprintf(this->logger->logString, "ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), docSize);
+        ESPStepperMotorServer_Logger::logDebug(this->logger->logString);
+      }
+    }
+
+    AsyncWebServerResponse *response = request->beginResponse(200, "application/json", output);
+    request->send(response);
+  });
+
+  // POST /api/encoders
+  // endpoint to add a new rotary encoder configuration
+  httpServer->on("/api/encoders", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+    this->logDebugRequestUrl(request);
+    this->handlePostRotaryEncoderRequest(request, data, len, index, total); 
+  });
+
+  // PUT /api/encoders?id=<id>
+  // endpoint to update an existing rotary encoder configuration (will effectively delete the old configuraiton and write a new one at the same position)
+  httpServer->on("/api/encoders", HTTP_PUT, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+    this->logDebugRequestUrl(request);
+    int deleteRC = this->handleDeleteRotaryEncoderRequest(request, false);
+    if (deleteRC == 204)
+    {
+      int encoderIndex = request->getParam("id")->value().toInt();
+      this->handlePostRotaryEncoderRequest(request, data, len, index, total, encoderIndex);
+    } else {
+      request->send(deleteRC, "application/json", "{\"error\": \"Failed to update rotary encoder\"}");
+    } 
+  });
+
+  // DELETE /api/encoders?id=<id>
+  // delete a specific rotary encoder configuration
+  httpServer->on("/api/encoders", HTTP_DELETE, [this](AsyncWebServerRequest *request) {
+    this->logDebugRequestUrl(request);
+    this->handleDeleteRotaryEncoderRequest(request, true);
+  });
+
 
   // GET /api/outputs
   // GET /api/outputs?id=<id>
@@ -402,7 +490,19 @@ void ESPStepperMotorServer_RestAPI::populateSwitchDetailsToJsonObject(JsonObject
   switchDetails["stepperId"] = positionSwitch->getStepperIndex();
   switchDetails["stepperName"] = this->_stepperMotorServer->getConfiguredStepper(positionSwitch->getStepperIndex())->getDisplayName();
   switchDetails["type"] = positionSwitch->getSwitchType();
+  switchDetails["isActiveHighType"] = positionSwitch->isActiveHigh();
   switchDetails["position"] = positionSwitch->getSwitchPosition();
+}
+
+void ESPStepperMotorServer_RestAPI::populateRotaryEncoderDetailsToJsonObject(JsonObject &rotaryEncoderDetails, ESPStepperMotorServer_RotaryEncoder *rotaryEncoder, int index)
+{
+  rotaryEncoderDetails["id"] = index;
+  rotaryEncoderDetails["ioPinA"] = rotaryEncoder->getPinAIOPin();
+  rotaryEncoderDetails["ioPinB"] = rotaryEncoder->getPinBIOPin();
+  rotaryEncoderDetails["name"] = rotaryEncoder->getDisplayName();
+  rotaryEncoderDetails["stepMultiplier"] = rotaryEncoder->getStepMultiplier();
+  rotaryEncoderDetails["stepperId"] = rotaryEncoder->getStepperIndex();
+  rotaryEncoderDetails["stepperName"] = this->_stepperMotorServer->getConfiguredStepper(rotaryEncoder->getStepperIndex())->getDisplayName();
 }
 
 void ESPStepperMotorServer_RestAPI::populateStepperDetailsToJsonObject(JsonObject &stepperDetails, ESPStepperMotorServer_StepperConfiguration *stepper, int index)
@@ -449,7 +549,7 @@ void ESPStepperMotorServer_RestAPI::logDebugRequestUrl(AsyncWebServerRequest *re
 }
 
 // request handlers
-void ESPStepperMotorServer_RestAPI::handlePostStepperRequest(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total, int switchIndex)
+void ESPStepperMotorServer_RestAPI::handlePostStepperRequest(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total, int stepperIndex)
 {
   StaticJsonDocument<300> doc;
   DeserializationError error = deserializeJson(doc, (const char *)data);
@@ -477,9 +577,21 @@ void ESPStepperMotorServer_RestAPI::handlePostStepperRequest(AsyncWebServerReque
         }
         else
         {
+          int newId = -1;
           ESPStepperMotorServer_StepperConfiguration *stepperToAdd = new ESPStepperMotorServer_StepperConfiguration(stepPin, dirPin);
           stepperToAdd->setDisplayName(name);
-          int newId = this->_stepperMotorServer->addStepper(stepperToAdd);
+
+          if (stepperIndex == -1)
+          {
+            newId = this->_stepperMotorServer->addOrUpdateStepper(stepperToAdd);
+          }
+          else
+          {
+            //"update" existing stepper config which basically means we store it at a specific index
+            newId = stepperIndex;
+            this->_stepperMotorServer->addOrUpdateStepper(stepperToAdd, stepperIndex);
+          }
+
           sprintf(this->logger->logString, "{\"id\": %i}", newId);
           request->send(200, "application/json", this->logger->logString);
         }
@@ -514,6 +626,92 @@ int ESPStepperMotorServer_RestAPI::handleDeleteStepperRequest(AsyncWebServerRequ
   if (sendReponse)
   {
     request->send(404, "application/json", "{\"error\": \"Invalid stepper id\"}");
+  }
+  return 404;
+}
+
+void ESPStepperMotorServer_RestAPI::handlePostRotaryEncoderRequest(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total, int encoderIndex)
+{
+  StaticJsonDocument<300> doc;
+  DeserializationError error = deserializeJson(doc, (const char *)data);
+  if (error)
+  {
+    request->send(400, "application/json", "{\"error\": \"Invalid JSON request, deserialization failed\"}");
+  }
+  else
+  {
+    if (doc.containsKey("stepMultiplier") 
+      && doc.containsKey("pinA") 
+      && doc.containsKey("pinB")
+      && doc.containsKey("displayName")
+      && doc.containsKey("stepperId")
+    ) {
+      const char *displayName = doc["displayName"];
+      int stepMultiplier = doc["stepMultiplier"];
+      byte stepperIndex = doc["stepperId"];
+      byte pinA = doc["pinA"];
+      byte pinB = doc["pinB"];
+      if (pinA >= 0 && pinA <= ESPStepperHighestAllowedIoPin && pinB >= 0 && pinB <= ESPStepperHighestAllowedIoPin && pinA != pinB)
+      {
+        //check if pins are already in use by a stepper or switch configuration
+        if (this->_stepperMotorServer->isIoPinUsed(pinA))
+        {
+          request->send(400, "application/json", "{\"error\": \"The given Pin A IO pin is already used by another stepper or a switch configuration\"}");
+        }
+        else if (this->_stepperMotorServer->isIoPinUsed(pinB))
+        {
+          request->send(400, "application/json", "{\"error\": \"The given Pin B IO pin is already used by another stepper or a switch configuration\"}");
+        }
+        else
+        {
+          int newId = -1;
+          ESPStepperMotorServer_RotaryEncoder *encoderToAdd = new ESPStepperMotorServer_RotaryEncoder(pinA, pinB, displayName, stepMultiplier, stepperIndex);
+
+          if (encoderIndex == -1)
+          {
+            newId = this->_stepperMotorServer->addOrUpdateRotaryEncoder(encoderToAdd);
+          }
+          else
+          {
+            //"update" existing stepper config which basically means we store it at a specific index
+            newId = encoderIndex;
+            this->_stepperMotorServer->addOrUpdateRotaryEncoder(encoderToAdd, encoderIndex);
+          }
+
+          sprintf(this->logger->logString, "{\"id\": %i}", newId);
+          request->send(200, "application/json", this->logger->logString);
+        }
+      }
+      else
+      {
+        request->send(400, "application/json", "{\"error\": \"Invalid IO pin number given or Pin A and Pin B are the same\"}");
+      }
+    }
+    else
+    {
+      request->send(400, "application/json", "{\"error\": \"Invalid request, missing one ore more required parameters: stepMultiplier, pinA, pinB, displayName, stepperId\"}");
+    }
+  }
+}
+
+int ESPStepperMotorServer_RestAPI::handleDeleteRotaryEncoderRequest(AsyncWebServerRequest *request, boolean sendReponse)
+{
+  if (request->hasParam("id"))
+  {
+    int encoderIndex = request->getParam(0)->value().toInt();
+    if (encoderIndex < 0 || encoderIndex >= ESPServerMaxRotaryEncoders || this->_stepperMotorServer->getConfiguredRotaryEncoder(encoderIndex) != NULL)
+    {
+      this->_stepperMotorServer->removeRotaryEncoder(encoderIndex);
+      if (sendReponse)
+      {
+        request->send(204);
+      }
+      return 204;
+    }
+  }
+  if (sendReponse)
+  {
+    request->send(404, "application/json", "{\"error\": \"Invalid rotary encoder id\"}");
   }
   return 404;
 }
@@ -558,7 +756,7 @@ void ESPStepperMotorServer_RestAPI::handlePostSwitchRequest(AsyncWebServerReques
       long switchPosition = doc["switchPosition"];
       byte switchType = doc["switchType"];
 
-      if (ioPinNumber >= 0 && ioPinNumber <= ESPStepperHighestAllowedIoPin)
+      if (ioPinNumber >= 0 && ioPinNumber <= ESPStepperHighestAllowedIoPin) //check valid pin range value
       {
         //check if pins are already in use by a stepper or switch configuration
         if (this->_stepperMotorServer->isIoPinUsed(ioPinNumber))
@@ -573,7 +771,7 @@ void ESPStepperMotorServer_RestAPI::handlePostSwitchRequest(AsyncWebServerReques
         {
           ESPStepperMotorServer_PositionSwitch posSwitchToAdd = ESPStepperMotorServer_PositionSwitch(ioPinNumber, stepperConfigIndex, switchType, name);
           posSwitchToAdd.setSwitchPosition(switchPosition);
-          
+
           if (switchIndex > -1)
           {
             this->_stepperMotorServer->removePositionSwitch(switchIndex);

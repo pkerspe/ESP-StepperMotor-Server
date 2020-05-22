@@ -105,10 +105,11 @@ public:
   void setWifiCredentials(const char *ssid, const char *pwd);
   void setWifiMode(byte wifiMode);
   void printWifiStatus();
-  int addStepper(ESPStepperMotorServer_StepperConfiguration *stepper);
+  int addOrUpdateStepper(ESPStepperMotorServer_StepperConfiguration *stepper, int stepperIndex = -1);
   int addPositionSwitch(byte stepperIndex, byte ioPinNumber, byte switchType, String positionName, long switchPosition = -1);
   int addPositionSwitch(ESPStepperMotorServer_PositionSwitch posSwitchToAdd, int switchIndex = -1);
   int addRotaryEncoder(ESPStepperMotorServer_RotaryEncoder *rotaryEncoderToAdd);
+  int addOrUpdateRotaryEncoder(ESPStepperMotorServer_RotaryEncoder *rotaryEncoder, int encoderIndex = -1);
   void removePositionSwitch(int positionSwitchIndex);
   void removePositionSwitch(ESPStepperMotorServer_PositionSwitch *posSwitchToRemove);
   void removeStepper(int stepperConfigurationIndex);
@@ -126,7 +127,10 @@ public:
   void setLogLevel(byte);
   void getStatusAsJsonString(String &statusString);
   ESPStepperMotorServer_StepperConfiguration *getConfiguredStepper(byte index);
+  byte getFirstAvailableConfigurationSlotForStepper();
   ESPStepperMotorServer_PositionSwitch *getConfiguredSwitch(byte index);
+  ESPStepperMotorServer_RotaryEncoder *getConfiguredRotaryEncoder(byte index);
+  byte getFirstAvailableConfigurationSlotForRotaryEncoder();
   bool isIoPinUsed(int);
 
   //
@@ -191,7 +195,6 @@ private:
 
   ESPStepperMotorServer_RestAPI *restApiHandler;
   ESPStepperMotorServer_StepperConfiguration *configuredSteppers[ESPServerMaxSteppers] = {NULL};
-  byte configuredStepperIndex = 0;
   static ESPStepperMotorServer *anchor; //used for self-reference in ISR
   ESPStepperMotorServer_PositionSwitch configuredPositionSwitches[ESPServerMaxSwitches];
   // this byte indicated the index on the configuration array for position switches where the next configuration will be stored

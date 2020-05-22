@@ -132,17 +132,20 @@ const unsigned char ttable[7][4] = {
     {R_CCW_NEXT, R_CCW_FINAL, R_CCW_BEGIN, R_START},
 };
 
-ESPStepperMotorServer_RotaryEncoder::ESPStepperMotorServer_RotaryEncoder(char pinA, char pinB, String displayName)
+ESPStepperMotorServer_RotaryEncoder::ESPStepperMotorServer_RotaryEncoder(char pinA, char pinB, String displayName, int stepMultiplier, byte stepperIndex)
 {
     // Assign variables.
     this->_pinA = pinA;
     this->_pinB = pinB;
+    this->_displayName = displayName;
+    this->_stepMultiplier = stepMultiplier;
+    this->_stepperIndex = stepperIndex;
+    this->_encoderIndex = -1;
     // Set pins to input and enable pullup.
     pinMode(this->_pinA, INPUT_PULLUP);
     pinMode(this->_pinB, INPUT_PULLUP);
     // Initialise state.
     this->_state = R_START;
-    this->_stepperIndex = -1;
 }
 
 unsigned char ESPStepperMotorServer_RotaryEncoder::process()
@@ -153,6 +156,16 @@ unsigned char ESPStepperMotorServer_RotaryEncoder::process()
     this->_state = ttable[this->_state & 0xf][pinstate];
     // Return emit bits, ie the generated event.
     return this->_state & 0x30;
+}
+
+void ESPStepperMotorServer_RotaryEncoder::setId(byte id)
+{
+    this->_encoderIndex = id;
+}
+
+byte ESPStepperMotorServer_RotaryEncoder::getId()
+{
+    return this->_encoderIndex;
 }
 
 unsigned char ESPStepperMotorServer_RotaryEncoder::getPinAIOPin()
