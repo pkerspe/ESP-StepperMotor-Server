@@ -3,9 +3,7 @@
 Turn your ESP32 into a standalone stepper motor control server with easy to use webinterface.
 Connect one ore more stepper controllers with step and direction input, and optionally some limit-switches to the IO-pins of your ESP module and controll the stepper motor via an easy to use web interface, via REST API or via a serial control interface.
 
-<img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/>
-<img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/setup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/>
-<img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/motor_control_screen.png" alt="ESP StepperMotor Server start screen" height="200"/>
+|<img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/>|<img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/setup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/>|<img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/motor_control_screen.png" alt="ESP StepperMotor Server start screen" height="200"/>|
 
 
 ## Introduction
@@ -48,8 +46,8 @@ In order to get started you need the following elements:
 - A *power supply* that fits to your stepper motors and drivers specs
 - A *stepper driver* board that fits to your stepper motors specs
 Optional:
-- Limit switches 
-- Rotary Encoders
+- Limit, position and emegency stop switches
+- Rotary encoders to control the motors directly using physical controls
 
 ![startup screen][add_stepper_dialog]
 ![startup screen][add_switch_dialog]
@@ -136,12 +134,11 @@ In the navigation on the left side click on "SETUP" to open the configuration pa
 The following devices can be configured:
 - Stepper Motors (or to be more precise "connected stepper drivers")
 - Switches (input signals): multiple types of functions are supported for the switches
-..- Limit/Homing Switches
-..- Position Switches
-..- emergency stop switches
-..- in future versions also switches to trigger movement macros
+-- Limit/Homing Switches
+-- Position Switches
+-- emergency stop switches
+-- in future versions also switches to trigger movement macros will be supported
 - Rotary encoders as control inputs to control the configured steppers
-
 
 
 ## Insallation of the Web UI
