@@ -3,7 +3,7 @@
 Turn your ESP32 into a standalone stepper motor control server with easy to use webinterface.
 Connect one ore more stepper controllers with step and direction input, and optionally some limit-switches to the IO-pins of your ESP module and controll the stepper motor via an easy to use web interface, via REST API or via a serial control interface.
 
-![alt text][startup_screen =250x]
+![alt text][startup_screen]
 
 ## Introduction
 
