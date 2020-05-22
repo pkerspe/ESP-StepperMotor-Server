@@ -3,8 +3,10 @@
 Turn your ESP32 into a standalone stepper motor control server with easy to use webinterface.
 Connect one ore more stepper controllers with step and direction input, and optionally some limit-switches to the IO-pins of your ESP module and controll the stepper motor via an easy to use web interface, via REST API or via a serial control interface.
 
-<img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/>
 
+| <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/setup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/motor_control_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> |
+|---|---|---|
+| home screen | configuration screen | control screen  |
 
 ## Introduction
 
@@ -46,8 +48,8 @@ In order to get started you need the following elements:
 - A *power supply* that fits to your stepper motors and drivers specs
 - A *stepper driver* board that fits to your stepper motors specs
 Optional:
-- Limit switches 
-- Rotary Encoders
+- Limit, position and emegency stop switches
+- Rotary encoders to control the motors directly using physical controls
 
 ### 1. Firmware installation
 
@@ -119,24 +121,68 @@ If the UI is installed on the SPIFFS you should see the following (or a similar)
 Now that it is started, you can open the UI in a browser on you PC connected to the same WiFi network, by typing the IP Address you saw in the serial console before into the address bar of your browser prefixed with "http://".
 
 You should now see the start screen of the ESP StepperMotor Server:
-![alt text][startup_screen]
+![startup screen][startup_screen]
 
-### Connecting the hardware
+## Connecting the hardware
+TBD
 
-
-## Insallation of the Web UI
+## Installation of the Web UI
 Once you uploaded the comiled sketch to your ESP32 (dont forget to enter your SSID and Wifi Password in the sketch!) the ESP will connect to the WiFi and check if the UI files are already installed in the SPI Flash File System (SPIFFS) of the ESP. If not it will try to download it.
 Once all is done you can enter the IP Adress of you ESP32 module in the browser and you will see the UI of the Stepper Motor Server, where you can configure the stepper motors and controls.
 
 To figure out the IP Adresse of your ESP-32 module, you can either check your routers admin ui or you can connect to the serial port of the ESP-32 and check the output. Once the connection to you WiFi has been established, the module will print the IP address to the serial console.
 
-## General API Documentation:
-for further documentations see 
+### Setup / Configuation via the User Interface
+After you installed everything on the hardware side, you can open the web UI to setup/configure the server.
+In the navigation on the left side click on "SETUP" to open the configuration page.
+
+The following devices can be configured:
+- Stepper Motors (or to be more precise "connected stepper drivers")
+- Switches (input signals): multiple types of functions are supported for the switches
+  - Limit/Homing Switches
+  - Position Switches
+  - emergency stop switches
+  - in future versions also switches to trigger movement macros will be supported
+- Rotary encoders as control inputs to control the configured steppers
+
+![startup screen][add_stepper_dialog]
+![startup screen][add_switch_dialog]
+![startup screen][add_rotary_encoder_dialog]
+
+
+### General API Documentation:
+Besides the web based User Interface the ESP StepperMotor Server offers a REST API to control all aspects of the server that can also be controlled via the web UI (in fact the web UI uses the REST API for all operations).
+
+The following is an excerpt of the endpoints being provided:
+| METHOD | PATH | DESCRIPTION |
+|---|---|---|
+|GET |/api/status|get the current stepper server status report including the following information: version string of the server, wifi information (wifi mode, IP address), spiffs information (total space and free space)|
+|POST| /api/steppers/moveby|endpoint to set a new RELATIVE target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value|
+|POST |/api/steppers/position|endpoint to set a new absolute target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value|
+| GET |/api/steppers or /api/steppers?id=<id>|endpoint to list all configured steppers or a specific one if "id" query parameter is given
+|DELETE| /api/steppers?id=<id> |delete an existing stepper configuration entry|
+|POST |/api/steppers|add a new stepper configuration entry|
+| PUT| /api/steppers?id=<id> |upate an existing stepper configuration entry|
+| GET |/api/switches/status or /api/switches/status?id=<id>|get the current switch status (active, inactive) of either one specific switch or all switches (returned as a bit mask in MSB order)|
+| GET |/api/switches or /api/switches?id=<id>|endpoint to list all position switch configurations or a specific configuration if the "id" query parameter is given|
+| POST |/api/switches|endpoint to add a new switch configuration|
+| PUT |/api/switches?id=<id> | endpoint to update an existing switch configuration|
+| DELETE |/api/switches?id=<id>|delete a specific switch configuration|
+
+To get a full list of endpoints navigate to the about page in the web ui and click on the REST API documentation link
+
+## further documentations
+for further details have a look at 
 - the provided example files,
 - the github repository and included README files and examples on: https://github.com/pkerspe/ESP-StepperMotor-Server
 - and the wiki on the github page: https://github.com/pkerspe/ESP-StepperMotor-Server/wiki
 
-## License:
+### License:
 Copyright (c) 2019 Paul Kerspe - Licensed under the MIT license.
 
 [startup_screen]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png "ESP StepperMotor Server startup screen"
+[setup_screen]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/setup_screen.png "The setup/configuration editor screen"
+[control_screen]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/motor_control_screen.png "The motor controls screen"
+[add_stepper_dialog]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/add_stepper_config_dialog.png "The dialog to add a new stepper motor configuration"
+[add_switch_dialog]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/add_switch_dialog.png "The dialog to add a new switch (input signal) configuration"
+[add_rotary_encoder_dialog]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/add_rotary_encoder_dialog.png "The dialog to add a new rotary encoder to control a stepper"
