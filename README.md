@@ -4,6 +4,8 @@ Turn your ESP32 into a standalone stepper motor control server with easy to use 
 Connect one ore more stepper controllers with step and direction input, and optionally some limit-switches to the IO-pins of your ESP module and controll the stepper motor via an easy to use web interface, via REST API or via a serial control interface.
 
 <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/>
+<img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/setup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/>
+<img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/motor_control_screen.png" alt="ESP StepperMotor Server start screen" height="200"/>
 
 
 ## Introduction
@@ -48,6 +50,10 @@ In order to get started you need the following elements:
 Optional:
 - Limit switches 
 - Rotary Encoders
+
+![startup screen][add_stepper_dialog]
+![startup screen][add_switch_dialog]
+![startup screen][add_rotary_encoder_dialog]
 
 ### 1. Firmware installation
 
@@ -119,9 +125,23 @@ If the UI is installed on the SPIFFS you should see the following (or a similar)
 Now that it is started, you can open the UI in a browser on you PC connected to the same WiFi network, by typing the IP Address you saw in the serial console before into the address bar of your browser prefixed with "http://".
 
 You should now see the start screen of the ESP StepperMotor Server:
-![alt text][startup_screen]
+![startup screen][startup_screen]
 
 ### Connecting the hardware
+
+### Setup / Configuation via the User Interface
+After you installed everything on the hardware side, you can open the web UI to setup/configure the server.
+In the navigation on the left side click on "SETUP" to open the configuration page.
+
+The following devices can be configured:
+- Stepper Motors (or to be more precise "connected stepper drivers")
+- Switches (input signals): multiple types of functions are supported for the switches
+..- Limit/Homing Switches
+..- Position Switches
+..- emergency stop switches
+..- in future versions also switches to trigger movement macros
+- Rotary encoders as control inputs to control the configured steppers
+
 
 
 ## Insallation of the Web UI
@@ -140,3 +160,8 @@ for further documentations see
 Copyright (c) 2019 Paul Kerspe - Licensed under the MIT license.
 
 [startup_screen]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png "ESP StepperMotor Server startup screen"
+[setup_screen]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/setup_screen.png "The setup/configuration editor screen"
+[control_screen]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/motor_control_screen.png "The motor controls screen"
+[add_stepper_dialog]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/add_stepper_config_dialog.png "The dialog to add a new stepper motor configuration"
+[add_switch_dialog]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/add_switch_dialog.png "The dialog to add a new switch (input signal) configuration"
+[add_rotary_encoder_dialog]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/add_rotary_encoder_dialog.png "The dialog to add a new rotary encoder to control a stepper"
