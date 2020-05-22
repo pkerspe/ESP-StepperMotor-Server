@@ -151,7 +151,28 @@ The following devices can be configured:
 
 
 ### General API Documentation:
-for further documentations see 
+Besides the web based User Interface the ESP StepperMotor Server offers a REST API to control all aspects of the server that can also be controlled via the web UI (in fact the web UI uses the REST API for all operations).
+
+The following is an excerpt of the endpoints being provided:
+| METHOD | PATH | DESCRIPTION |
+|---|---|---|
+|GET |/api/status|get the current stepper server status report including the following information: version string of the server, wifi information (wifi mode, IP address), spiffs information (total space and free space)|
+|POST| /api/steppers/moveby|endpoint to set a new RELATIVE target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value|
+|POST |/api/steppers/position|endpoint to set a new absolute target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value|
+| GET |/api/steppers or /api/steppers?id=<id>|endpoint to list all configured steppers or a specific one if "id" query parameter is given
+|DELETE| /api/steppers?id=<id> |delete an existing stepper configuration entry|
+|POST |/api/steppers|add a new stepper configuration entry|
+| PUT| /api/steppers?id=<id> |upate an existing stepper configuration entry|
+| GET |/api/switches/status or /api/switches/status?id=<id>|get the current switch status (active, inactive) of either one specific switch or all switches (returned as a bit mask in MSB order)|
+| GET |/api/switches or /api/switches?id=<id>|endpoint to list all position switch configurations or a specific configuration if the "id" query parameter is given|
+| POST |/api/switches|endpoint to add a new switch configuration|
+| PUT |/api/switches?id=<id> | endpoint to update an existing switch configuration|
+| DELETE |/api/switches?id=<id>|delete a specific switch configuration|
+
+To get a full list of endpoints navigate to the about page in the web ui and click on the REST API documentation link
+
+## further documentations
+for further details have a look at 
 - the provided example files,
 - the github repository and included README files and examples on: https://github.com/pkerspe/ESP-StepperMotor-Server
 - and the wiki on the github page: https://github.com/pkerspe/ESP-StepperMotor-Server/wiki
