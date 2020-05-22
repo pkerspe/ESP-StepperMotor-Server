@@ -179,7 +179,7 @@ private:
   const char *accessPointPassword;
   const char *wifiClientSsid;
   const char *wifiPassword;
-  const char *version = "0.0.4";
+  const char *version = "0.0.5";
   const char *webUiIndexFile = "/index.html";
   const char *webUiJsFile = "/js/app.js.gz";
   const char *webUiLogoFile = "/img/logo.svg";
