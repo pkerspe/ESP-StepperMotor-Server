@@ -2,8 +2,6 @@
 
 Turn your ESP32 into a standalone stepper motor control server with easy to use webinterface.
 Connect one ore more stepper controllers with step and direction input, and optionally some limit-switches to the IO-pins of your ESP module and controll the stepper motor via an easy to use web interface, via REST API or via a serial control interface.
-| 1 | 2 | 3 |
-|---|---|---|
 | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/setup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/motor_control_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> |
 
 
@@ -122,15 +120,14 @@ Now that it is started, you can open the UI in a browser on you PC connected to 
 You should now see the start screen of the ESP StepperMotor Server:
 ![startup screen][startup_screen]
 
-### Connecting the hardware
+## Connecting the hardware
 TBD
 
-## Insallation of the Web UI
+## Installation of the Web UI
 Once you uploaded the comiled sketch to your ESP32 (dont forget to enter your SSID and Wifi Password in the sketch!) the ESP will connect to the WiFi and check if the UI files are already installed in the SPI Flash File System (SPIFFS) of the ESP. If not it will try to download it.
 Once all is done you can enter the IP Adress of you ESP32 module in the browser and you will see the UI of the Stepper Motor Server, where you can configure the stepper motors and controls.
 
 To figure out the IP Adresse of your ESP-32 module, you can either check your routers admin ui or you can connect to the serial port of the ESP-32 and check the output. Once the connection to you WiFi has been established, the module will print the IP address to the serial console.
-
 
 ### Setup / Configuation via the User Interface
 After you installed everything on the hardware side, you can open the web UI to setup/configure the server.
@@ -150,13 +147,13 @@ The following devices can be configured:
 ![startup screen][add_rotary_encoder_dialog]
 
 
-## General API Documentation:
+### General API Documentation:
 for further documentations see 
 - the provided example files,
 - the github repository and included README files and examples on: https://github.com/pkerspe/ESP-StepperMotor-Server
 - and the wiki on the github page: https://github.com/pkerspe/ESP-StepperMotor-Server/wiki
 
-## License:
+### License:
 Copyright (c) 2019 Paul Kerspe - Licensed under the MIT license.
 
 [startup_screen]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png "ESP StepperMotor Server startup screen"
