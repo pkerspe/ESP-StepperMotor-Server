@@ -680,7 +680,7 @@ bool ESPStepperMotorServer::checkIfGuiExistsInSpiffs()
 }
 
 HTTPClient http;
-// Perform an HTTP GET request to a remote page to downloa a file to SPIFFS
+// Perform an HTTP GET request to a remote page to download a file to SPIFFS
 bool ESPStepperMotorServer::downloadFileToSpiffs(const char *url, const char *targetPath)
 {
   sprintf(this->logString, "downloading %s from %s", targetPath, url);
@@ -794,6 +794,9 @@ void ESPStepperMotorServer::registerWebInterfaceUrls()
   });
   httpServer->on(this->webUiEncoderGraphic, HTTP_GET, [this](AsyncWebServerRequest *request) {
     request->send(SPIFFS, this->webUiEncoderGraphic);
+  });
+  httpServer->on(this->webUiSwitchGraphic, HTTP_GET, [this](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, this->webUiSwitchGraphic);
   });
   httpServer->on(this->webUiEncoderGraphic, HTTP_GET, [this](AsyncWebServerRequest *request) {
     request->send(SPIFFS, this->webUiEncoderGraphic);

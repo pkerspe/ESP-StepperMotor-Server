@@ -182,7 +182,7 @@ private:
   const char *webUiEncoderGraphic = "/img/rotaryEncoderWheel.svg";
   const char *webUiStepperGraphic = "/img/stepper.svg";
   const char *webUiSwitchGraphic = "/img/switch.svg";
-  const char *webUiFaviconFile = "/favicon.ico.gz";
+  const char *webUiFaviconFile = "/favicon.ico";
   const char *webUiRepositoryBasePath = "https://raw.githubusercontent.com/pkerspe/ESP-StepperMotor-Server/master/data";
   boolean isWebserverEnabled = false;
   boolean isRestApiEnabled = false;
