@@ -54,6 +54,7 @@ ESPStepperMotorServer_RestAPI::ESPStepperMotorServer_RestAPI(ESPStepperMotorServ
 void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpServer)
 {
   // GET /api/status
+  // get the current stepper server status report including the following information: version string of the server, wifi information (wifi mode, IP address), spiffs information (total space and free space)
   httpServer->on("/api/status", HTTP_GET, [this](AsyncWebServerRequest *request) {
     this->logDebugRequestUrl(request);
 
@@ -246,19 +247,19 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
   });
 
   // DELETE /api/steppers?id=<id>
-  // delete an existing stepper configuration
+  // delete an existing stepper configuration entry
   httpServer->on("/api/steppers", HTTP_DELETE, [this](AsyncWebServerRequest *request) {
     this->logDebugRequestUrl(request);
     this->handleDeleteStepperRequest(request, true); });
 
   // POST /api/steppers
-  // add a new stepper configuration
+  // add a new stepper configuration entry
   httpServer->on("/api/steppers", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) { 
     this->logDebugRequestUrl(request); 
     this->handlePostStepperRequest(request, data, len, index, total, -1); });
 
   // PUT /api/steppers?id=<id>
-  // upate an existing stepper configuration
+  // upate an existing stepper configuration entry
   httpServer->on("/api/steppers", HTTP_PUT, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) { 
     this->logDebugRequestUrl(request);
     int deleteRC = this->handleDeleteStepperRequest(request, false);
@@ -272,7 +273,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
 
   // GET /api/switches/status
   // GET /api/switches/status?id=<id>
-  // get the current switch status of either one specific switch or all switches (returned as a bit mask in MSB order)
+  // get the current switch status (active, inactive) of either one specific switch or all switches (returned as a bit mask in MSB order)
   httpServer->on("/api/switches/status", HTTP_GET, [this](AsyncWebServerRequest *request) {
     this->logDebugRequestUrl(request);
     if (request->hasParam("id"))
@@ -305,7 +306,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
 
   // GET /api/switches
   // GET /api/switches?id=<id>
-  // endpoint to list all configured position switches or a specific one if "id" query parameter is given
+  // endpoint to list all position switch configurations or a specific configuration if the "id" query parameter is given
   httpServer->on("/api/switches", HTTP_GET, [this](AsyncWebServerRequest *request) {
     this->logDebugRequestUrl(request);
     String output;
@@ -359,13 +360,13 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
   });
 
   // POST /api/switches
-  // endpoint to add a new switch
+  // endpoint to add a new switch configuration
   httpServer->on("/api/switches", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
     this->logDebugRequestUrl(request);
     this->handlePostSwitchRequest(request, data, len, index, total); });
 
   // PUT /api/switches?id=<id>
-  // endpoint to update an existing switch (will effectively delete the old switch configuraiton and write a new one at the same position)
+  // endpoint to update an existing switch configuration (will effectively delete the old switch configuraiton and write a new one at the same position)
   httpServer->on("/api/switches", HTTP_PUT, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
     this->logDebugRequestUrl(request);
     int deleteRC = this->handleDeleteSwitchRequest(request, false);
@@ -378,6 +379,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     } });
 
   // DELETE /api/switches?id=<id>
+  // delete a specific switch configuration
   httpServer->on("/api/switches", HTTP_DELETE, [this](AsyncWebServerRequest *request) {
     this->logDebugRequestUrl(request);
     this->handleDeleteSwitchRequest(request, true);
