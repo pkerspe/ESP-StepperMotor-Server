@@ -5,9 +5,11 @@ Connect one ore more stepper controllers with step and direction input, and opti
 
 <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png" alt="drawing" width="250"/>
 
-![alt text][startup_screen]<!-- .element width="250px" -->
+![CMake logo](https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png)
+<!-- .element style="border: 0; background: None; box-shadow: None; width: 250px" -->
 
-![alt text][startup_screen]{:width="250px"}
+![alt text](https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png){:width="250px"}
+
 
 ## Introduction
 
