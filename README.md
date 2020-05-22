@@ -5,6 +5,10 @@ Connect one ore more stepper controllers with step and direction input, and opti
 
 <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png" alt="drawing" width="250"/>
 
+![alt text][startup_screen]<!-- .element width="250px" -->
+
+![alt text][startup_screen]{:width="250px"}
+
 ## Introduction
 
 This library started as a fork for the FlexyStepper library (https://github.com/Stan-Reifel/FlexyStepper). While the FlexyStepper Library is a general Arduino compatible library this fork has a focus on the ESP32 modules form Espressif. It also became much more than a modfied version of FlexyStepper but turned into a stand alone application to turn a regular ESP32 module into a stepper motor control server.
