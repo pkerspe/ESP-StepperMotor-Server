@@ -2,8 +2,9 @@
 
 Turn your ESP32 into a standalone stepper motor control server with easy to use webinterface.
 Connect one ore more stepper controllers with step and direction input, and optionally some limit-switches to the IO-pins of your ESP module and controll the stepper motor via an easy to use web interface, via REST API or via a serial control interface.
-
-|<img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/>|<img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/setup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/>|<img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/motor_control_screen.png" alt="ESP StepperMotor Server start screen" height="200"/>|
+| 1 | 2 | 3 |
+|---|---|---|
+| <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/setup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/motor_control_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> |
 
 
 ## Introduction
@@ -48,10 +49,6 @@ In order to get started you need the following elements:
 Optional:
 - Limit, position and emegency stop switches
 - Rotary encoders to control the motors directly using physical controls
-
-![startup screen][add_stepper_dialog]
-![startup screen][add_switch_dialog]
-![startup screen][add_rotary_encoder_dialog]
 
 ### 1. Firmware installation
 
@@ -126,6 +123,14 @@ You should now see the start screen of the ESP StepperMotor Server:
 ![startup screen][startup_screen]
 
 ### Connecting the hardware
+TBD
+
+## Insallation of the Web UI
+Once you uploaded the comiled sketch to your ESP32 (dont forget to enter your SSID and Wifi Password in the sketch!) the ESP will connect to the WiFi and check if the UI files are already installed in the SPI Flash File System (SPIFFS) of the ESP. If not it will try to download it.
+Once all is done you can enter the IP Adress of you ESP32 module in the browser and you will see the UI of the Stepper Motor Server, where you can configure the stepper motors and controls.
+
+To figure out the IP Adresse of your ESP-32 module, you can either check your routers admin ui or you can connect to the serial port of the ESP-32 and check the output. Once the connection to you WiFi has been established, the module will print the IP address to the serial console.
+
 
 ### Setup / Configuation via the User Interface
 After you installed everything on the hardware side, you can open the web UI to setup/configure the server.
@@ -134,18 +139,16 @@ In the navigation on the left side click on "SETUP" to open the configuration pa
 The following devices can be configured:
 - Stepper Motors (or to be more precise "connected stepper drivers")
 - Switches (input signals): multiple types of functions are supported for the switches
--- Limit/Homing Switches
--- Position Switches
--- emergency stop switches
--- in future versions also switches to trigger movement macros will be supported
+  - Limit/Homing Switches
+  - Position Switches
+  - emergency stop switches
+  - in future versions also switches to trigger movement macros will be supported
 - Rotary encoders as control inputs to control the configured steppers
 
+![startup screen][add_stepper_dialog]
+![startup screen][add_switch_dialog]
+![startup screen][add_rotary_encoder_dialog]
 
-## Insallation of the Web UI
-Once you uploaded the comiled sketch to your ESP32 (dont forget to enter your SSID and Wifi Password in the sketch!) the ESP will connect to the WiFi and check if the UI files are already installed in the SPI Flash File System (SPIFFS) of the ESP. If not it will try to download it.
-Once all is done you can enter the IP Adress of you ESP32 module in the browser and you will see the UI of the Stepper Motor Server, where you can configure the stepper motors and controls.
-
-To figure out the IP Adresse of your ESP-32 module, you can either check your routers admin ui or you can connect to the serial port of the ESP-32 and check the output. Once the connection to you WiFi has been established, the module will print the IP address to the serial console.
 
 ## General API Documentation:
 for further documentations see 
