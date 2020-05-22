@@ -1,6 +1,6 @@
-# ESP-StepperMotor-Server - A complete stepper motor control server running on ESP32 modules
+# ESP-StepperMotor-Server - A stepper motor control server running on ESP32 modules
 
-Turn your ESP32 into a complete stepper motor control server.
+Turn your ESP32 into a standalone stepper motor control server with easy to use webinterface.
 Connect one ore more stepper controllers with step and direction input, and optionally some limit-switches to the IO-pins of your ESP module and controll the stepper motor via an easy to use web interface, via REST API or via a serial control interface.
 
 ## Introduction
