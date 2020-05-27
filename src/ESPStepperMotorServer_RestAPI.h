@@ -32,6 +32,7 @@
 #define ESPStepperMotorServer_RestAPI_h
 
 #include <Arduino.h>
+#include <AsyncJson.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 #include <ESPStepperMotorServer_PositionSwitch.h>

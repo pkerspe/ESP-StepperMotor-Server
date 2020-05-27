@@ -47,17 +47,22 @@
 
 #define ESPSMS_Stepper_DisplayName_MaxLength 20
 
+//size calculated using https://arduinojson.org/v6/assistant/
+#define RESERVED_JSON_SIZE_ESPStepperMotorServer_StepperConfiguration 210
+
 class ESPStepperMotorServer_StepperConfiguration
 {
 public:
   ESPStepperMotorServer_StepperConfiguration(byte stepIoPin, byte directionIoPin);
+  ESPStepperMotorServer_StepperConfiguration(byte stepIoPin, byte directionIoPin, String displayName, unsigned int stepsPerRev, unsigned int microsteppingDivisor, unsigned int rpmLimit);
+
   FlexyStepper *getFlexyStepper();
-  
+
   /**
    * Internally used setter to set the id of this stepper motor.
    * Only use this if you know what you are doing
    */
-  void setId(byte id);  
+  void setId(byte id);
   /**
    * get the internal id of this stepper motor configuration within the stepper server
    */
@@ -71,7 +76,7 @@ public:
    * Get the currently configured display name for the stepper motor
    */
   String getDisplayName();
-  
+
   /**
    * Get the currently configured IO pin that is used to send step pulses to the stepper driver
    */
@@ -133,13 +138,13 @@ private:
   // private member variables
   //
   FlexyStepper *_flexyStepper;
-  byte _stepperIndex = 0;
   String _displayName;
+  byte _stepperIndex = 0;
   byte _stepIoPin = ESPServerStepperUnsetIoPinNumber;
   byte _directionIoPin = ESPServerStepperUnsetIoPinNumber;
-  unsigned int stepsPerRev = 200;
-  unsigned int microsteppingDivisor = ESPSMS_MICROSTEPS_OFF;
-  unsigned int rpmLimit = 1200;
+  unsigned int _stepsPerRev = 200;
+  unsigned int _microsteppingDivisor = ESPSMS_MICROSTEPS_OFF;
+  unsigned int _rpmLimit = 1200;
 };
 // ------------------------------------ End ---------------------------------
 #endif

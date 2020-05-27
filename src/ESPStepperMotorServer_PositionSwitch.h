@@ -3,6 +3,7 @@
 #define ESPStepperMotorServer_PositionSwitch_h
 
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <ESPStepperMotorServer_Logger.h>
 
 #define SWITCHTYPE_STATE_ACTIVE_HIGH_BIT 1
@@ -12,31 +13,47 @@
 #define SWITCHTYPE_POSITION_SWITCH_BIT 5
 #define SWITCHTYPE_EMERGENCY_STOP_SWITCH_BIT 6
 
+//size calculated using https://arduinojson.org/v6/assistant/
+#define RESERVED_JSON_SIZE_ESPStepperMotorServer_PositionSwitch 170
+
 class ESPStepperMotorServer_PositionSwitch
 {
-  public:
-    ESPStepperMotorServer_PositionSwitch();
-    ESPStepperMotorServer_PositionSwitch(byte ioPin, byte stepperIndex, byte switchType, String name = "");
-    byte getStepperIndex(void);
+public:
+  ESPStepperMotorServer_PositionSwitch();
+  ESPStepperMotorServer_PositionSwitch(byte ioPin, byte stepperIndex, byte switchType, String name = "", long switchPosition = 0);
 
-    byte getIoPinNumber(void);
-    byte getSwitchType(void);
+  /**
+   * setter to set the id of this switch.
+   * Only use this if you know what you are doing
+   */
+  void setId(byte id);
 
-    String getPositionName(void);
-    void setPositionName(String name);
+  /**
+    * get the id of the switch
+    */
+  byte getId();
 
-    bool isActiveHigh();
-    bool isTypeBitSet(byte bitToCheck);
+  byte getStepperIndex(void);
 
-    long getSwitchPosition(void);
-    void setSwitchPosition(long position);
+  byte getIoPinNumber(void);
+  byte getSwitchType(void);
 
-  private:
-    byte _stepperIndex;
-    byte _ioPinNumber = 255;
-    byte _switchType; //this is a bit mask representing the active state (bit 1 and 2) and the general type (homing/limit/position or emergency stop switch) in one byte
-    String _positionName;
-    long _switchPosition;
-    ESPStepperMotorServer_Logger _logger;
+  String getPositionName(void);
+  void setPositionName(String name);
+
+  bool isActiveHigh();
+  bool isTypeBitSet(byte bitToCheck);
+
+  long getSwitchPosition(void);
+  void setSwitchPosition(long position);
+
+private:
+  byte _stepperIndex;
+  byte _switchIndex;
+  byte _ioPinNumber = 255;
+  byte _switchType; //this is a bit mask representing the active state (bit 1 and 2) and the general type (homing/limit/position or emergency stop switch) in one byte
+  String _positionName;
+  long _switchPosition;
+  ESPStepperMotorServer_Logger _logger;
 };
 #endif

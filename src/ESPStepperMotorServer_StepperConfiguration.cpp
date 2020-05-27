@@ -42,6 +42,18 @@ ESPStepperMotorServer_StepperConfiguration::ESPStepperMotorServer_StepperConfigu
     this->_flexyStepper->connectToPins(this->_stepIoPin, this->_directionIoPin);
 }
 
+ESPStepperMotorServer_StepperConfiguration::ESPStepperMotorServer_StepperConfiguration(byte stepIoPin, byte directionIoPin, String displayName, unsigned int stepsPerRev, unsigned int microsteppingDivisor, unsigned int rpmLimit)
+{
+    this->_stepIoPin = stepIoPin;
+    this->_directionIoPin = directionIoPin;
+    this->_flexyStepper = new FlexyStepper();
+    this->_flexyStepper->connectToPins(this->_stepIoPin, this->_directionIoPin);
+    this->_displayName = displayName;
+    this->_stepsPerRev = stepsPerRev;
+    this->_microsteppingDivisor = microsteppingDivisor;
+    this->_rpmLimit = rpmLimit;
+}
+
 // ---------------------------------------------------------------------------------
 //                                  Getters / Setters
 // ---------------------------------------------------------------------------------
@@ -90,12 +102,12 @@ byte ESPStepperMotorServer_StepperConfiguration::getDirectionIoPin()
 
 void ESPStepperMotorServer_StepperConfiguration::setStepsPerRev(unsigned int stepsPerRev)
 {
-    this->stepsPerRev = stepsPerRev;
+    this->_stepsPerRev = stepsPerRev;
 }
 
 unsigned int ESPStepperMotorServer_StepperConfiguration::getStepsPerRev()
 {
-    return this->stepsPerRev;
+    return this->_stepsPerRev;
 }
 
 void ESPStepperMotorServer_StepperConfiguration::setMicrostepsPerStep(unsigned int microstepsPerStep)
@@ -103,7 +115,7 @@ void ESPStepperMotorServer_StepperConfiguration::setMicrostepsPerStep(unsigned i
     //check for power of two value, since others are not allowed in micro step sizes
     if (microstepsPerStep && !(microstepsPerStep & (microstepsPerStep - 1)) == 0)
     {
-        this->microsteppingDivisor = microstepsPerStep;
+        this->_microsteppingDivisor = microstepsPerStep;
     }
     else
     {
@@ -113,7 +125,7 @@ void ESPStepperMotorServer_StepperConfiguration::setMicrostepsPerStep(unsigned i
 
 unsigned int ESPStepperMotorServer_StepperConfiguration::getMicrostepsPerStep()
 {
-    return this->microsteppingDivisor;
+    return this->_microsteppingDivisor;
 }
 
 void ESPStepperMotorServer_StepperConfiguration::setRpmLimit(unsigned int rpmLimit)
@@ -123,15 +135,15 @@ void ESPStepperMotorServer_StepperConfiguration::setRpmLimit(unsigned int rpmLim
         char logString[170];
         sprintf(logString, "ESPStepperMotorServer_StepperConfiguration::setRpmLimit: The given rpm limit value %i exceeds the allowed maximum rpm limit of %i, will set to %i", rpmLimit, ESPSMS_MAX_UPPER_RPM_LMIT, ESPSMS_MAX_UPPER_RPM_LMIT);
         ESPStepperMotorServer_Logger::logWarning(logString);
-        this->rpmLimit = ESPSMS_MAX_UPPER_RPM_LMIT;
+        this->_rpmLimit = ESPSMS_MAX_UPPER_RPM_LMIT;
     }
     else
     {
-        this->rpmLimit = rpmLimit;
+        this->_rpmLimit = rpmLimit;
     }
 }
 
 unsigned int ESPStepperMotorServer_StepperConfiguration::getRpmLimit()
 {
-    return this->rpmLimit;
+    return this->_rpmLimit;
 }

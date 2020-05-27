@@ -48,14 +48,18 @@ class ESPStepperMotorServer_Logger
     static void setLogLevel(byte);
     static byte getLogLevel(void);
     static void logDebug(const char *msg, boolean newLine = true, boolean ommitLogLevel = false);
+    static void logDebugf(const char *format, ...);
     static void logDebug(String msg, boolean newLine = true, boolean ommitLogLevel = false);
     static void logInfo(const char *msg, boolean newLine = true, boolean ommitLogLevel = false);
+    static void logInfof(const char *format, ...);
     static void logWarning(const char *msg, boolean newLine = true, boolean ommitLogLevel = false);
+    static void logWarningf(const char *format, ...);
     char logString[400];
 
   private:
     static void log(const char *level, const char *msg, boolean newLine, boolean ommitLogLevel);
     static void printBinaryWithLeaingZeros(char *result, byte var);
+    static void logf(const char *level, const char *format, va_list args);
     static byte _logLevel;
     String _loggerName;
 };

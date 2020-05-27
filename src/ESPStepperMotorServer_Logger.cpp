@@ -33,6 +33,9 @@
 byte ESPStepperMotorServer_Logger::_logLevel = ESPServerLogLevel_INFO;
 
 char logString[400];
+const char *LEVEL_STRING_DEBUG = "DEBUG";
+const char *LEVEL_STRING_INFO = "INFO";
+const char *LEVEL_STRING_WARNING = "WARNING";
 
 ESPStepperMotorServer_Logger::ESPStepperMotorServer_Logger(String loggerName)
 {
@@ -78,13 +81,18 @@ byte ESPStepperMotorServer_Logger::getLogLevel()
     return ESPStepperMotorServer_Logger::_logLevel;
 }
 
+void ESPStepperMotorServer_Logger::logf(const char *level, const char *format, va_list args)
+{
+    char buf[1000];
+    vsnprintf(buf, sizeof(buf), format, args);
+    ESPStepperMotorServer_Logger::log(level, buf, false, false);
+}
+
 void ESPStepperMotorServer_Logger::log(const char *level, const char *msg, boolean newLine, boolean ommitLogLevel)
 {
     if (!ommitLogLevel)
     {
-        Serial.print("[");
-        Serial.print(level);
-        Serial.print("] ");
+        Serial.printf("[%s] ", level);
     }
     if (newLine == true)
     {
@@ -100,7 +108,18 @@ void ESPStepperMotorServer_Logger::logDebug(const char *msg, boolean newLine, bo
 {
     if (getLogLevel() >= ESPServerLogLevel_DEBUG)
     {
-        ESPStepperMotorServer_Logger::log("DEBUG", msg, newLine, ommitLogLevel);
+        ESPStepperMotorServer_Logger::log(LEVEL_STRING_DEBUG, msg, newLine, ommitLogLevel);
+    }
+}
+
+void ESPStepperMotorServer_Logger::logDebugf(const char *format, ...)
+{
+    if (getLogLevel() >= ESPServerLogLevel_DEBUG)
+    {
+        va_list args;
+        va_start(args, format);
+        ESPStepperMotorServer_Logger::logf(LEVEL_STRING_DEBUG, format, args);
+        va_end(args);
     }
 }
 
@@ -113,14 +132,29 @@ void ESPStepperMotorServer_Logger::logInfo(const char *msg, boolean newLine, boo
 {
     if (getLogLevel() >= ESPServerLogLevel_INFO)
     {
-        ESPStepperMotorServer_Logger::log("INFO", msg, newLine, ommitLogLevel);
+        ESPStepperMotorServer_Logger::log(LEVEL_STRING_INFO, msg, newLine, ommitLogLevel);
+    }
+}
+void ESPStepperMotorServer_Logger::logInfof(const char *format, ...)
+{
+    if (getLogLevel() >= ESPServerLogLevel_INFO)
+    {
+        va_list args;
+        va_start(args, format);
+        ESPStepperMotorServer_Logger::logf(LEVEL_STRING_INFO, format, args);
+        va_end(args);
     }
 }
 
 void ESPStepperMotorServer_Logger::logWarning(const char *msg, boolean newLine, boolean ommitLogLevel)
 {
-    if (getLogLevel() >= ESPServerLogLevel_WARNING)
-    {
-        ESPStepperMotorServer_Logger::log("WARNING", msg, newLine, ommitLogLevel);
-    }
+    ESPStepperMotorServer_Logger::log(LEVEL_STRING_WARNING, msg, newLine, ommitLogLevel);
+}
+
+void ESPStepperMotorServer_Logger::logWarningf(const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    ESPStepperMotorServer_Logger::logf(LEVEL_STRING_WARNING, format, args);
+    va_end(args);
 }

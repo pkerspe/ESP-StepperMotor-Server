@@ -75,7 +75,6 @@
 // NOTE: do NOT create more than one instance in your sketch, since it will lead to problems with interrupts
 ESPStepperMotorServer stepperMotorServer(ESPServerRestApiEnabled | ESPServerWebserverEnabled | ESPServerSerialEnabled);
 
-const char *apName = "ESP-StepperMotor-Server";
 const char *wifiName= "<your wifi ssid>"; // enter the SSID of the wifi network to connect to
 const char *wifiSecret = "<your wifi password>"; // enter the password of the the existing wifi network here
 
@@ -83,7 +82,6 @@ void setup()
 {
   //start serial connection with 115200 baud
   Serial.begin(115200);
-
   // stepperMotorServer.setLogLevel(ESPServerLogLevel_DEBUG); //optionally if you want to see more logs in your serial console, you can enable this line
 
   //connect to a local wifi. Make sure you set the vairables wifiName and wifiSecret to match you SSID and wifi pasword (see above in lines 43/44)

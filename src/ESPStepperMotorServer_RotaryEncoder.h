@@ -61,69 +61,72 @@
 // Anti-clockwise step.
 #define DIR_CCW 0x20
 
+//size calculated using https://arduinojson.org/v6/assistant/
+#define RESERVED_JSON_SIZE_ESPStepperMotorServer_RotaryEncoder 170
+
 class ESPStepperMotorServer_RotaryEncoder
 {
 public:
-   /**
+  /**
      * Constructor for the rotary encoder entity.
      * The arguments define the PGIO Pins to be used to connect the Rotary encoder to
      * The displayName defines the human readable name for thi encoder in the User Interface and logs
      */
-   ESPStepperMotorServer_RotaryEncoder(char pinA, char pinB, String displayName, int stepMultiplier, byte stepperIndex);
+  ESPStepperMotorServer_RotaryEncoder(char pinA, char pinB, String displayName, int stepMultiplier, byte stepperIndex);
 
   /**
-   * Internally used setter to set the id of this encoder.
+   * setter to set the id of this encoder.
    * Only use this if you know what you are doing
    */
-   void setId(byte id);  
-   /**
+  void setId(byte id);
+  /**
     * get the id of the rotary encoder
     */
-   byte getId();
-   /**
+  byte getId();
+  /**
      * process the input states of the io pins to determine the current rotary encoder step status
      */
-   unsigned char process();
-   /**
+  unsigned char process();
+  /**
      * return the configured GPIO pin number that is connected to pin A of the rotary encoder
      */
-   unsigned char getPinAIOPin();
-   /**
+  unsigned char getPinAIOPin();
+  /**
      * return the configured GPIO pin number that is connected to pin B of the rotary encoder
      */
-   unsigned char getPinBIOPin();
-   /**
+  unsigned char getPinBIOPin();
+  /**
      * get the configured display name of the rotary encoder    
      */
-   String getDisplayName();
-   /**
+  String getDisplayName();
+  /**
      * set the stepper motor id that should be linked to this rotary encoder
      */
-   void setStepperIndex(byte stepperMotorIndex);
-   /**
+  void setStepperIndex(byte stepperMotorIndex);
+  /**
      * get the configured id of the stepper motor that is linked to this rotary encoder
      */
-   byte getStepperIndex();
-   /**
+  byte getStepperIndex();
+  /**
    * set a multiplication factor used to calculate the ammount of pulses send to the stepper motor for one step of the rotary encoder.
    * Default is factor of 1, so if one step in the rotatry encoder will be convertd into on puls to the steppr motor driver.
    * If microstpping is configured in the stepper driver board, one pulse will be one microstep, so it might be needed to st this multiplier accordingly to the microstepp setting of the stepper drivr board.     * e.g. if you configured 32 microsteps in your stepper driver board and you want the stepper motor to perform one full step per rotary encoder step, you need to set this mulitplier to 32
    */
-   void setStepMultiplier(unsigned int stepMultiplier);
-   /**
+  void setStepMultiplier(unsigned int stepMultiplier);
+  /**
    * get the configured step multiplier value for this rotary encoder 
    */
-   unsigned int getStepMultiplier(void);
+  unsigned int getStepMultiplier(void);
 
 private:
-   unsigned char _state;
-   unsigned char _pinA;
-   unsigned char _pinB;
-   unsigned char _encoderIndex;
-   byte _stepperIndex;
-   String _displayName;
-   // step multiplier is used to define how many pulses should be sen to the stepper for one step from the rotary encoder
-   unsigned int _stepMultiplier;
+  unsigned char _state;
+  unsigned char _pinA;
+  unsigned char _pinB;
+  unsigned char _encoderIndex;
+  byte _stepperIndex;
+  String _displayName;
+  // step multiplier is used to define how many pulses should be sen to the stepper for one step from the rotary encoder
+  unsigned int _stepMultiplier;
 };
 
 #endif
