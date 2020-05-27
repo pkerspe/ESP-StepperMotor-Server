@@ -120,7 +120,7 @@ void ESPStepperMotorServer_Configuration::serializeServerConfiguration(JsonDocum
       nestedSwitchConfig["ioPin"] = switchConfig->getIoPinNumber();
       nestedSwitchConfig["stepperIndex"] = switchConfig->getStepperIndex();
       nestedSwitchConfig["switchType"] = switchConfig->getSwitchType();
-      nestedSwitchConfig["position"] = switchConfig->getSwitchPosition();
+      nestedSwitchConfig["switchPosition"] = switchConfig->getSwitchPosition();
     }
   }
 
@@ -262,7 +262,7 @@ bool ESPStepperMotorServer_Configuration::loadConfiguationFromSpiffs(String file
             (switchConfigEntry["stepperIndex"] | 255),
             (switchConfigEntry["switchType"] | 255),
             ((value) ? value : "undefined"),
-            (switchConfigEntry["position"] | 0));
+            (switchConfigEntry["switchPosition"] | 0));
         if (switchConfigEntry["id"])
         {
           this->setSwitch(switchConfig, switchConfigEntry["id"]);

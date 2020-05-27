@@ -480,9 +480,12 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     this->logDebugRequestUrl(request);
     ESPStepperMotorServer_Configuration *config = this->_stepperMotorServer->getCurrentServerConfiguration();
     bool saved = config->saveCurrentConfiguationToSpiffs();
-    if(saved){
+    if (saved)
+    {
       request->send(204);
-    } else {
+    }
+    else
+    {
       request->send(500, "application/json", "{\"error\": \"failed to save configuraiton to SPIFFS\"}");
     }
   });
@@ -514,7 +517,7 @@ void ESPStepperMotorServer_RestAPI::populateSwitchDetailsToJsonObject(JsonObject
   // switchDetails["stepperName"] = this->_stepperMotorServer->getConfiguredStepper(positionSwitch->getStepperIndex())->getDisplayName();
   switchDetails["type"] = positionSwitch->getSwitchType();
   switchDetails["isActiveHighType"] = positionSwitch->isActiveHigh();
-  switchDetails["position"] = positionSwitch->getSwitchPosition();
+  switchDetails["switchPosition"] = positionSwitch->getSwitchPosition();
 }
 
 void ESPStepperMotorServer_RestAPI::populateRotaryEncoderDetailsToJsonObject(JsonObject &rotaryEncoderDetails, ESPStepperMotorServer_RotaryEncoder *rotaryEncoder, int index)
@@ -671,41 +674,57 @@ void ESPStepperMotorServer_RestAPI::handlePostRotaryEncoderRequest(AsyncWebServe
       byte stepperIndex = doc["stepperId"];
       byte pinA = doc["pinA"];
       byte pinB = doc["pinB"];
+
       if (pinA >= 0 && pinA <= ESPStepperHighestAllowedIoPin && pinB >= 0 && pinB <= ESPStepperHighestAllowedIoPin && pinA != pinB)
       {
-        //check if pins are already in use by a stepper or switch configuration
+        ESPStepperMotorServer_RotaryEncoder *encoderToUpdate = this->_stepperMotorServer->getCurrentServerConfiguration()->getRotaryEncoder(encoderIndex);
+
+        //check if pins are already in use by a stepper, switch or another encoder configuration
         if (this->_stepperMotorServer->isIoPinUsed(pinA))
         {
-          request->send(400, "application/json", "{\"error\": \"The given Pin A IO pin is already used by another stepper or a switch configuration\"}");
+          //check if it pin NOT used by same encoder to update
+          if (encoderToUpdate == NULL || encoderToUpdate->getPinAIOPin() != pinA)
+          {
+            sprintf(this->logger->logString, "{\"error\": \"The given Pin-A IO pin %i is already used by another stepper, encoder or switch configuration\"}", pinA);
+            request->send(400, "application/json", this->logger->logString);
+            return;
+          }
         }
-        else if (this->_stepperMotorServer->isIoPinUsed(pinB))
+        if (this->_stepperMotorServer->isIoPinUsed(pinB))
         {
-          request->send(400, "application/json", "{\"error\": \"The given Pin B IO pin is already used by another stepper or a switch configuration\"}");
+          //check if it pin NOT used by same encoder to update
+          if (encoderToUpdate == NULL || encoderToUpdate->getPinBIOPin() != pinB)
+          {
+            sprintf(this->logger->logString, "{\"error\": \"The given Pin-B IO pin %i is already used by another stepper, encoder or switch configuration\"}", pinB);
+            request->send(400, "application/json", this->logger->logString);
+            return;
+          }
+        }
+
+        ESPStepperMotorServer_RotaryEncoder *encoderToAdd = new ESPStepperMotorServer_RotaryEncoder(pinA, pinB, displayName, stepMultiplier, stepperIndex);
+        if (encoderIndex == -1)
+        {
+          encoderIndex = this->_stepperMotorServer->addOrUpdateRotaryEncoder(encoderToAdd);
         }
         else
         {
-          ESPStepperMotorServer_RotaryEncoder *encoderToAdd = new ESPStepperMotorServer_RotaryEncoder(pinA, pinB, displayName, stepMultiplier, stepperIndex);
-          if (encoderIndex == -1)
-          {
-            encoderIndex = this->_stepperMotorServer->addOrUpdateRotaryEncoder(encoderToAdd);
-          }
-          else
-          {
-            //"update" existing stepper config which basically means we store it at a specific index
-            encoderIndex = this->_stepperMotorServer->addOrUpdateRotaryEncoder(encoderToAdd, encoderIndex);
-          }
-          sprintf(this->logger->logString, "{\"id\": %i}", encoderIndex);
-          request->send(200, "application/json", this->logger->logString);
+          //"update" existing stepper config which basically means we store it at a specific index
+          encoderIndex = this->_stepperMotorServer->addOrUpdateRotaryEncoder(encoderToAdd, encoderIndex);
         }
+        sprintf(this->logger->logString, "{\"id\": %i}", encoderIndex);
+        request->send(200, "application/json", this->logger->logString);
+        return;
       }
       else
       {
         request->send(400, "application/json", "{\"error\": \"Invalid IO pin number given or Pin A and Pin B are the same\"}");
+        return;
       }
     }
     else
     {
       request->send(400, "application/json", "{\"error\": \"Invalid request, missing one ore more required parameters: stepMultiplier, pinA, pinB, displayName, stepperId\"}");
+      return;
     }
   }
 }

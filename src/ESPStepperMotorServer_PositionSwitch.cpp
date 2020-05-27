@@ -33,7 +33,7 @@ byte _stepperIndex;
 byte _ioPinNumber = 255;
 byte _switchType; //bit mask for active state and the general type of switch
 String _positionName = "";
-long _switchPosition;
+long _switchPosition = -1;
 ESPStepperMotorServer_Logger _logger = ESPStepperMotorServer_Logger((String) "ESPStepperMotorServer_PositionSwitch");
 
 ESPStepperMotorServer_PositionSwitch::ESPStepperMotorServer_PositionSwitch()
