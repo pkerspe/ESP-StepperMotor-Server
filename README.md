@@ -223,7 +223,7 @@ The following is an excerpt of the endpoints being provided:
 | PUT |`/api/switches?id=<id>`|endpoint to update an existing switch configuration|
 | DELETE |`/api/switches?id=<id>`|delete a specific switch configuration|
 | GET |`/api/config`|get the JSON represenation of the current server configuration with all configured steppers, switches and encoders. This is the in memory configuration (current is-state) which might differ from the persisted configuraiton. To persist the current configuration see `GET /api/config/save`|
-| GET |`/api/config/save`|save the current in memory (is-state) configuration of the server to the SPIFFS into the config.json file. This persist the configuration in its current state to survive also power loss / reboot / reset of the server. This should be called whenver you perform any changes on the configuration that you want to keep even after a reboot/reset of the ESP|
+| GET |`/api/config/save`|save the current in-memory configuration of the server to the [SPIFFS](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/spiffs.html) into the `config.json` file. You can download this file using the URL schema `http://<ip of your esp>:<port>/config.json`. Calling this endpoint persists the configuration in its current state to survive also power loss / reboot / reset of the server. This should be called whenver you perform any changes on the configuration that you want to keep even after a reboot/reset of the ESP|
 
 To get a full list of endpoints navigate to the about page in the web ui and click on the REST API documentation link
 ![about screen][about_screen]
