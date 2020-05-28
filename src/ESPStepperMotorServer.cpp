@@ -95,6 +95,11 @@ ESPStepperMotorServer::ESPStepperMotorServer(byte serverMode, byte logLevel)
     this->isRestApiEnabled = true;
     this->restApiHandler = new ESPStepperMotorServer_RestAPI(this);
   }
+  if ((this->enabledServices & ESPServerSerialEnabled) == ESPServerSerialEnabled)
+  {
+    this->isCLIEnabled = true;
+    this->cliHandler = new ESPStepperMotorServer_CLI();
+  }
 
   if (ESPStepperMotorServer::anchor != NULL)
   {
@@ -257,6 +262,10 @@ void ESPStepperMotorServer::start()
   {
     ESPStepperMotorServer_Logger::logInfo("WiFi mode is disabled, only serial control interface will be used for controls");
   }
+  if (this->isCLIEnabled)
+  {
+    this->cliHandler->start();
+  }
 
   this->startWebserver();
   this->attachAllInterrupts();
@@ -273,6 +282,11 @@ void ESPStepperMotorServer::stop()
   {
     this->httpServer->end();
     ESPStepperMotorServer_Logger::logInfo("stopped web server");
+  }
+
+  if (this->isCLIEnabled)
+  {
+    this->cliHandler->stop();
   }
   this->isServerStarted = false;
   ESPStepperMotorServer_Logger::logInfo("ESP-StepperMotor-Server stopped");
