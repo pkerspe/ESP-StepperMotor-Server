@@ -100,14 +100,20 @@ void loop()
 6. [Build/compile and upload the project](http://docs.platformio.org/en/latest/tutorials/espressif32/arduino_debugging_unit_testing.html#compiling-and-uploading-the-firmware) to your connected ESP32 module and open the console Monitor in PlatformIO (or connect to the board using your prefered serial terminal console) to see the output of the ESP-StepperMotor-Server starting up.
 In the output on the serial monitor you should see that some output similar to this:
 ```
-[INFO] Starting ESP-StepperMotor-Server (v. 0.0.1)
-[INFO] Trying to connect to WiFi with ssid TEST-WIFI
-...[INFO] 
-[INFO] Connected to network with address XXX.XXX.XXX.XXX
+[INFO] Loading configuration file /config.json from SPIFFS
+[INFO] 2 stepper configuration entries loaded from config file
+[INFO] 2 switch configuration entries loaded from config file
+[INFO] 2 rotary encoder configuration entries loaded from config file
+[INFO] Starting ESP-StepperMotor-Server (v. 0.0.6)
+[INFO] Trying to connect to WiFi with SSID '<your wifi SSID could be here>' ....
+[INFO] Connected to network with IP address XXX.XXX.XXX.XXX
+...
+[INFO] Starting webserver on port YY
+[INFO] Webserver started, you can now open the user interface on http://XXX.XXX.XXX.XXX:YY/
 ...
 ```
-During Startup the ESP32 will check if the User Interface is installed on the ESP32s SPI Flash File System (SPIFFS). If it cannot find one ore more required files it will attemtp to download the files via WiFi from the git hub repository (if the SPIFFS has ben initialized at leas once befire). In case your WiFi does not provide an open internet connection, you need to upload the files manually using he "Upload File System image" Task from PlatformIO. More Details can be found in the section [Insallation of the Web UI](#insallation-of-the-web-ui)
-If the UI is installed on the SPIFFS you should see the following (or a similar) output in the serial console after startup:
+During Startup the ESP32 will check if the User Interface is installed on the ESP32s SPI Flash File System (SPIFFS). If it cannot find one ore more required files it will attemtp to download the files via WiFi from the git hub repository (if the SPIFFS has ben initialized at leas once before). In case your WiFi does not provide an open internet connection, you need to upload the files manually using he "Upload File System image" Task from PlatformIO. More Details can be found in the section [Insallation of the Web UI](#insallation-of-the-web-ui)
+If the UI is installed on the SPIFFS you should see the following (or a similar) output in the serial console after the Wifi Connection has been established:
 ```
 [INFO] Listing files in root folder of SPIFFS:
 [INFO] File: /index.html (615) -1
