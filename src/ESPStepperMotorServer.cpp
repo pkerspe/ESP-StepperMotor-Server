@@ -758,7 +758,7 @@ void ESPStepperMotorServer::registerWebInterfaceUrls()
     request->send(response);
   });
   httpServer->on(this->defaultConfigurationFilename, HTTP_GET, [this](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->defaultConfigurationFilename, "application/json");
+    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->defaultConfigurationFilename, "application/json", true);
     request->send(response);
   });
   httpServer->on("/js/app.js", HTTP_GET, [this](AsyncWebServerRequest *request) {
