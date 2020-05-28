@@ -76,15 +76,19 @@ monitor_speed = 115200
 #include <Arduino.h>
 #include <ESPStepperMotorServer.h>
 
-ESPStepperMotorServer server(ESPServerWebserverEnabled | ESPServerRestApiEnabled | ESPServerSerialEnabled);
+ESPStepperMotorServer *stepperMotorServer;
 
 void setup()
 {
   Serial.begin(115200);
-  //set the log level to DEBUG to show some more output on the serial console
-  server.setLogLevel(ESPServerLogLevel_DEBUG);
-  server.setWifiMode(ESPServerWifiModeClient);
+  stepperMotorServer = new ESPStepperMotorServer(ESPServerRestApiEnabled | ESPServerWebserverEnabled | ESPServerSerialEnabled);
+  // optionally if you want to see more logs in your serial console, you can enable the following line to set logging to DEBUG
+  // stepperMotorServer.setLogLevel(ESPServerLogLevel_DEBUG); 
+  
   server.setWifiCredentials("<YOUR WIFI SSID HERE>", "<YOUR WIFI PASSWORD>");
+  server.setWifiMode(ESPServerWifiModeClient);
+
+  // start the server
   server.start();
 
   //put your own setup code here
