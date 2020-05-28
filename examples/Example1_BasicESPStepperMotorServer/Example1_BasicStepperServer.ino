@@ -71,28 +71,34 @@
 #include <Arduino.h>
 #include <ESPStepperMotorServer.h>
 
-// Create an instance of the ESPStepperMotorServer 
-// NOTE: do NOT create more than one instance in your sketch, since it will lead to problems with interrupts
-ESPStepperMotorServer stepperMotorServer(ESPServerRestApiEnabled | ESPServerWebserverEnabled | ESPServerSerialEnabled);
+ESPStepperMotorServer *stepperMotorServer;
 
 const char *wifiName= "<your wifi ssid>"; // enter the SSID of the wifi network to connect to
 const char *wifiSecret = "<your wifi password>"; // enter the password of the the existing wifi network here
 
 void setup() 
 {
-  //start serial connection with 115200 baud
+  // start the serial interface with 115200 baud
+  // IMPORTANT: the follwoing line is important, since the server relies on the serial console. 
+  // Do not remove this line! (you can modify the baud rate to your needs though, but keep in mind, that slower baud rates might cause timing issues especially if you set the log level to DEBUG)
   Serial.begin(115200);
-  // stepperMotorServer.setLogLevel(ESPServerLogLevel_DEBUG); //optionally if you want to see more logs in your serial console, you can enable this line
+  // now create a new ESPStepperMotorServer instance (this must be done AFTER the Serial interface has been started)
+  stepperMotorServer = new ESPStepperMotorServer(ESPServerRestApiEnabled | ESPServerWebserverEnabled | ESPServerSerialEnabled);
+  // optionally if you want to see more logs in your serial console, you can enable the following line to set logging to DEBUG
+  // stepperMotorServer.setLogLevel(ESPServerLogLevel_DEBUG); 
 
-  //connect to a local wifi. Make sure you set the vairables wifiName and wifiSecret to match you SSID and wifi pasword (see above in lines 43/44)
-  stepperMotorServer.setWifiCredentials(wifiName, wifiSecret);
-  stepperMotorServer.setWifiMode(ESPServerWifiModeClient); //start the server as a wifi client (DHCP client of an existing wifi network)
+  // connect to an existing WiFi network. Make sure you set the vairables wifiName and wifiSecret to match you SSID and wifi pasword (see above before the setup function)
+  stepperMotorServer->setWifiCredentials(wifiName, wifiSecret);
+  stepperMotorServer->setWifiMode(ESPServerWifiModeClient); //start the server as a wifi client (DHCP client of an existing wifi network)
 
-  //NOTE: if you want to start the server in a stand alone mode that opens a wifi access point, then comment out the above two lines and uncomment the following line
-  //stepperMotorServer.setWifiMode(ESPServerWifiModeAccessPoint);
+  // NOTE: if you want to start the server in a stand alone mode that opens a wifi access point, then comment out the above two lines and uncomment the following line
+  // stepperMotorServer.setWifiMode(ESPServerWifiModeAccessPoint);
+  // you can define the AP name and the password using the following two lines, otherwise the defaults will be used (Name: ESP-StepperMotor-Server, password: Aa123456)
+  // stepperMotorServer->setAccessPointName("<ap-name>");
+  // stepperMotorServer->setAccessPointPassword("<ap password must be longer than 8 characters>");
 
   //start the server
-  stepperMotorServer.start();
+  stepperMotorServer->start();
 }
 
 void loop() 

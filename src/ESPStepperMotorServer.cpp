@@ -204,37 +204,14 @@ void ESPStepperMotorServer::removePositionSwitch(int positionSwitchIndex)
   ESPStepperMotorServer_PositionSwitch *posSwitch = this->serverConfiguration->getSwitch(positionSwitchIndex);
   if (posSwitch)
   {
-    this->removePositionSwitch(posSwitch);
+    this->detachInterruptForPositionSwitch(posSwitch);
+    ESPStepperMotorServer_Logger::logDebugf("removing position switch %s (idx: %i) from configured position switches\n", posSwitch->getPositionName().c_str(), positionSwitchIndex);
+    this->serverConfiguration->removeSwitch(positionSwitchIndex);
+    this->emergencySwitchIndexes[positionSwitchIndex] = 0;
   }
   else
   {
-    sprintf(this->logString, "position switch index %i is invalid, no position switch present at this configuration index, removePositionSwitch() canceled", positionSwitchIndex);
-    ESPStepperMotorServer_Logger::logWarning(this->logString);
-  }
-}
-
-void ESPStepperMotorServer::removePositionSwitch(ESPStepperMotorServer_PositionSwitch *posSwitchToRemove)
-{
-  if (posSwitchToRemove->getIoPinNumber() != ESPServerPositionSwitchUnsetPinNumber)
-  {
-    for (int i = 0; i < ESPServerMaxSwitches; i++)
-    {
-      if (this->serverConfiguration->getSwitch(i)->getIoPinNumber() == posSwitchToRemove->getIoPinNumber())
-      {
-        ESPStepperMotorServer_PositionSwitch blankPosSwitch;
-        this->detachInterruptForPositionSwitch(posSwitchToRemove);
-        sprintf(this->logString, "removed position switch %s (idx: %i) from configured position switches", posSwitchToRemove->getPositionName().c_str(), i);
-        ESPStepperMotorServer_Logger::logDebug(this->logString);
-        this->serverConfiguration->removeSwitch(i);
-        this->configuredPositionSwitchIoPins[i] = ESPServerPositionSwitchUnsetPinNumber;
-        this->emergencySwitchIndexes[i] = 0;
-        return;
-      }
-    }
-  }
-  else
-  {
-    ESPStepperMotorServer_Logger::logInfo("Invalid position switch given, IO pin was not set");
+    ESPStepperMotorServer_Logger::logWarning("position switch index %i is invalid, no position switch present at this configuration index, removePositionSwitch() canceled\n", positionSwitchIndex);
   }
 }
 

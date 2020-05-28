@@ -71,31 +71,31 @@ lib_deps = ESP-StepperMotor-Server
 
 monitor_speed = 115200
 ```
- 5. now you can open the main.cpp file and include the ESP-StepperMotor-Server and create an instance of the server with a minimal configuration like this:
+ 5. now you can open the main.cpp file and include the ESP-StepperMotor-Server and create an instance of the server with a minimal configuration that connects to an existing WiFi like this:
 ```
 #include <Arduino.h>
 #include <ESPStepperMotorServer.h>
 
-ESPStepperMotorServer server(ESPServerWebserverEnabled | ESPServerRestApiEnabled | ESPServerSerialEnabled);
+ESPStepperMotorServer *stepperMotorServer;
 
-void setup()
+const char *wifiName= "<your wifi ssid>"; // enter the SSID of the wifi network to connect to
+const char *wifiSecret = "<your wifi password>"; // enter the password of the the existing wifi network here
+
+void setup() 
 {
   Serial.begin(115200);
-  //set the log level to DEBUG to show some more output on the serial console
-  server.setLogLevel(ESPServerLogLevel_DEBUG);
-  server.setWifiMode(ESPServerWifiModeClient);
-  server.setWifiCredentials("<YOUR WIFI SSID HERE>", "<YOUR WIFI PASSWORD>");
-  server.start();
-
-  //put your own setup code here
+  stepperMotorServer = new ESPStepperMotorServer(ESPServerRestApiEnabled | ESPServerWebserverEnabled | ESPServerSerialEnabled);
+  stepperMotorServer->setWifiCredentials(wifiName, wifiSecret);
+  stepperMotorServer->setWifiMode(ESPServerWifiModeClient); //start the server as a wifi client (DHCP client of an existing wifi network)
+  stepperMotorServer->start();
 }
 
-void loop()
+void loop() 
 {
-     // put your own code that that should be executed 
 }
- ```
-*NOTE:* Replace `<YOUR WIFI SSID HERE>` with the name of your WiFI and `<YOUR WIFI PASSWORD>` with your WiFi password
+```
+*NOTE:* Replace `<your wifi ssid>` with the name of your WiFI and `<your wifi password>` with your WiFi password in the example code above
+This is the absolute minimum example how to start the server. For further examples and more inline documentation see the provided example sketches.
 
 6. [Build/compile and upload the project](http://docs.platformio.org/en/latest/tutorials/espressif32/arduino_debugging_unit_testing.html#compiling-and-uploading-the-firmware) to your connected ESP32 module and open the console Monitor in PlatformIO (or connect to the board using your prefered serial terminal console) to see the output of the ESP-StepperMotor-Server starting up.
 In the output on the serial monitor you should see that some output similar to this:
@@ -129,6 +129,36 @@ Now that it is started, you can open the UI in a browser on you PC connected to 
 
 You should now see the start screen of the ESP StepperMotor Server:
 ![startup screen][startup_screen]
+
+## Library API overview
+The Library is designed with ease of use and flexibility in the configuration in mind. You can configure the server completely in your code or you can just use the basic example code and perform all further configuration in the Web user interface using your browser.
+
+Here is an overview of the most important API calls, in case you want to go down the road of customizing and configuration within you sketch:
+*class ESPStepperMotorServer*
+this is the main class and the one you want to start with.
+|function|description|parameters|
+|----|----|----|
+|`ESPStepperMotorServer(byte serverMode)`|constructor to create a new instance of the server. Note: Do not create more than one instance of the server in your code, to prevent issues with the interrupt service routines that are used by the server to listen to inputs.|`byte serverMode`: specify which modules of the server shall be started. Currently three modules are supported: the web interface, the REST API and the serial console control interface. The webinterface relies on the REST API, so it should not be enabled without the REST API. If you do not want to connect to a wifi or start your own AP the serial console is the only way to interact with the server. Use the constants ESPServerRestApiEnabled, ESPServerWebserverEnabled and ESPServerSerialEnabled to decide which modules to enable. e.g. `stepperMotorServer = new ESPStepperMotorServer(ESPServerRestApiEnabled | ESPServerWebserverEnabled | ESPServerSerialEnabled);`|
+|`void setHttpPort(int portNumber)`|Set the http port number on which the server should liste for requests for the web interface and the REST API. Only used if the server is started in the ESPServerWebserverEnabled or ESPServerRestApiEnabled (or both) mode|`int portNumber`: the port number to start the webserver on. Only needed if the ESPServerRestApiEnabled or ESPServerWebserverEnabled module is enabled. Default port is 80|
+|`void setAccessPointName(const char *accessPointSSID)`|Set the name of the Access Point (SSID) to open by the server|`const char *accessPointSSID`: the name of the access point to open up. Only used when the server is configured to start in AP mode by using `setWifiMode(ESPServerWifiModeAccessPoint)` is used. The default value is 'ESP-StepperMotor-Server'|
+|`void setAccessPointPassword(const char *accessPointPassword)`| |`const char *accessPointPassword`|
+|`void setWifiCredentials(const char *ssid, const char *pwd)`|Set the wifi credentials for your local WiFi to connect to. Only used when the server is configured in WiFi Cloent mode by using `setWifiMode(ESPServerWifiModeClient)`|`const char *ssid`: the name of the WiFi to connect to. `const char *pwd`: the password for the WiFi to connect to|
+|`void setWifiMode(byte wifiMode)`|Set the WiFi mode to start the server in. It can either operate in WiFi Client or Access Point mode. As a client it connectes to an existing WiFi network. Requires the WiFi access credentials to be set using the `setWifiCredentials` function. In Access Point mode, the server opens it's own WiFi network and waits for clients to connect. You can specify the AP Name and Password using the `setAccessPointName` and `setAccessPointPassword` functions (otherwise default values will be used, for details see documentation of the mentioned functions and parameters)|`byte wifiMode`: the mode to use. Supported values should be provided with the constants `ESPServerWifiModeClient` and `ESPServerWifiModeAccessPoint`. To disable the WiFi modes completely use `ESPServerWifiDisabled`|
+|`void printWifiStatus()`|prints current WiFi connection deails to the serial console. This should be called only AFTER the server has been started, since the connection to the WiFi network or setup of an Access Point is only done after calling the `start()` function of the server|none|
+|`int addOrUpdateStepper(ESPStepperMotorServer_StepperConfiguration *stepper, int stepperIndex = -1)`|Add a new stepper motor to the server configuration or update an existing one with a given id|`ESPStepperMotorServer_StepperConfiguration *stepper,`: pointer to a configured `ESPStepperMotorServer_StepperConfiguration` instance. Optional `int stepperIndex`: if set this parameter indicates the configuration ID of an existing stepper configuration, that shall be overwritten/replace with the new one supplied using the `stepper` parameter|
+|`int addOrUpdatePositionSwitch(ESPStepperMotorServer_PositionSwitch *posSwitchToAdd, int switchIndex = -1)`|Add a new position switch to the server configuration or update an existing one with a given id|`ESPStepperMotorServer_PositionSwitch *posSwitchToAdd,`: pointer to a configured `ESPStepperMotorServer_PositionSwitch` instance. Optional `int switchIndex`: if set this parameter indicates the configuration ID of an existing switch configuration, that shall be overwritten/replace with the new one supplied using the `posSwitchToAdd` parameter|
+|`int addOrUpdateRotaryEncoder(ESPStepperMotorServer_RotaryEncoder *rotaryEncoder, int encoderIndex = -1)`|Add a new rotary encoder to the server configuration or update an existing one with a given id|`ESPStepperMotorServer_RotaryEncoder *rotaryEncoder,`: pointer to a configured `ESPStepperMotorServer_RotaryEncoder` instance. Optional `int encoderIndex`: if set this parameter indicates the configuration ID of an existing encoder configuration, that shall be overwritten/replace with the new one supplied using the `rotaryEncoder` parameter|
+|`void removePositionSwitch(int positionSwitchIndex)`|Remove/Delete a previously configured position switch|``|
+|`void removeStepper(byte stepperConfigurationIndex)`|Remove/Delete a previously configured stepper motor|``|
+|`void removeRotaryEncoder(byte rotaryEncoderConfigurationIndex)`|Remove/Delete a previously configured encoder|``|
+|`void printPositionSwitchStatus()`| |``|
+|`void start()`| |``|
+|`void stop()`| |``|
+|`byte getPositionSwitchStatus(int positionSwitchIndex)`| |``|
+|`void getButtonStatusRegister(byte buffer[ESPServerSwitchStatusRegisterCount])`| |``|
+|`String getIpAddress()`| |``|
+|`ESPStepperMotorServer_Configuration *getCurrentServerConfiguration()`| |``|
+
 
 ## Connecting the hardware
 TBD
