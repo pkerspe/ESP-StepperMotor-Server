@@ -4,10 +4,9 @@ Turn your ESP32 into a standalone stepper motor control server with easy to use 
 Connect one ore more stepper controllers with step and direction input, and optionally some limit-switches to the IO-pins of your ESP module and controll the stepper motor via an easy to use web interface, via REST API or via a serial control interface.
 
 # Table of contents
-- [Table of contents](#table-of-contents)
 - [Introduction](#introduction)
   - [What this library is NOT](#what-this-library-is-not)
-  - [Prerequisites / Dependencies](#prerequisites-/-dependencies)
+  - [Prerequisites and dependencies](#prerequisites-and-dependencies)
 - [Setting up your ESP-StepperMotor-Server](#Setting-up-your-ESP-StepperMotor-Server)
   - [Firmware installation](#Firmware-installation)
     - [Using PlatformIO](#using-platformio)
@@ -37,7 +36,7 @@ Once the ESP Stepper Motor Server has been uploaded to the ESP module, all furth
 This library is not ideal if you are looking for a solution to control your CNC Router. It does not support Gerber commands (GRBL) in general or parallel, synchronized multi axis movements.
 If you need such a solution you might want to look into the [Grbl_Esp32](https://github.com/bdring/Grbl_Esp32) (for ESP32 specifically) or [grbl](https://github.com/gnea/grbl) (for Arduino in general) Libraries. If you are looking for an easy way to setup and control one or more stepper motors independly and ading limit switches and rotary encoders to conrol them, this project here might be just what you are looking for. 
 
-## Prerequisites / Dependencies
+## Prerequisites and dependencies
 
 In order to compile your project with the ESP-StepperMotor-Server Library, the following 3rd party extensions need to be installed on your system (if you use PlatformIO all needed dependencies will be installed for you when you follow the instructions in the [Using PlatformIO](#using-platformio) section above):
 - [ESPAsyncWebserver](https://github.com/me-no-dev/ESPAsyncWebServer)
