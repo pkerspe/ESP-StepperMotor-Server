@@ -1,11 +1,66 @@
 {
+    "serverConfiguration": {
+        "port": 8080,
+        "apName": "ESP-StepperMotor-Server",
+        "apPassword": "ServerPassword",
+        "wififMode": 2,
+        "wifiSsid": "",
+        "wifiPassword": ""
+    },
     "stepperConfigurations": [
-        {}
+        {
+            "id": 0,
+            "stepPin": 32,
+            "directionPin": 31,
+            "name": "X-Axis",
+            "stepsPerRev": 100,
+            "microsteppingDivisor": 32,
+            "rpmLimit": 1000
+        },
+        {
+            "id": 1,
+            "stepPin": 22,
+            "directionPin": 23,
+            "name": "Y-Axis",
+            "stepsPerRev": 100,
+            "microsteppingDivisor": 32,
+            "rpmLimit": 1000
+        }
     ],
     "switchConfigurations": [
-        {}
+        {
+            "id": 0,
+            "ioPin": 14,
+            "stepperIndex": 0,
+            "switchType": 64,
+            "name": "Limit 1 X-Axis",
+            "switchPosition": -1
+        },
+        {
+            "id": 1,
+            "ioPin": 15,
+            "stepperIndex": 1,
+            "switchType": 64,
+            "name": "Limit 2 X-Axis",
+            "switchPosition": 200000
+        }
     ],
     "rotaryEncoderConfigurations": [
-        {}
+        {
+            "id": 0,
+            "pinA": 16,
+            "pinB": 17,
+            "name": "Encoder X-Axis",
+            "stepMultiplier": 100,
+            "stepperIndex": 0
+        },
+        {
+            "id": 1,
+            "pinA": 18,
+            "pinB": 19,
+            "name": "Encoder Y-Axis",
+            "stepMultiplier": 100,
+            "stepperIndex": 1
+        }
     ]
 }
