@@ -176,7 +176,7 @@ The following devices can be configured:
 # API documentation
 
 ## Library API documentation
-The Library is designed with ease of use and flexibility in the configuration in mind. You can configure the server completely in your code or you can just use the basic example code and perform all further configuration in the Web user interface using your browser.
+The Library is designed with ease of use and flexibility of the configuration options in mind. You can configure the server completely in your code or you can just use the basic example code and perform all further configuration in the Web user interface using your browser.
 
 Here is an overview of the most important API calls, in case you want to go down the road of customizing and configuration within you sketch:
 *class ESPStepperMotorServer*
@@ -210,26 +210,28 @@ Besides the web based User Interface the ESP StepperMotor Server offers a REST A
 The following is an excerpt of the endpoints being provided:
 | METHOD | PATH | DESCRIPTION |
 |---|---|---|
-|GET |/api/status|get the current stepper server status report including the following information: version string of the server, wifi information (wifi mode, IP address), spiffs information (total space and free space)|
-|POST| /api/steppers/moveby|endpoint to set a new RELATIVE target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value|
-|POST |/api/steppers/position|endpoint to set a new absolute target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value|
-| GET |/api/steppers or /api/steppers?id=<id>|endpoint to list all configured steppers or a specific one if "id" query parameter is given
-|DELETE| /api/steppers?id=<id> |delete an existing stepper configuration entry|
-|POST |/api/steppers|add a new stepper configuration entry|
-| PUT| /api/steppers?id=<id> |upate an existing stepper configuration entry|
-| GET |/api/switches/status or /api/switches/status?id=<id>|get the current switch status (active, inactive) of either one specific switch or all switches (returned as a bit mask in MSB order)|
-| GET |/api/switches or /api/switches?id=<id>|endpoint to list all position switch configurations or a specific configuration if the "id" query parameter is given|
-| POST |/api/switches|endpoint to add a new switch configuration|
-| PUT |/api/switches?id=<id> | endpoint to update an existing switch configuration|
-| DELETE |/api/switches?id=<id>|delete a specific switch configuration|
+|GET |`/api/status`|get the current stepper server status report including the following information: version string of the server, wifi information (wifi mode, IP address), spiffs information (total space and free space)|
+|POST|`/api/steppers/moveby`|endpoint to set a new RELATIVE target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value|
+|POST |`/api/steppers/position`|endpoint to set a new absolute target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value|
+| GET |`/api/steppers` or `/api/steppers?id=<id>`|endpoint to list all configured steppers or a specific one if "id" query parameter is given
+|DELETE|`/api/steppers?id=<id>`|delete an existing stepper configuration entry|
+|POST |`/api/steppers`|add a new stepper configuration entry|
+| PUT|`/api/steppers?id=<id>`|upate an existing stepper configuration entry|
+| GET |`/api/switches/status` or `/api/switches/status?id=<id>`|get the current switch status (active, inactive) of either one specific switch or all switches (returned as a bit mask in MSB order)|
+| GET |`/api/switches` or `/api/switches?id=<id>`|endpoint to list all position switch configurations or a specific configuration if the "id" query parameter is given|
+| POST |`/api/switches`|endpoint to add a new switch configuration|
+| PUT |`/api/switches?id=<id>`|endpoint to update an existing switch configuration|
+| DELETE |`/api/switches?id=<id>`|delete a specific switch configuration|
+| GET |`/api/config`|get the JSON represenation of the current server configuration with all configured steppers, switches and encoders. This is the in memory configuration (current is-state) which might differ from the persisted configuraiton. To persist the current configuration see `GET /api/config/save`|
+| GET |`/api/config/save`|save the current in memory (is-state) configuration of the server to the SPIFFS into the config.json file. This persist the configuration in its current state to survive also power loss / reboot / reset of the server. This should be called whenver you perform any changes on the configuration that you want to keep even after a reboot/reset of the ESP|
 
 To get a full list of endpoints navigate to the about page in the web ui and click on the REST API documentation link
+![about screen][about_screen]
 
 ## Further documentation
 for further details have a look at 
-- the provided example files,
-- the github repository and included README files and examples on: https://github.com/pkerspe/ESP-StepperMotor-Server
-- and the wiki on the github page: https://github.com/pkerspe/ESP-StepperMotor-Server/wiki
+- the provided example files / projects in the examples folder of this repository
+- the wiki on the github page: https://github.com/pkerspe/ESP-StepperMotor-Server/wiki
 
 # License
 Copyright (c) 2019 Paul Kerspe - Licensed under the MIT license.
@@ -240,3 +242,4 @@ Copyright (c) 2019 Paul Kerspe - Licensed under the MIT license.
 [add_stepper_dialog]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/add_stepper_config_dialog.png "The dialog to add a new stepper motor configuration"
 [add_switch_dialog]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/add_switch_dialog.png "The dialog to add a new switch (input signal) configuration"
 [add_rotary_encoder_dialog]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/add_rotary_encoder_dialog.png "The dialog to add a new rotary encoder to control a stepper"
+[about_screen]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/about_screen.png "The about screen with the link to the REST API documentation"
