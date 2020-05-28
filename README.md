@@ -85,11 +85,11 @@ void setup()
   // optionally if you want to see more logs in your serial console, you can enable the following line to set logging to DEBUG
   // stepperMotorServer.setLogLevel(ESPServerLogLevel_DEBUG); 
   
-  server.setWifiCredentials("<YOUR WIFI SSID HERE>", "<YOUR WIFI PASSWORD>");
-  server.setWifiMode(ESPServerWifiModeClient);
+  stepperMotorServer.setWifiCredentials("<YOUR WIFI SSID HERE>", "<YOUR WIFI PASSWORD>");
+  stepperMotorServer.setWifiMode(ESPServerWifiModeClient);
 
   // start the server
-  server.start();
+  stepperMotorServer.start();
 
   //put your own setup code here
 }
