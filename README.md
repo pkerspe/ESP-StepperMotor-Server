@@ -47,8 +47,9 @@ In order to get started you need the following elements:
 - A *stepper motor*
 - A *power supply* that fits to your stepper motors and drivers specs
 - A *stepper driver* board that fits to your stepper motors specs
+
 Optional:
-- Limit, position and emegency stop switches
+- Switches for limit/homing, position and emegency stop functionality
 - Rotary encoders to control the motors directly using physical controls
 
 ### 1. Firmware installation
@@ -138,12 +139,12 @@ In the navigation on the left side click on "SETUP" to open the configuration pa
 
 The following devices can be configured:
 - Stepper Motors (or to be more precise "connected stepper drivers")
-- Switches (input signals): multiple types of functions are supported for the switches
-  - Limit/Homing Switches
+- Switches (input signals in general): multiple types of functions are supported for the switches
+  - [Limit](https://en.wikipedia.org/wiki/Limit_switch)/Homing Switches
   - Position Switches
-  - emergency stop switches
+  - emergency stop / [kill switches](https://en.wikipedia.org/wiki/Kill_switch)
   - in future versions also switches to trigger movement macros will be supported
-- Rotary encoders as control inputs to control the configured steppers
+- [Incremental rotary encoders](https://en.wikipedia.org/wiki/Incremental_encoder) as control inputs to control the configured steppers via physical controls (you can always use the web interface or serial control commands directly to control the stepper motor position, speed etc.)
 
 ![startup screen][add_stepper_dialog]
 ![startup screen][add_switch_dialog]
