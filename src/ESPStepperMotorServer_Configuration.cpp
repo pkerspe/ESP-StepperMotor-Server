@@ -42,7 +42,9 @@ ESPStepperMotorServer_Configuration::ESPStepperMotorServer_Configuration(const c
 {
   this->_configFilePath = configFilePath;
   this->loadConfiguationFromSpiffs();
-  this->printCurrentConfigurationAsJsonToSerial();
+  if(ESPStepperMotorServer_Logger::getLogLevel() >= ESPServerLogLevel_DEBUG){
+    this->printCurrentConfigurationAsJsonToSerial();
+  }
 }
 
 unsigned int ESPStepperMotorServer_Configuration::calculateRequiredJsonDocumentSizeForCurrentConfiguration()

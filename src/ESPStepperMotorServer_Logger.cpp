@@ -33,6 +33,7 @@
 byte ESPStepperMotorServer_Logger::_logLevel = ESPServerLogLevel_INFO;
 
 char logString[400];
+const char *LEVEL_STRING_ALL = "ALL";
 const char *LEVEL_STRING_DEBUG = "DEBUG";
 const char *LEVEL_STRING_INFO = "INFO";
 const char *LEVEL_STRING_WARNING = "WARNING";
@@ -64,16 +65,23 @@ void ESPStepperMotorServer_Logger::setLogLevel(byte logLevel)
     switch (logLevel)
     {
     case ESPServerLogLevel_ALL:
+        ESPStepperMotorServer_Logger::logInfof("Setting log level to %s\n", LEVEL_STRING_ALL);
+        break;
     case ESPServerLogLevel_DEBUG:
+        ESPStepperMotorServer_Logger::logInfof("Setting log level to %s\n", LEVEL_STRING_DEBUG);
+        break;
     case ESPServerLogLevel_INFO:
+        ESPStepperMotorServer_Logger::logInfof("Setting log level to %s\n", LEVEL_STRING_INFO);
+        break;
     case ESPServerLogLevel_WARNING:
-        ESPStepperMotorServer_Logger::_logLevel = logLevel;
+        ESPStepperMotorServer_Logger::logInfof("Setting log level to %s\n", LEVEL_STRING_WARNING);
         break;
     default:
         ESPStepperMotorServer_Logger::logWarning("Invalid log level given, log level will be set to info");
         ESPStepperMotorServer_Logger::_logLevel = ESPServerLogLevel_INFO;
-        break;
+        return;
     }
+    ESPStepperMotorServer_Logger::_logLevel = logLevel;
 }
 
 byte ESPStepperMotorServer_Logger::getLogLevel()

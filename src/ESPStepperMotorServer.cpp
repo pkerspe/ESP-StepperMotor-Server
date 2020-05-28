@@ -77,19 +77,20 @@ ESPStepperMotorServer *ESPStepperMotorServer::anchor = NULL;
 //
 // constructor for the stepper server class
 //
-ESPStepperMotorServer::ESPStepperMotorServer(byte serverMode)
+ESPStepperMotorServer::ESPStepperMotorServer(byte serverMode, byte logLevel)
 {
+  ESPStepperMotorServer_Logger::setLogLevel(logLevel);
   startSPIFFS();
   //get config instance which tries to load config from SPIFFS by default
   this->serverConfiguration = new ESPStepperMotorServer_Configuration(this->defaultConfigurationFilename);
 
-  ESPStepperMotorServer_Logger::setLogLevel(ESPServerLogLevel_INFO);
   this->enabledServices = serverMode;
   if ((this->enabledServices & ESPServerWebserverEnabled) == ESPServerWebserverEnabled)
   {
     this->isWebserverEnabled = true;
   }
-  if ((this->enabledServices & ESPServerRestApiEnabled) == ESPServerRestApiEnabled)
+  //rest api needs to be started either if web UI is enabled (which uses the REST API itself) or if REST API is enabled
+  if ((this->enabledServices & ESPServerRestApiEnabled) == ESPServerRestApiEnabled || this->isWebserverEnabled)
   {
     this->isRestApiEnabled = true;
     this->restApiHandler = new ESPStepperMotorServer_RestAPI(this);
@@ -295,7 +296,6 @@ void ESPStepperMotorServer::getButtonStatusRegister(byte buffer[ESPServerSwitchS
 
 void ESPStepperMotorServer::printPositionSwitchStatus()
 {
-
   // TODO reuse code in REST API
   const int docSize = 150 * ESPServerMaxSwitches;
   StaticJsonDocument<docSize> doc;
@@ -367,7 +367,7 @@ void ESPStepperMotorServer::printPositionSwitchStatus()
 }
 
 /**
- * checks if the configured position switch at the given configuration index is triggere (active) or not
+ * checks if the configured position switch at the given configuration index is triggered (active) or not
  * This function takes the configured type ESPServerSwitchType_ActiveHigh or ESPServerSwitchType_ActiveLow into account when determining the current active state
  * e.g. if a switch is configured to be ESPServerSwitchType_ActiveLow the function will return 1 when the switch is triggered (low signal on IO pin).
  * For a switch that is configured ESPServerSwitchType_ActiveHigh on the other side, the function will return 0 when a low signal is on the IO pin, and 1 when a high signal is present
@@ -376,18 +376,21 @@ byte ESPStepperMotorServer::getPositionSwitchStatus(int positionSwitchIndex)
 {
   byte buttonRegisterIndex = (byte)(ceil)((positionSwitchIndex + 1) / 8);
   ESPStepperMotorServer_PositionSwitch *posSwitch = this->serverConfiguration->getSwitch(positionSwitchIndex);
-  byte bitVal = (1 << positionSwitchIndex % 8);
-  byte buttonState = ((this->buttonStatus[buttonRegisterIndex] & bitVal) == bitVal);
-
-  if (posSwitch->getIoPinNumber() != ESPServerPositionSwitchUnsetPinNumber)
+  if (posSwitch)
   {
-    if ((posSwitch->getSwitchType() & ESPServerSwitchType_ActiveHigh) == ESPServerSwitchType_ActiveHigh)
+    byte bitVal = (1 << positionSwitchIndex % 8);
+    byte buttonState = ((this->buttonStatus[buttonRegisterIndex] & bitVal) == bitVal);
+
+    if (posSwitch->getIoPinNumber() != ESPServerPositionSwitchUnsetPinNumber)
     {
-      return (buttonState) ? 1 : 0;
-    }
-    else
-    {
-      return (buttonState) ? 0 : 1;
+      if ((posSwitch->getSwitchType() & ESPServerSwitchType_ActiveHigh) == ESPServerSwitchType_ActiveHigh)
+      {
+        return (buttonState) ? 1 : 0;
+      }
+      else
+      {
+        return (buttonState) ? 0 : 1;
+      }
     }
   }
   return 0;
@@ -412,13 +415,10 @@ void ESPStepperMotorServer::startSPIFFS()
 
 void ESPStepperMotorServer::printSPIFFSStats()
 {
-  ESPStepperMotorServer_Logger::logDebug("SPIFFS stats:");
-  ESPStepperMotorServer_Logger::logDebug("Total bytes: ", false);
-  ESPStepperMotorServer_Logger::logDebug(String((int)SPIFFS.totalBytes(), DEC), true, true);
-  ESPStepperMotorServer_Logger::logDebug("bytes used in SPIFFS: ", false);
-  ESPStepperMotorServer_Logger::logDebug(String((int)SPIFFS.usedBytes(), DEC), true, true);
-  ESPStepperMotorServer_Logger::logDebug("bytes available: ", false);
-  ESPStepperMotorServer_Logger::logDebug(String(getSPIFFSFreeSpace(), DEC), true, true);
+  Serial.println("SPIFFS stats:");
+  Serial.printf("Total bytes: %i\n", (int)SPIFFS.totalBytes());
+  Serial.printf("bytes used: %i\n", (int)SPIFFS.usedBytes());
+  Serial.printf("bytes free: %i\n", getSPIFFSFreeSpace());
 }
 
 void ESPStepperMotorServer::printSPIFFSRootFolderContents()
@@ -1022,9 +1022,9 @@ void ESPStepperMotorServer::attachAllInterrupts()
       char irqNum = digitalPinToInterrupt(posSwitch->getIoPinNumber());
       if (irqNum == NOT_AN_INTERRUPT)
       {
-        ESPStepperMotorServer_Logger::logWarningf("Failed to determine IRQ# for given IO Pin %i, thus setting up of interrupt for the position switch failed for pin %s", posSwitch->getIoPinNumber(), posSwitch->getPositionName().c_str());
+        ESPStepperMotorServer_Logger::logWarningf("Failed to determine IRQ# for given IO pin %i, thus setting up of interrupt for the position switch '%s' failed\n", posSwitch->getIoPinNumber(), posSwitch->getPositionName().c_str());
       }
-      ESPStepperMotorServer_Logger::logDebugf("attaching interrupt service routine for position switch %s on IO Pin %i", posSwitch->getPositionName().c_str(), posSwitch->getIoPinNumber());
+      ESPStepperMotorServer_Logger::logDebugf("Attaching interrupt service routine for position switch '%s' on IO pin %i\n", posSwitch->getPositionName().c_str(), posSwitch->getIoPinNumber());
       _BV(irqNum); // clear potentially pending interrupts
       attachInterrupt(irqNum, staticPositionSwitchISR, CHANGE);
     }
@@ -1042,10 +1042,10 @@ void ESPStepperMotorServer::attachAllInterrupts()
         char irqNum = digitalPinToInterrupt(pins[i]);
         if (irqNum == NOT_AN_INTERRUPT)
         {
-          ESPStepperMotorServer_Logger::logWarning("Failed to determine IRQ# for given IO Pin %i, thus setting up of interrupt for the rotary encoder failed for pin %s\n", pins[i], rotaryEncoder->getDisplayName().c_str());
+          ESPStepperMotorServer_Logger::logWarningf("Failed to determine IRQ# for given IO pin %i, thus setting up of interrupt for the rotary encoder failed for pin %s\n", pins[i], rotaryEncoder->getDisplayName().c_str());
         }
 
-        ESPStepperMotorServer_Logger::logDebugf("attaching interrupt service routine for rotary encoder %s on IO Pin %i\n", rotaryEncoder->getDisplayName().c_str(), pins[i]);
+        ESPStepperMotorServer_Logger::logDebugf("attaching interrupt service routine for rotary encoder '%s' on IO pin %i\n", rotaryEncoder->getDisplayName().c_str(), pins[i]);
         _BV(irqNum); // clear potentially pending interrupts
         attachInterrupt(irqNum, staticRotaryEncoderISR, CHANGE);
       }
@@ -1176,7 +1176,7 @@ void ESPStepperMotorServer::staticRotaryEncoderISR()
   anchor->internalRotaryEncoderISR();
 }
 
-// ----------------- delegator functions to easy API usage -------------------------
+// ----------------- delegator functions to ease API usage -------------------------
 
 void ESPStepperMotorServer::setLogLevel(byte logLevel)
 {
