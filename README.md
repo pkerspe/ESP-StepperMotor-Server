@@ -85,9 +85,22 @@ void setup()
 {
   Serial.begin(115200);
   stepperMotorServer = new ESPStepperMotorServer(ESPServerRestApiEnabled | ESPServerWebserverEnabled | ESPServerSerialEnabled);
+<<<<<<< HEAD
   stepperMotorServer->setWifiCredentials(wifiName, wifiSecret);
   stepperMotorServer->setWifiMode(ESPServerWifiModeClient); //start the server as a wifi client (DHCP client of an existing wifi network)
   stepperMotorServer->start();
+=======
+  // optionally if you want to see more logs in your serial console, you can enable the following line to set logging to DEBUG
+  // stepperMotorServer.setLogLevel(ESPServerLogLevel_DEBUG); 
+  
+  stepperMotorServer.setWifiCredentials("<YOUR WIFI SSID HERE>", "<YOUR WIFI PASSWORD>");
+  stepperMotorServer.setWifiMode(ESPServerWifiModeClient);
+
+  // start the server
+  stepperMotorServer.start();
+
+  //put your own setup code here
+>>>>>>> e34f06d8599b4e0eae30e54479b8b6ca7f997ea8
 }
 
 void loop() 
