@@ -51,7 +51,7 @@ private:
   byte _stepperIndex;
   byte _switchIndex;
   byte _ioPinNumber = 255;
-  byte _switchType; //this is a bit mask representing the active state (bit 1 and 2) and the general type (homing/limit/position or emergency stop switch) in one byte
+  byte _switchType = 0; //this is a bit mask representing the active state (bit 1 and 2) and the general type (homing/limit/position or emergency stop switch) in one byte
   String _positionName;
   long _switchPosition;
   ESPStepperMotorServer_Logger _logger;

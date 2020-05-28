@@ -179,52 +179,30 @@ void ESPStepperMotorServer::removeStepper(byte id)
   }
 }
 
-int ESPStepperMotorServer::addPositionSwitch(byte stepperIndex, byte ioPinNumber, byte switchType, String positionName, long switchPosition)
+int ESPStepperMotorServer::addOrUpdatePositionSwitch(ESPStepperMotorServer_PositionSwitch *posSwitchToAdd, int switchIndex)
 {
-  ESPStepperMotorServer_PositionSwitch positionSwitchToAdd(ioPinNumber, stepperIndex, switchType, positionName);
-  positionSwitchToAdd.setSwitchPosition(switchPosition);
-  return this->addPositionSwitch(positionSwitchToAdd);
-}
-
-int ESPStepperMotorServer::addPositionSwitch(ESPStepperMotorServer_PositionSwitch posSwitchToAdd, int switchIndex)
-{
-  if (this->getConfiguredStepper(posSwitchToAdd.getStepperIndex()) == NULL)
+  if (switchIndex > -1)
   {
-    sprintf(this->logString, "invalid stepperIndex value given. No Stepper is configured at index %i was given in addPositionSwitch() call.", posSwitchToAdd.getStepperIndex());
-    ESPStepperMotorServer_Logger::logWarning(this->logString);
-    ESPStepperMotorServer_Logger::logWarning("the position switch has not been added");
-    return -1;
-  }
-  if (posSwitchToAdd.getPositionName().length() > ESPSMS_Stepper_DisplayName_MaxLength)
-  {
-    char logString[160];
-    sprintf(logString, "ESPStepperMotorServer::addPositionSwitch: The display name for the position switch is to long. Max length is %i characters. Name will be trimmed", ESPStepperMotorServer_SwitchDisplayName_MaxLength);
-    ESPStepperMotorServer_Logger::logWarning(logString);
-    posSwitchToAdd.setPositionName(posSwitchToAdd.getPositionName().substring(0, ESPSMS_Stepper_DisplayName_MaxLength));
-  }
-  if (switchIndex == -1)
-  {
-    this->serverConfiguration->addSwitch(&posSwitchToAdd);
+    this->serverConfiguration->setSwitch(posSwitchToAdd, switchIndex);
   }
   else
   {
-    this->serverConfiguration->setSwitch(&posSwitchToAdd, switchIndex);
+    switchIndex = (unsigned int)this->serverConfiguration->addSwitch(posSwitchToAdd);
   }
-
-  this->configuredPositionSwitchIoPins[switchIndex] = posSwitchToAdd.getIoPinNumber();
-  this->emergencySwitchIndexes[switchIndex] = ((posSwitchToAdd.getSwitchType() & ESPServerSwitchType_EmergencyStopSwitch) == ESPServerSwitchType_EmergencyStopSwitch);
+  //TODO: move switch pin inventory to server config
+  this->configuredPositionSwitchIoPins[switchIndex] = posSwitchToAdd->getIoPinNumber();
+  this->emergencySwitchIndexes[switchIndex] = ((posSwitchToAdd->getSwitchType() & ESPServerSwitchType_EmergencyStopSwitch) == ESPServerSwitchType_EmergencyStopSwitch);
   //Setup IO Pin
-  this->setupPositionSwitchIOPin(&posSwitchToAdd);
+  this->setupPositionSwitchIOPin(posSwitchToAdd);
 
-  sprintf(this->logString, "added position switch %s for IO pin %i at configuration index %i", this->serverConfiguration->getSwitch(switchIndex)->getPositionName().c_str(), this->serverConfiguration->getSwitch(switchIndex)->getIoPinNumber(), switchIndex);
-  ESPStepperMotorServer_Logger::logInfo(this->logString);
+  ESPStepperMotorServer_Logger::logInfof("added position switch %s for IO pin %i at configuration index %i\n", this->serverConfiguration->getSwitch(switchIndex)->getPositionName().c_str(), this->serverConfiguration->getSwitch(switchIndex)->getIoPinNumber(), switchIndex);
   return switchIndex;
 }
 
 void ESPStepperMotorServer::removePositionSwitch(int positionSwitchIndex)
 {
   ESPStepperMotorServer_PositionSwitch *posSwitch = this->serverConfiguration->getSwitch(positionSwitchIndex);
-  if (posSwitch->getIoPinNumber() != ESPServerPositionSwitchUnsetPinNumber)
+  if (posSwitch)
   {
     this->removePositionSwitch(posSwitch);
   }

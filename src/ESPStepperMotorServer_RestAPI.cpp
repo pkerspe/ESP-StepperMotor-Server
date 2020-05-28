@@ -319,7 +319,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       int switchIndex = request->getParam("id")->value().toInt();
       if (switchIndex < 0 || switchIndex >= ESPServerMaxSwitches || this->_stepperMotorServer->getConfiguredSwitch(switchIndex)->getIoPinNumber() == ESPServerPositionSwitchUnsetPinNumber)
       {
-        request->send(404);
+        request->send(404, "application/json", "{\"error\": \"No switch found for the given id\"}");
         return;
       }
 
@@ -371,18 +371,12 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     this->handlePostSwitchRequest(request, data, len, index, total); });
 
   // PUT /api/switches?id=<id>
-  // endpoint to update an existing switch configuration (will effectively delete the old switch configuraiton and write a new one at the same position)
+  // endpoint to update an existing switch configuration
   httpServer->on(
       "/api/switches", HTTP_PUT, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
     this->logDebugRequestUrl(request);
-    int deleteRC = this->handleDeleteSwitchRequest(request, false);
-    if (deleteRC == 204)
-    {
-      int switchIndex = request->getParam("id")->value().toInt();
-      this->handlePostSwitchRequest(request, data, len, index, total, switchIndex);
-    } else {
-      request->send(deleteRC, "application/json", "{\"error\": \"Failed to update position switch\"}");
-    } });
+    int switchIndex = request->getParam("id")->value().toInt();
+    this->handlePostSwitchRequest(request, data, len, index, total, switchIndex); });
 
   // DELETE /api/switches?id=<id>
   // delete a specific switch configuration
@@ -513,8 +507,6 @@ void ESPStepperMotorServer_RestAPI::populateSwitchDetailsToJsonObject(JsonObject
   switchDetails["ioPin"] = positionSwitch->getIoPinNumber();
   switchDetails["name"] = positionSwitch->getPositionName();
   switchDetails["stepperId"] = positionSwitch->getStepperIndex();
-  //TODO switch logic for steppers too
-  // switchDetails["stepperName"] = this->_stepperMotorServer->getConfiguredStepper(positionSwitch->getStepperIndex())->getDisplayName();
   switchDetails["type"] = positionSwitch->getSwitchType();
   switchDetails["isActiveHighType"] = positionSwitch->isActiveHigh();
   switchDetails["switchPosition"] = positionSwitch->getSwitchPosition();
@@ -528,8 +520,6 @@ void ESPStepperMotorServer_RestAPI::populateRotaryEncoderDetailsToJsonObject(Jso
   rotaryEncoderDetails["name"] = rotaryEncoder->getDisplayName();
   rotaryEncoderDetails["stepMultiplier"] = rotaryEncoder->getStepMultiplier();
   rotaryEncoderDetails["stepperId"] = rotaryEncoder->getStepperIndex();
-  //TODO switch logic for steppers too
-  //rotaryEncoderDetails["stepperName"] = this->_stepperMotorServer->getConfiguredStepper(rotaryEncoder->getStepperIndex())->getDisplayName();
 }
 
 void ESPStepperMotorServer_RestAPI::populateStepperDetailsToJsonObject(JsonObject &stepperDetails, ESPStepperMotorServer_StepperConfiguration *stepper, int index)
@@ -793,28 +783,27 @@ void ESPStepperMotorServer_RestAPI::handlePostSwitchRequest(AsyncWebServerReques
 
       if (ioPinNumber >= 0 && ioPinNumber <= ESPStepperHighestAllowedIoPin) //check valid pin range value
       {
-        //check if pins are already in use by a stepper or switch configuration
+        ESPStepperMotorServer_PositionSwitch *switchToUpdate = this->_stepperMotorServer->getCurrentServerConfiguration()->getSwitch(switchIndex);
+        //check if pins are already in use by a stepper, switch or another encoder configuration
         if (this->_stepperMotorServer->isIoPinUsed(ioPinNumber))
         {
-          request->send(400, "application/json", "{\"error\": \"The given IO pin is already used by another element\"}");
+          //check if pin is NOT used by same switch to update
+          if (switchToUpdate == NULL || switchToUpdate->getIoPinNumber() != ioPinNumber)
+          {
+            request->send(400, "application/json", "{\"error\": \"The given IO pin is already used by another element\"}");
+            return;
+          }
         }
-        else if (this->_stepperMotorServer->getConfiguredStepper(stepperConfigIndex) == NULL)
+        if (this->_stepperMotorServer->getConfiguredStepper(stepperConfigIndex) == NULL)
         {
           request->send(404, "application/json", "{\"error\": \"The given stepper id is invalid\"}");
+          return;
         }
-        else
-        {
-          ESPStepperMotorServer_PositionSwitch posSwitchToAdd = ESPStepperMotorServer_PositionSwitch(ioPinNumber, stepperConfigIndex, switchType, name);
-          posSwitchToAdd.setSwitchPosition(switchPosition);
 
-          if (switchIndex > -1)
-          {
-            this->_stepperMotorServer->removePositionSwitch(switchIndex);
-          }
-          switchIndex = this->_stepperMotorServer->addPositionSwitch(posSwitchToAdd, switchIndex);
-          sprintf(this->logger->logString, "{\"id\": %i}", switchIndex);
-          request->send(200, "application/json", this->logger->logString);
-        }
+        ESPStepperMotorServer_PositionSwitch *posSwitchToAdd = new ESPStepperMotorServer_PositionSwitch(ioPinNumber, stepperConfigIndex, switchType, name, switchPosition);
+        switchIndex = this->_stepperMotorServer->addOrUpdatePositionSwitch(posSwitchToAdd, switchIndex);
+        sprintf(this->logger->logString, "{\"id\": %i}", switchIndex);
+        request->send(200, "application/json", this->logger->logString);
       }
       else
       {
@@ -823,7 +812,7 @@ void ESPStepperMotorServer_RestAPI::handlePostSwitchRequest(AsyncWebServerReques
     }
     else
     {
-      request->send(400, "application/json", "{\"error\": \"Invalid request, missing one ore more required parameters: name, stepPin, dirPin\"}");
+      request->send(400, "application/json", "{\"error\": \"Invalid request, missing one ore more required parameters: stepperId, ioPinNumber, positionName, switchPosition, switchType\"}");
     }
   }
 }
