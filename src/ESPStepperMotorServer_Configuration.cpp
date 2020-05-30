@@ -61,7 +61,6 @@ void ESPStepperMotorServer_Configuration::printCurrentConfigurationAsJsonToSeria
 {
   DynamicJsonDocument doc(this->calculateRequiredJsonDocumentSizeForCurrentConfiguration());
   this->serializeServerConfiguration(doc);
-  Serial.printf("Serialized configuration size: %i bytes out of %i bytes reserved capacity", doc.memoryUsage(), doc.capacity());
   serializeJsonPretty(doc, Serial);
   Serial.println();
 }

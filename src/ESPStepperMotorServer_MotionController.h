@@ -1,6 +1,6 @@
 //      ******************************************************************
 //      *                                                                *
-//      *       Header file for ESPStepperMotorServer_CLI.cpp            *
+//      *   Header file for ESPStepperMotorServer_MotionController.cpp   *
 //      *                                                                *
 //      *               Copyright (c) Paul Kerspe, 2019                  *
 //      *                                                                *
@@ -28,56 +28,25 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef ESPStepperMotorServer_CLI_h
-#define ESPStepperMotorServer_CLI_h
-
-#define MAX_CLI_CMD_COUNTER 50
+#ifndef ESPStepperMotorServer_MotionController_h
+#define ESPStepperMotorServer_MotionController_h
 
 #include <Arduino.h>
 #include <ESPStepperMotorServer.h>
 #include <ESPStepperMotorServer_Logger.h>
+#include <FlexyStepper.h>
 
-class ESPStepperMotorServer_CLI
+class ESPStepperMotorServer_MotionController
 {
 public:
-  ESPStepperMotorServer_CLI(ESPStepperMotorServer *serverRef);
-  static void processSerialInput(void *parameter);
-  void executeCommand(String cmd);
+  ESPStepperMotorServer_MotionController(ESPStepperMotorServer *serverRef);
+  static void processMotionUpdates(void *parameter);
   void start();
   void stop();
 
 private:
-  void cmdHelp(char *cmd, char *args);
-  void cmdEmergencyStop(char *cmd, char *args);
-  void cmdRevokeEmergencyStop(char *cmd, char *args);
-  void cmdGetPosition(char *cmd, char *args);
-  void cmdMoveBy(char *cmd, char *args);
-  void cmdMoveTo(char *cmd, char *args);
-  void cmdPrintConfig(char *cmd, char *args);
-  void cmdRemoveSwitch(char *cmd, char *args);
-  void cmdReboot(char *cmd, char *args);
-  void cmdRemoveStepper(char *cmd, char *args);
-  void cmdRemoveEncoder(char *cmd, char *args);
-  void cmdStopServer(char *cmd, char *args);
-  void cmdSwitchStatus(char *cmd, char *args);
-  void cmdSaveConfiguration(char *cmd, char *args);
-  
-  //helper
-  int getValidStepperIdFromArg(char *arg);
-  const char* getParameterValue(const char * args, const char* parameterNameToGetValueFor);
-
-  void registerCommands();
-  void registerNewCommand(const char cmd[], const char shortCut[], bool hasParameters, const char description[], void (ESPStepperMotorServer_CLI::*f)(char *, char*));
-  bool started;
   TaskHandle_t xHandle = NULL;
-  void (ESPStepperMotorServer_CLI::*command_functions[MAX_CLI_CMD_COUNTER + 1])(char *, char *);
-  const char *command_details[MAX_CLI_CMD_COUNTER +1 ][4];
-  unsigned int commandCounter = 0;
   ESPStepperMotorServer *serverRef;
-
-  const char* _CMD_PARAM_SEPRATOR = "=";
-  const char* _PARAM_PARAM_SEPRATOR = "&";
-  const char* _PARAM_VALUE_SEPRATOR = ":";
 };
 
 #endif

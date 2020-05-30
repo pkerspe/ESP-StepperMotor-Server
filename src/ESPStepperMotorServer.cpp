@@ -67,7 +67,11 @@
 //        server.start();
 //
 
-#include "ESPStepperMotorServer.h"
+#include <ESPStepperMotorServer.h>
+
+//due to circular dependency the follwoing two classes must be inlcuded here, rahter than in the header file (for now, maybe fix this bad api design later)
+#include <ESPStepperMotorServer_CLI.h>
+#include <ESPStepperMotorServer_MotionController.h>
 // ---------------------------------------------------------------------------------
 //                                  Setup functions
 // ---------------------------------------------------------------------------------
@@ -98,8 +102,10 @@ ESPStepperMotorServer::ESPStepperMotorServer(byte serverMode, byte logLevel)
   if ((this->enabledServices & ESPServerSerialEnabled) == ESPServerSerialEnabled)
   {
     this->isCLIEnabled = true;
-    this->cliHandler = new ESPStepperMotorServer_CLI();
+    this->cliHandler = new ESPStepperMotorServer_CLI(this);
   }
+
+  this->motionControllerHandler = new ESPStepperMotorServer_MotionController(this);
 
   if (ESPStepperMotorServer::anchor != NULL)
   {
@@ -110,6 +116,70 @@ ESPStepperMotorServer::ESPStepperMotorServer(byte serverMode, byte logLevel)
     ESPStepperMotorServer::anchor = this;
   }
 }
+
+// ---------------------------------------------------------------------------------
+//                     general service control functions
+// ---------------------------------------------------------------------------------
+
+void ESPStepperMotorServer::start()
+{
+  ESPStepperMotorServer_Logger::logInfof("Starting ESP-StepperMotor-Server (v. %s)\n", this->version);
+
+  if (this->serverConfiguration->wifiMode == ESPServerWifiModeAccessPoint)
+  {
+    this->startAccessPoint();
+    if (ESPStepperMotorServer_Logger::getLogLevel() >= ESPServerLogLevel_DEBUG)
+    {
+      this->printWifiStatus();
+    }
+  }
+  else if (this->serverConfiguration->wifiMode == ESPServerWifiModeClient)
+  {
+    this->connectToWifiNetwork();
+    if (ESPStepperMotorServer_Logger::getLogLevel() >= ESPServerLogLevel_DEBUG)
+    {
+      this->printWifiStatus();
+    }
+  }
+  else if (this->serverConfiguration->wifiMode == ESPServerWifiModeDisabled)
+  {
+    ESPStepperMotorServer_Logger::logInfo("WiFi mode is disabled, only serial control interface will be used for controls");
+  }
+  this->startWebserver();
+  this->attachAllInterrupts();
+
+  if (this->isCLIEnabled)
+  {
+    this->cliHandler->start();
+  }
+  this->motionControllerHandler->start();
+  this->isServerStarted = true;
+}
+
+void ESPStepperMotorServer::stop()
+{
+  ESPStepperMotorServer_Logger::logInfo("Stopping ESP-StepperMotor-Server");
+  this->motionControllerHandler->stop();
+  this->detachAllInterrupts();
+  ESPStepperMotorServer_Logger::logInfo("detached interrupt handlers");
+
+  if (isWebserverEnabled || isRestApiEnabled)
+  {
+    this->httpServer->end();
+    ESPStepperMotorServer_Logger::logInfo("stopped web server");
+  }
+
+  if (this->isCLIEnabled)
+  {
+    this->cliHandler->stop();
+  }
+  this->isServerStarted = false;
+  ESPStepperMotorServer_Logger::logInfo("ESP-StepperMotor-Server stopped");
+}
+
+// ---------------------------------------------------------------------------------
+//                                  Configuration Functions
+// ---------------------------------------------------------------------------------
 
 void ESPStepperMotorServer::setHttpPort(int portNumber)
 {
@@ -232,64 +302,6 @@ void ESPStepperMotorServer::removeRotaryEncoder(byte id)
     sprintf(this->logString, "rotary encoder index %i is invalid, no rotary encoder pointer present at this configuration index or rotary encoder IDs do not match, removeRotaryEncoder() canceled", id);
     ESPStepperMotorServer_Logger::logWarning(this->logString);
   }
-}
-
-// ---------------------------------------------------------------------------------
-//                     general service control functions
-// ---------------------------------------------------------------------------------
-
-void ESPStepperMotorServer::start()
-{
-  ESPStepperMotorServer_Logger::logInfof("Starting ESP-StepperMotor-Server (v. %s)\n", this->version);
-
-  if (this->serverConfiguration->wifiMode == ESPServerWifiModeAccessPoint)
-  {
-    this->startAccessPoint();
-    if (ESPStepperMotorServer_Logger::getLogLevel() >= ESPServerLogLevel_DEBUG)
-    {
-      this->printWifiStatus();
-    }
-  }
-  else if (this->serverConfiguration->wifiMode == ESPServerWifiModeClient)
-  {
-    this->connectToWifiNetwork();
-    if (ESPStepperMotorServer_Logger::getLogLevel() >= ESPServerLogLevel_DEBUG)
-    {
-      this->printWifiStatus();
-    }
-  }
-  else if (this->serverConfiguration->wifiMode == ESPServerWifiModeDisabled)
-  {
-    ESPStepperMotorServer_Logger::logInfo("WiFi mode is disabled, only serial control interface will be used for controls");
-  }
-  if (this->isCLIEnabled)
-  {
-    this->cliHandler->start();
-  }
-
-  this->startWebserver();
-  this->attachAllInterrupts();
-  this->isServerStarted = true;
-}
-
-void ESPStepperMotorServer::stop()
-{
-  ESPStepperMotorServer_Logger::logInfo("Stopping ESP-StepperMotor-Server");
-  this->detachAllInterrupts();
-  ESPStepperMotorServer_Logger::logInfo("detached interrupt handlers");
-
-  if (isWebserverEnabled || isRestApiEnabled)
-  {
-    this->httpServer->end();
-    ESPStepperMotorServer_Logger::logInfo("stopped web server");
-  }
-
-  if (this->isCLIEnabled)
-  {
-    this->cliHandler->stop();
-  }
-  this->isServerStarted = false;
-  ESPStepperMotorServer_Logger::logInfo("ESP-StepperMotor-Server stopped");
 }
 
 // ---------------------------------------------------------------------------------
@@ -418,12 +430,18 @@ void ESPStepperMotorServer::startSPIFFS()
   ESPStepperMotorServer_Logger::logDebug("Checking SPIFFS for existance and free space");
   if (SPIFFS.begin())
   {
-    ESPStepperMotorServer_Logger::logDebug("SPIFFS started");
-    printSPIFFSStats();
+    if (ESPStepperMotorServer_Logger::getLogLevel() >= ESPServerLogLevel_DEBUG)
+    {
+      ESPStepperMotorServer_Logger::logDebug("SPIFFS started");
+      printSPIFFSStats();
+    }
   }
   else
   {
-    ESPStepperMotorServer_Logger::logWarning("Unable to activate SPIFFS. Files for WebInterface cannot be loaded");
+    if (this->isWebserverEnabled)
+    {
+      ESPStepperMotorServer_Logger::logWarning("Unable to activate SPIFFS. Files for web interface cannot be loaded");
+    }
   }
 }
 
@@ -1151,6 +1169,28 @@ void ESPStepperMotorServer::internalPositionSwitchISR()
   }
   this->positionSwitchUpdateAvailable = true;
 }
+
+void ESPStepperMotorServer::performEmergencyStop()
+{
+  this->motionControllerHandler->stop();
+  for (byte stepperIndex = 0; stepperIndex < ESPServerMaxSteppers; stepperIndex++)
+  {
+    ESPStepperMotorServer_StepperConfiguration *stepper = this->serverConfiguration->getStepperConfiguration(stepperIndex);
+    if (stepper)
+    {
+      // TODO: check back on the status of this Pull request and switch to emergencyStop function once done:
+      // https://github.com/Stan-Reifel/FlexyStepper/pull/4
+      FlexyStepper *flexyStepper = stepper->getFlexyStepper();
+      flexyStepper->setAccelerationInStepsPerSecondPerSecond(9999);
+      flexyStepper->setTargetPositionToStop();
+    }
+  }
+}
+
+void ESPStepperMotorServer::revokeEmergencyStop(){
+  this->motionControllerHandler->start();
+}
+
 
 void ESPStepperMotorServer::internalRotaryEncoderISR()
 {

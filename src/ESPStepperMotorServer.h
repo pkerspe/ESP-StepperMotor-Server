@@ -63,14 +63,12 @@
 #include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
 #include <HTTPClient.h>
-#include <ESPStepperMotorServer_CLI.h>
 #include <ESPStepperMotorServer_Configuration.h>
 #include <ESPStepperMotorServer_PositionSwitch.h>
 #include <ESPStepperMotorServer_StepperConfiguration.h>
 #include <ESPStepperMotorServer_RotaryEncoder.h>
 #include <ESPStepperMotorServer_Logger.h>
 #include <ESPStepperMotorServer_RestAPI.h>
-
 
 #define ESPServerWifiModeDisabled 0
 #define ESPServerWifiModeAccessPoint 1
@@ -91,10 +89,11 @@
 #define ESPServerPositionSwitchUnsetPinNumber 255
 #define ESPStepperHighestAllowedIoPin 50
 
-//just declare class here for compiler, since we have a circular dependency
+//just declare class here for compiler, since we have a circular dependency (due to bad api design :-))
 class ESPStepperMotorServer_CLI;
 class ESPStepperMotorServer_RestAPI;
 class ESPStepperMotorServer_Configuration;
+class ESPStepperMotorServer_MotionController;
 
 //
 // the ESPStepperMotorServer class
@@ -116,6 +115,8 @@ public:
   void removeStepper(byte stepperConfigurationIndex);
   void removeRotaryEncoder(byte rotaryEncoderConfigurationIndex);
   void printPositionSwitchStatus();
+  void performEmergencyStop();
+  void revokeEmergencyStop();
   void start();
   void stop();
   byte getPositionSwitchStatus(int positionSwitchIndex);
@@ -193,6 +194,7 @@ private:
   ESPStepperMotorServer_Configuration *serverConfiguration;
   ESPStepperMotorServer_RestAPI *restApiHandler;
   ESPStepperMotorServer_CLI *cliHandler;
+  ESPStepperMotorServer_MotionController *motionControllerHandler;
   static ESPStepperMotorServer *anchor; //used for self-reference in ISR
   // the button status register for all configured button switches
   volatile byte buttonStatus[ESPServerSwitchStatusRegisterCount] = {0};

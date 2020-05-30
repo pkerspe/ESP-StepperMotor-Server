@@ -29,14 +29,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "ESPStepperMotorServer_CLI.h"
+#include <ESPStepperMotorServer_CLI.h>
+#include <FlexyStepper.h>
 
 #define CR '\r'
 #define LF '\n'
 #define BS '\b'
 #define NULLCHAR '\0'
-#define SPACE ' '
-#define COMMAND_BUFFER_LENGTH 25 //length of serial buffer for incoming commands
+#define COMMAND_BUFFER_LENGTH 50 //length of serial buffer for incoming commands
 
 // ---------------------------------------------------------------------------------
 //                                  Setup functions
@@ -46,10 +46,9 @@
 // constructor for the command line interface module
 // creates a freeRTOS Task that runs in the background and polls the serial interface for input to parse
 //
-ESPStepperMotorServer_CLI::ESPStepperMotorServer_CLI()
+ESPStepperMotorServer_CLI::ESPStepperMotorServer_CLI(ESPStepperMotorServer *serverRef)
 {
-  this->registerCommands();
-  ESPStepperMotorServer_Logger::logInfof("Command Line Interface created, registered %i commands, Type 'help' to get a list of all supported commands", this->commandCounter);
+  this->serverRef = serverRef;
 }
 
 void ESPStepperMotorServer_CLI::start()
@@ -61,29 +60,32 @@ void ESPStepperMotorServer_CLI::start()
       this,                                          /* Parameter passed as input of the task */
       1,                                             /* Priority of the task. */
       &this->xHandle);                               /* Task handle. */
-  ESPStepperMotorServer_Logger::logInfo("Command Line Interface polling task started");
-}
-
-void ESPStepperMotorServer_CLI::executeCommand(String cmd)
-{
-  Serial.printf("received command from serial: %s\n", cmd.c_str());
-  for (int i = 0; i < this->commandCounter; i++)
-  {
-    if (strcmp(cmd.c_str(),this->command_details[i][0]) == 0)
-    {
-      Serial.println("found command");
-      (this->*command_functions[i])(cmd);
-      return;
-    }
-    
-  }
-  Serial.printf("Command '%s' is unknown\n", cmd.c_str());
+  this->registerCommands();
+  ESPStepperMotorServer_Logger::logInfof("Command Line Interface started, registered %i commands. Type 'help' to get a list of all supported commands\n", this->commandCounter);
 }
 
 void ESPStepperMotorServer_CLI::stop()
 {
   vTaskDelete(this->xHandle);
   ESPStepperMotorServer_Logger::logInfo("Command Line Interface stopped");
+}
+
+void ESPStepperMotorServer_CLI::executeCommand(String cmd)
+{
+  char cmdChartArray[cmd.length() + 1];
+  strcpy(cmdChartArray, cmd.c_str());
+  char *pureCommand = strtok(cmdChartArray, _CMD_PARAM_SEPRATOR);
+  char *arguments = strtok(NULL, "=");
+
+  for (int i = 0; i < this->commandCounter; i++)
+  {
+    if (strcmp(cmdChartArray, this->command_details[i][0]) == 0 || strcmp(cmdChartArray, this->command_details[i][2]) == 0)
+    {
+      (this->*command_functions[i])(pureCommand, arguments);
+      return;
+    }
+  }
+  Serial.printf("error: Command '%s' is unknown\n", cmd.c_str());
 }
 
 void ESPStepperMotorServer_CLI::processSerialInput(void *parameter)
@@ -133,17 +135,48 @@ void ESPStepperMotorServer_CLI::processSerialInput(void *parameter)
 
 void ESPStepperMotorServer_CLI::registerCommands()
 {
-  this->registerNewCommand("help", "show the help screen", &ESPStepperMotorServer_CLI::cmdHelp);
-  this->registerNewCommand("reboot", "reboot the ESP and start all over", &ESPStepperMotorServer_CLI::cmdReboot);
-  this->registerNewCommand("switchStatus", "print the status of all input switches", &ESPStepperMotorServer_CLI::cmdSwitchStatus);
+  this->registerNewCommand("help", "h", 0, "show a list of all available commands", &ESPStepperMotorServer_CLI::cmdHelp);
+  // this->registerNewCommand("addswitch", "asw", 1, "add a new switch configuration", &ESPStepperMotorServer_CLI::cmdAddSwitch);
+  // this->registerNewCommand("addstepper", "as", 1, "add a new stepper configuration", &ESPStepperMotorServer_CLI::cmdAddStepper);
+  // this->registerNewCommand("addencoder", "ae", 1, "add a new rotary encoder configuration", &ESPStepperMotorServer_CLI::cmdAddEncoder);
+  // this->registerNewCommand("listencoders", "le", 0, "list all configured rotary encoders", &ESPStepperMotorServer_CLI::cmdListEncoders);
+  // this->registerNewCommand("liststeppers", "ls", 0, "list all configured steppers", &ESPStepperMotorServer_CLI::cmdListSteppers);
+  // this->registerNewCommand("listswitches", "lsw", 0, "list all configured input switches", &ESPStepperMotorServer_CLI::cmdListSwitches);
+  // this->registerNewCommand("returnhome", "rh", 1, "Return to the home position (only possible if a homing switch is connected). Requires the ID of the stepper to get the position for as parameter. E.g.: rh=0", &ESPStepperMotorServer_CLI::cmdReturnHome);
+
+  this->registerNewCommand("moveby", "mb", 1, "move by an specified amount of units. requires the id of the stepper to move, the amount pf movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. E.g. mb=0&v=-100&u=mm to move the stepper with id 0 by -100 mm", &ESPStepperMotorServer_CLI::cmdMoveBy);
+  this->registerNewCommand("moveto", "mt", 1, "move to an absolute position. requires the id of the stepper to move, the amount pf movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. E.g. mt=0&v=100&u=revs to move the stepper with id 0 to the absolute position at 100 revolutions", &ESPStepperMotorServer_CLI::cmdMoveTo);
+  this->registerNewCommand("config", "c", 0, "print the current configuration to the console as JSON formatted string", &ESPStepperMotorServer_CLI::cmdPrintConfig);
+  this->registerNewCommand("emergencystop", "es", 0, "trigger emergency stop for all connected steppers. This will clear all target positions and stop the motion controller module immediately. In order to proceed normal operation after this command has been issued, you need to call the revokeemergencystop [res] command", &ESPStepperMotorServer_CLI::cmdEmergencyStop);
+  this->registerNewCommand("revokeemergencystop", "res", 0, "revoke a previously triggered emergency stop. This must be called before any motions can proceed after a call to the emergencystop command", &ESPStepperMotorServer_CLI::cmdRevokeEmergencyStop);
+  this->registerNewCommand("pos", "pm", 1, "get the current position of the stepper. If no parameter for the unit is provided, will return the position in steps. Requires the ID of the stepper to get the position for as parameter and optional the unit using 'u:mm'/'u:steps'/'u:revs'. E.g.: psm=0&u:steps to return the current position of stepper with id = 0 with unit 'steps'.", &ESPStepperMotorServer_CLI::cmdGetPosition);
+  this->registerNewCommand("removeswitch", "rsw", 1, "remove an existing switch configuration. E.g. rsw=0 to remove the switch with the ID 0", &ESPStepperMotorServer_CLI::cmdRemoveSwitch);
+  this->registerNewCommand("removestepper", "rs", 1, "remove and existing stepper configuration. E.g. rs=0 to remove the stepper config with the ID 0", &ESPStepperMotorServer_CLI::cmdRemoveStepper);
+  this->registerNewCommand("removeencoder", "re", 1, "remove an existing rotary encoder configuration. E.g. re=0 to remove the encoder with the ID 0", &ESPStepperMotorServer_CLI::cmdRemoveEncoder);
+  this->registerNewCommand("reboot", "r", 0, "reboot the ESP", &ESPStepperMotorServer_CLI::cmdReboot);
+  this->registerNewCommand("save", "s", 0, "save the current configuration to the SPIFFS in config.json", &ESPStepperMotorServer_CLI::cmdSaveConfiguration);
+  this->registerNewCommand("stop", "st", 0, "stop the stepper server (also stops the CLI!)", &ESPStepperMotorServer_CLI::cmdStopServer);
+  this->registerNewCommand("switchstatus", "pss", 0, "print the status of all input switches as JSON formated string", &ESPStepperMotorServer_CLI::cmdSwitchStatus);
 }
 
-void ESPStepperMotorServer_CLI::registerNewCommand(const char cmd[], const char description[], void (ESPStepperMotorServer_CLI::*cmdFunction)(String))
+void ESPStepperMotorServer_CLI::registerNewCommand(const char cmd[], const char shortCut[], bool hasParameters, const char description[], void (ESPStepperMotorServer_CLI::*cmdFunction)(char *, char *))
 {
   if (this->commandCounter < MAX_CLI_CMD_COUNTER)
   {
+    //check if command is already registered
+    for (int i = 0; i < this->commandCounter; i++)
+    {
+      if (strcmp(cmd, this->command_details[i][0]) == 0 || strcmp(shortCut, this->command_details[i][2]) == 0)
+      {
+        ESPStepperMotorServer_Logger::logWarningf("A command with the same name / shortcut is already registered. Will not add the command '%s' [%s] to the list of registered commands", cmd, shortCut);
+        return;
+      }
+    }
+
     this->command_details[this->commandCounter][0] = cmd;
     this->command_details[this->commandCounter][1] = description;
+    this->command_details[this->commandCounter][2] = shortCut;
+    this->command_details[this->commandCounter][3] = (hasParameters) ? "1" : "0";
     this->command_functions[this->commandCounter] = cmdFunction;
     this->commandCounter++;
   }
@@ -153,23 +186,249 @@ void ESPStepperMotorServer_CLI::registerNewCommand(const char cmd[], const char 
   }
 }
 
-void ESPStepperMotorServer_CLI::cmdHelp(String args)
+void ESPStepperMotorServer_CLI::cmdPrintConfig(char *cmd, char *args)
 {
-  Serial.println("The following commands are available");
-  for (int i = 0; i < this->commandCounter; i++)
-  {
-    Serial.printf("%s: %s\n", this->command_details[i][0], this->command_details[i][1]);
-  }
+  this->serverRef->getCurrentServerConfiguration()->printCurrentConfigurationAsJsonToSerial();
 }
 
-void ESPStepperMotorServer_CLI::cmdReboot(String args)
+void ESPStepperMotorServer_CLI::cmdHelp(char *cmd, char *args)
+{
+  Serial.println("\n-------- ESP-StepperMotor-Server-CLI Help -----------\nThe following commands are available:\n");
+  Serial.println("<command> [<shortcut>]: <description>");
+  for (int i = 0; i < this->commandCounter; i++)
+  {
+    Serial.printf("%s [%s]%s:\t%s%s\n", this->command_details[i][0], this->command_details[i][2], ((strcmp(this->command_details[i][3], "1") == 0) ? "*" : ""), (strlen(this->command_details[i][0]) + strlen(this->command_details[i][2]) < 12) ? "\t" : "", this->command_details[i][1]);
+  }
+  Serial.println("\ncommmands marked with a * require input parameters.\nParameters are provided with the command separarted by a = for the primary parameter.\nSecondary parameters are provided in the format '&<parametername>:<parametervalue'\n");
+  Serial.println("-------------------------------------------------------");
+}
+
+void ESPStepperMotorServer_CLI::cmdReboot(char *cmd, char *args)
 {
   Serial.println("initiating restart");
   ESP.restart();
 }
-void ESPStepperMotorServer_CLI::cmdSwitchStatus(String args)
+
+void ESPStepperMotorServer_CLI::cmdSwitchStatus(char *cmd, char *args)
 {
-  Serial.println("Switch status: 0000000");
+  this->serverRef->printPositionSwitchStatus();
 }
 
+void ESPStepperMotorServer_CLI::cmdStopServer(char *cmd, char *args)
+{
+  this->serverRef->stop();
+  Serial.println(cmd);
+}
+
+void ESPStepperMotorServer_CLI::cmdEmergencyStop(char *cmd, char *args)
+{
+  this->serverRef->performEmergencyStop();
+  Serial.println(cmd);
+}
+
+void ESPStepperMotorServer_CLI::cmdRevokeEmergencyStop(char *cmd, char *args)
+{
+  this->serverRef->revokeEmergencyStop();
+  Serial.println(cmd);
+}
+
+void ESPStepperMotorServer_CLI::cmdRemoveSwitch(char *cmd, char *args)
+{
+  unsigned int id = (String(args)).toInt();
+  if (id > ESPServerMaxSwitches || !this->serverRef->getConfiguredSwitch((byte)id))
+  {
+    Serial.println("error: invalid switch id given");
+  }
+  else
+  {
+    this->serverRef->removePositionSwitch((byte)id);
+    Serial.println(cmd);
+  }
+}
+
+void ESPStepperMotorServer_CLI::cmdRemoveStepper(char *cmd, char *args)
+{
+  int stepperid = this->getValidStepperIdFromArg(args);
+  if (stepperid > -1)
+  {
+    this->serverRef->removeStepper((byte)stepperid);
+    Serial.println(cmd);
+  }
+}
+
+void ESPStepperMotorServer_CLI::cmdRemoveEncoder(char *cmd, char *args)
+{
+  unsigned int id = (String(args)).toInt();
+  if (id > ESPServerMaxRotaryEncoders || !this->serverRef->getConfiguredRotaryEncoder((byte)id))
+  {
+    Serial.println("error: invalid encoder id given");
+  }
+  else
+  {
+    this->serverRef->removeRotaryEncoder((byte)id);
+    Serial.println(cmd);
+  }
+}
+
+void ESPStepperMotorServer_CLI::cmdGetPosition(char *cmd, char *args)
+{
+  int stepperid = this->getValidStepperIdFromArg(args);
+  if (stepperid > -1)
+  {
+    const char *unit = this->getParameterValue(args, "u");
+    if (unit[0] == NULLCHAR)
+    {
+      unit = "steps";
+    }
+    if (strcmp(unit, "mm") == 0)
+    {
+      Serial.printf("%f\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInMillimeters());
+    }
+    else if (strcmp(unit, "revs") == 0)
+    {
+      Serial.printf("%f\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInRevolutions());
+    }
+    else
+    {
+      Serial.printf("%ld\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInSteps());
+    }
+  }
+}
+
+void ESPStepperMotorServer_CLI::cmdMoveTo(char *cmd, char *args)
+{
+  int stepperid = this->getValidStepperIdFromArg(args);
+  if (stepperid > -1)
+  {
+    const char *value = this->getParameterValue(args, "v");
+    if (value[0] != NULLCHAR)
+    {
+      const char *unit = this->getParameterValue(args, "u");
+      if (unit[0] != NULLCHAR || strcmp(unit, "steps") == 0)
+      {
+        this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid)->getFlexyStepper()->setTargetPositionInSteps((String(value).toInt()));
+      }
+      else if (strcmp(unit, "revs") == 0)
+      {
+        this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid)->getFlexyStepper()->setTargetPositionInRevolutions((String(value).toFloat()));
+      }
+      else if (strcmp(unit, "mm") == 0)
+      {
+        this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid)->getFlexyStepper()->setTargetPositionInMillimeters((String(value).toFloat()));
+      }
+      else
+      {
+        Serial.println("error: provided unit not supported. Must be one of mm, steps or revs");
+        return;
+      }
+      Serial.println(cmd);
+    }
+    else
+    {
+      Serial.println("error: missing required v parameter");
+    }
+  }
+}
+
+void ESPStepperMotorServer_CLI::cmdMoveBy(char *cmd, char *args)
+{
+  int stepperid = this->getValidStepperIdFromArg(args);
+  Serial.printf("%s called for stepper id %i\n", cmd, stepperid);
+  if (stepperid > -1)
+  {
+    const char *value = this->getParameterValue(args, "v");
+    if (value[0] != NULLCHAR)
+    {
+      Serial.printf("cmdMoveBy called with v = %s\n", value);
+      const char *unit = this->getParameterValue(args, "u");
+      if (unit[0] == NULLCHAR || strcmp(unit, "steps") == 0)
+      {
+        int targetPosition = (String(value).toInt());
+        Serial.printf("Setting target position to %i steps\n", targetPosition);
+        this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid)->getFlexyStepper()->setTargetPositionRelativeInSteps(targetPosition);
+      }
+      else if (strcmp(unit, "revs") == 0)
+      {
+        float targetPosition = (String(value).toFloat());
+        Serial.printf("Setting target position to %f revs\n", targetPosition);
+        this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid)->getFlexyStepper()->setTargetPositionRelativeInRevolutions(targetPosition);
+      }
+      else if (strcmp(unit, "mm") == 0)
+      {
+        float targetPosition = (String(value).toFloat());
+        Serial.printf("Setting target position to %f mm\n", targetPosition);
+        this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid)->getFlexyStepper()->setTargetPositionRelativeInMillimeters(targetPosition);
+      }
+      else
+      {
+        Serial.println("error: provided unit not supported. Must be one of mm, steps or revs");
+        return;
+      }
+      Serial.println(cmd);
+    }
+    else
+    {
+      Serial.println("error: missing required v parameter");
+    }
+  }
+}
+
+void ESPStepperMotorServer_CLI::cmdSaveConfiguration(char *cmd, char *args)
+{
+  if (this->serverRef->getCurrentServerConfiguration()->saveCurrentConfiguationToSpiffs())
+  {
+    Serial.println(cmd);
+  }
+  else
+  {
+    Serial.println("error: saving configuration to SPIFFS failed");
+  }
+}
+
+/**
+ * convert given char* to int value and check if it represents a valid stepper config id (within the allowed limits and with an existing stepper configuation existing)
+ * -1 is returned if not valid and an error os printed to the serial interface
+ */
+int ESPStepperMotorServer_CLI::getValidStepperIdFromArg(char *arg)
+{
+  unsigned int id = (String(arg)).toInt();
+  if (id > ESPServerMaxSteppers || !this->serverRef->getConfiguredStepper((byte)id))
+  {
+    Serial.println("error: invalid stepper id given");
+    return -1;
+  }
+  return (byte)id;
+}
+
+const char *ESPStepperMotorServer_CLI::getParameterValue(const char *args, const char *parameterNameToGetValueFor)
+{
+  Serial.printf("getParameterValue called with %s and %s\n", args, parameterNameToGetValueFor);
+  char *parameterName;
+  char *parameterValue;
+  char *save_ptr;
+  char workingCopy[40];
+  strcpy(workingCopy, args);
+
+  char *keyValuePairString = strtok_r(workingCopy, this->_PARAM_PARAM_SEPRATOR, &save_ptr);
+  while (keyValuePairString != NULL)
+  {
+    Serial.printf("Found a key value pair: %s\n", keyValuePairString);
+    char *restKeyValuePair = keyValuePairString;
+    parameterName = strtok_r(restKeyValuePair, this->_PARAM_VALUE_SEPRATOR, &restKeyValuePair);
+    if (parameterName != NULL)
+    {
+      Serial.printf("Found a parameter: %s\n", parameterName);
+      if (strcmp(parameterName, parameterNameToGetValueFor) == 0)
+      {
+        parameterValue = strtok_r(restKeyValuePair, this->_PARAM_VALUE_SEPRATOR, &restKeyValuePair);
+        return parameterValue;
+      } else {
+        Serial.println("parameter did not match requested parameter");
+      }
+    }
+    keyValuePairString = strtok_r(NULL, this->_PARAM_PARAM_SEPRATOR, &save_ptr);
+  }
+  Serial.println("No match found, returning \\0");
+  return "";
+}
 // -------------------------------------- End --------------------------------------
