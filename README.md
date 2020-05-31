@@ -268,7 +268,7 @@ In general there are two types of commands:
 Commands with parameters, and commands without parameters. Some command support also optional parameters.
 Each command also has a shortcut (listed in the `help` output in `[]`) that can be used if you are not so much into typing a lot.
 Commands with parmaeters need to be called following this schema:
-`<commandname or shortcut name>=<primary parameter>&<optional additional parameter name>:<optional additional parameter value>``
+`<commandname or shortcut name>=<primary parameter>&<optional additional parameter name>:<optional additional parameter value>`
 An example for a command with multiple parameters is the `moveto` command. The shortcut for this command is `mt`.
 The command supports three parameters: the id of the stepper to move (primary parameter), the amount/value for the movement (v parameter) and the unit (u parameter) for the movement (mm, steps or revolutions).
 Example: 
