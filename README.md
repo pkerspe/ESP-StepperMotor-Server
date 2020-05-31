@@ -17,6 +17,7 @@ Connect one ore more stepper controllers with step and direction input, and opti
 - [API Documentation](#api-documentation)
   - [Library API documentation](#library-api-documentation)
   - [REST API documentation](#rest-api-documentation)
+  - [Serial command line interface (CLI)](#Serial-command-line-interface-(CLI))
 - [Further documentation](#further-documentation)
 - [License](#license)
 
