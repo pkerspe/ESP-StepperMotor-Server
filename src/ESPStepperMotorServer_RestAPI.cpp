@@ -264,14 +264,8 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
   httpServer->on(
       "/api/steppers", HTTP_PUT, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) { 
     this->logDebugRequestUrl(request);
-    int deleteRC = this->handleDeleteStepperRequest(request, false);
-    if (deleteRC == 204)
-    {
       int stepperIndex = request->getParam("id")->value().toInt();
-      this->handlePostStepperRequest(request, data, len, index, total, stepperIndex);
-    } else {
-      request->send(deleteRC, "application/json", "{\"error\": \"Failed to update stepper configuration\"}");
-    } });
+      this->handlePostStepperRequest(request, data, len, index, total, stepperIndex); });
 
   // GET /api/switches/status
   // GET /api/switches/status?id=<id>
@@ -535,7 +529,7 @@ void ESPStepperMotorServer_RestAPI::populateStepperDetailsToJsonObject(JsonObjec
     stepperDetails["stepsPerMM"] = stepper->getStepsPerMM();
     stepperDetails["stepsPerRev"] = stepper->getStepsPerRev();
     stepperDetails["microsteppingDivisor"] = stepper->getMicrostepsPerStep();
-    
+
     JsonObject position = stepperDetails.createNestedObject("position");
     position["mm"] = stepper->getFlexyStepper()->getCurrentPositionInMillimeters();
     position["revs"] = stepper->getFlexyStepper()->getCurrentPositionInRevolutions();
@@ -589,12 +583,13 @@ void ESPStepperMotorServer_RestAPI::handlePostStepperRequest(AsyncWebServerReque
       int microsteppingDivisor = doc["microsteppingDivisor"];
       if (stepPin >= 0 && stepPin <= ESPStepperHighestAllowedIoPin && dirPin >= 0 && dirPin <= ESPStepperHighestAllowedIoPin && dirPin != stepPin)
       {
-        //check if pins are already in use by a stepper or switch configuration
-        if (this->_stepperMotorServer->isIoPinUsed(stepPin))
+        ESPStepperMotorServer_StepperConfiguration *stepper = this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex);
+        //check if pins are already in use by a stepper or switch configuration (that is not the current stepper to be updated)
+        if (this->_stepperMotorServer->isIoPinUsed(stepPin) && (stepper == NULL || stepper->getStepIoPin() != stepPin))
         {
           request->send(400, "application/json", "{\"error\": \"The given STEP IO pin is already used by another stepper or a switch configuration\"}");
         }
-        else if (this->_stepperMotorServer->isIoPinUsed(dirPin))
+        else if (this->_stepperMotorServer->isIoPinUsed(dirPin) && (stepper == NULL || stepper->getDirectionIoPin() != dirPin))
         {
           request->send(400, "application/json", "{\"error\": \"The given DIRECTION IO pin is already used by another stepper or a switch configuration\"}");
         }
