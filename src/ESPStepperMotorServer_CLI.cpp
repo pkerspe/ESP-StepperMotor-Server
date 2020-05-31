@@ -156,6 +156,8 @@ void ESPStepperMotorServer_CLI::registerCommands()
   this->registerNewCommand("reboot", "r", 0, "reboot the ESP", &ESPStepperMotorServer_CLI::cmdReboot);
   this->registerNewCommand("save", "s", 0, "save the current configuration to the SPIFFS in config.json", &ESPStepperMotorServer_CLI::cmdSaveConfiguration);
   this->registerNewCommand("stop", "st", 0, "stop the stepper server (also stops the CLI!)", &ESPStepperMotorServer_CLI::cmdStopServer);
+  this->registerNewCommand("loglevel", "ll", 1, "set or get the current log level for serial output. valid values to set are: 1 (Warning) - 4 (ALL). E.g. to set to log level DEBUG use sll=3 to get the current loglevel call without parameter", &ESPStepperMotorServer_CLI::cmdSetLogLevel);
+  this->registerNewCommand("serverstatus", "ss", 0, "print status details of the server as JSON formated string", &ESPStepperMotorServer_CLI::cmdServerStatus);
   this->registerNewCommand("switchstatus", "pss", 0, "print the status of all input switches as JSON formated string", &ESPStepperMotorServer_CLI::cmdSwitchStatus);
 }
 
@@ -212,6 +214,13 @@ void ESPStepperMotorServer_CLI::cmdReboot(char *cmd, char *args)
 void ESPStepperMotorServer_CLI::cmdSwitchStatus(char *cmd, char *args)
 {
   this->serverRef->printPositionSwitchStatus();
+}
+
+void ESPStepperMotorServer_CLI::cmdServerStatus(char *cmd, char *args)
+{
+  String result;
+  this->serverRef->getServerStatusAsJsonString(result);
+  Serial.println(result);
 }
 
 void ESPStepperMotorServer_CLI::cmdStopServer(char *cmd, char *args)
@@ -333,30 +342,30 @@ void ESPStepperMotorServer_CLI::cmdMoveTo(char *cmd, char *args)
 void ESPStepperMotorServer_CLI::cmdMoveBy(char *cmd, char *args)
 {
   int stepperid = this->getValidStepperIdFromArg(args);
-  Serial.printf("%s called for stepper id %i\n", cmd, stepperid);
+  ESPStepperMotorServer_Logger::logDebugf("%s called for stepper id %i\n", cmd, stepperid);
   if (stepperid > -1)
   {
     const char *value = this->getParameterValue(args, "v");
     if (value[0] != NULLCHAR)
     {
-      Serial.printf("cmdMoveBy called with v = %s\n", value);
+      ESPStepperMotorServer_Logger::logDebugf("cmdMoveBy called with v = %s\n", value);
       const char *unit = this->getParameterValue(args, "u");
       if (unit[0] == NULLCHAR || strcmp(unit, "steps") == 0)
       {
         int targetPosition = (String(value).toInt());
-        Serial.printf("Setting target position to %i steps\n", targetPosition);
+        ESPStepperMotorServer_Logger::logDebugf("Setting target position to %i steps\n", targetPosition);
         this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid)->getFlexyStepper()->setTargetPositionRelativeInSteps(targetPosition);
       }
       else if (strcmp(unit, "revs") == 0)
       {
         float targetPosition = (String(value).toFloat());
-        Serial.printf("Setting target position to %f revs\n", targetPosition);
+        ESPStepperMotorServer_Logger::logDebugf("Setting target position to %f revs\n", targetPosition);
         this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid)->getFlexyStepper()->setTargetPositionRelativeInRevolutions(targetPosition);
       }
       else if (strcmp(unit, "mm") == 0)
       {
         float targetPosition = (String(value).toFloat());
-        Serial.printf("Setting target position to %f mm\n", targetPosition);
+        ESPStepperMotorServer_Logger::logDebugf("Setting target position to %f mm\n", targetPosition);
         this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid)->getFlexyStepper()->setTargetPositionRelativeInMillimeters(targetPosition);
       }
       else
@@ -385,6 +394,23 @@ void ESPStepperMotorServer_CLI::cmdSaveConfiguration(char *cmd, char *args)
   }
 }
 
+void ESPStepperMotorServer_CLI::cmdSetLogLevel(char *cmd, char *args)
+{
+  unsigned int logLevelToSet = (String(args)).toInt();
+  if (logLevelToSet == 0)
+  {
+    Serial.printf("%s=%i\n", cmd, ESPStepperMotorServer_Logger::getLogLevel());
+  }
+  else
+  {
+    if (logLevelToSet > ESPServerLogLevel_ALL || logLevelToSet < ESPServerLogLevel_WARNING)
+    {
+      Serial.printf("error: Invalid log level given. Must be in the range of %i (Warning) and %i (All)\n", ESPServerLogLevel_WARNING, ESPServerLogLevel_ALL);
+    }
+    ESPStepperMotorServer_Logger::setLogLevel(logLevelToSet);
+  }
+}
+
 /**
  * convert given char* to int value and check if it represents a valid stepper config id (within the allowed limits and with an existing stepper configuation existing)
  * -1 is returned if not valid and an error os printed to the serial interface
@@ -400,9 +426,12 @@ int ESPStepperMotorServer_CLI::getValidStepperIdFromArg(char *arg)
   return (byte)id;
 }
 
+/**
+ * helper function to extract parameters and values from the given argument string
+ */
 const char *ESPStepperMotorServer_CLI::getParameterValue(const char *args, const char *parameterNameToGetValueFor)
 {
-  Serial.printf("getParameterValue called with %s and %s\n", args, parameterNameToGetValueFor);
+  ESPStepperMotorServer_Logger::logDebugf("getParameterValue called with %s and %s\n", args, parameterNameToGetValueFor);
   char *parameterName;
   char *parameterValue;
   char *save_ptr;
@@ -412,23 +441,25 @@ const char *ESPStepperMotorServer_CLI::getParameterValue(const char *args, const
   char *keyValuePairString = strtok_r(workingCopy, this->_PARAM_PARAM_SEPRATOR, &save_ptr);
   while (keyValuePairString != NULL)
   {
-    Serial.printf("Found a key value pair: %s\n", keyValuePairString);
+    ESPStepperMotorServer_Logger::logDebugf("Found a key value pair: %s\n", keyValuePairString);
     char *restKeyValuePair = keyValuePairString;
     parameterName = strtok_r(restKeyValuePair, this->_PARAM_VALUE_SEPRATOR, &restKeyValuePair);
     if (parameterName != NULL)
     {
-      Serial.printf("Found a parameter: %s\n", parameterName);
+      ESPStepperMotorServer_Logger::logDebugf("Found a parameter: %s\n", parameterName);
       if (strcmp(parameterName, parameterNameToGetValueFor) == 0)
       {
         parameterValue = strtok_r(restKeyValuePair, this->_PARAM_VALUE_SEPRATOR, &restKeyValuePair);
         return parameterValue;
-      } else {
-        Serial.println("parameter did not match requested parameter");
+      }
+      else
+      {
+        ESPStepperMotorServer_Logger::logDebug("parameter did not match requested parameter");
       }
     }
     keyValuePairString = strtok_r(NULL, this->_PARAM_PARAM_SEPRATOR, &save_ptr);
   }
-  Serial.println("No match found, returning \\0");
+  ESPStepperMotorServer_Logger::logDebug("No match found");
   return "";
 }
 // -------------------------------------- End --------------------------------------

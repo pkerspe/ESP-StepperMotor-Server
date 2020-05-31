@@ -68,13 +68,15 @@ void ESPStepperMotorServer_MotionController::processMotionUpdates(void *paramete
       ESPStepperMotorServer_StepperConfiguration *stepper = ref->serverRef->getConfiguredStepper(i);
       if (stepper)
       {
-        if(!stepper->getFlexyStepper()->processMovement()){
-          ESPStepperMotorServer_Logger::logDebugf("Stepper %i position updated", stepper->getId());
+        if (!stepper->getFlexyStepper()->processMovement())
+        {
+          if (ESPStepperMotorServer_Logger::isDebugEnabled())
+            ESPStepperMotorServer_Logger::logDebugf("Stepper %i position updated", stepper->getId());
         }
         updatedSteppers++;
       }
     }
-    delay(50);
+    delay(20);
     yield();
   }
 }

@@ -59,7 +59,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     this->logDebugRequestUrl(request);
 
     String output = String("");
-    this->_stepperMotorServer->getStatusAsJsonString(output); //populate string with json
+    this->_stepperMotorServer->getServerStatusAsJsonString(output); //populate string with json
     AsyncWebServerResponse *response = request->beginResponse(200, "application/json", output);
     request->send(response);
   });
@@ -139,15 +139,15 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
         float distance = request->getParam("value")->value().toFloat();
         if (unit == "mm")
         {
-          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->moveRelativeInMillimeters(distance);
+          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->setTargetPositionRelativeInMillimeters(distance);
         }
         else if (unit == "revs")
         {
-          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->moveRelativeInRevolutions(distance);
+          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->setTargetPositionRelativeInRevolutions(distance);
         }
         else if (unit == "steps")
         {
-          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->moveRelativeInSteps(distance);
+          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->setTargetPositionRelativeInSteps(distance);
         }
         else
         {
@@ -181,15 +181,15 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
         float position = request->getParam("value", true)->value().toFloat();
         if (unit == "mm")
         {
-          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->moveToPositionInMillimeters(position);
+          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->setTargetPositionInMillimeters(position);
         }
         else if (unit == "revs")
         {
-          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->moveToPositionInRevolutions(position);
+          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->setTargetPositionInRevolutions(position);
         }
         else if (unit == "steps")
         {
-          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->moveToPositionInSteps(position);
+          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->setTargetPositionInSteps(position);
         }
         else
         {
@@ -281,7 +281,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     if (request->hasParam("id"))
     {
       int switchIndex = request->getParam("id")->value().toInt();
-      if (switchIndex < 0 || switchIndex >= ESPServerMaxSwitches || this->_stepperMotorServer->getConfiguredSwitch(switchIndex)->getIoPinNumber() == ESPServerPositionSwitchUnsetPinNumber)
+      if (this->_stepperMotorServer->getConfiguredSwitch(switchIndex) == NULL)
       {
         request->send(404);
         return;
@@ -317,7 +317,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     if (request->hasParam("id"))
     {
       int switchIndex = request->getParam("id")->value().toInt();
-      if (switchIndex < 0 || switchIndex >= ESPServerMaxSwitches || this->_stepperMotorServer->getConfiguredSwitch(switchIndex)->getIoPinNumber() == ESPServerPositionSwitchUnsetPinNumber)
+      if (this->_stepperMotorServer->getConfiguredSwitch(switchIndex) == NULL)
       {
         request->send(404, "application/json", "{\"error\": \"No switch found for the given id\"}");
         return;
@@ -344,7 +344,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       //TODO instead of doing a loop, implement function getAllConfiguredSwitches()
       for (int i = 0; i < ESPServerMaxSwitches; i++)
       {
-        if (this->_stepperMotorServer->getConfiguredSwitch(i) && this->_stepperMotorServer->getConfiguredSwitch(i)->getIoPinNumber() != ESPServerPositionSwitchUnsetPinNumber)
+        if (this->_stepperMotorServer->getConfiguredSwitch(i))
         {
           JsonObject switchDetails = switches.createNestedObject();
           this->populateSwitchDetailsToJsonObject(switchDetails, this->_stepperMotorServer->getConfiguredSwitch(i), i);
@@ -396,7 +396,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     if (request->hasParam("id"))
     {
       int rotaryEncoderIndex = request->getParam("id")->value().toInt();
-      if (rotaryEncoderIndex < 0 || rotaryEncoderIndex >= ESPServerMaxRotaryEncoders || this->_stepperMotorServer->getConfiguredRotaryEncoder(rotaryEncoderIndex) == NULL)
+      if (this->_stepperMotorServer->getConfiguredRotaryEncoder(rotaryEncoderIndex) == NULL)
       {
         request->send(404);
         return;
@@ -724,7 +724,7 @@ int ESPStepperMotorServer_RestAPI::handleDeleteRotaryEncoderRequest(AsyncWebServ
   if (request->hasParam("id"))
   {
     int encoderIndex = request->getParam(0)->value().toInt();
-    if (encoderIndex < 0 || encoderIndex >= ESPServerMaxRotaryEncoders || this->_stepperMotorServer->getConfiguredRotaryEncoder(encoderIndex) != NULL)
+    if (this->_stepperMotorServer->getConfiguredRotaryEncoder(encoderIndex) != NULL)
     {
       this->_stepperMotorServer->removeRotaryEncoder(encoderIndex);
       if (sendReponse)
@@ -746,7 +746,7 @@ int ESPStepperMotorServer_RestAPI::handleDeleteSwitchRequest(AsyncWebServerReque
   if (request->hasParam("id"))
   {
     int switchIndex = request->getParam(0)->value().toInt();
-    if (switchIndex < 0 || switchIndex >= ESPServerMaxSwitches || this->_stepperMotorServer->getConfiguredSwitch(switchIndex)->getIoPinNumber() != ESPServerPositionSwitchUnsetPinNumber)
+    if (this->_stepperMotorServer->getConfiguredSwitch(switchIndex))
     {
       this->_stepperMotorServer->removePositionSwitch(switchIndex);
       if (sendReponse)

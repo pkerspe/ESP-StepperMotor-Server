@@ -60,20 +60,19 @@ private:
   void cmdRemoveEncoder(char *cmd, char *args);
   void cmdStopServer(char *cmd, char *args);
   void cmdSwitchStatus(char *cmd, char *args);
+  void cmdServerStatus(char *cmd, char *args);
+  void cmdSetLogLevel(char *cmd, char *args);
   void cmdSaveConfiguration(char *cmd, char *args);
-  
-  //helper
   int getValidStepperIdFromArg(char *arg);
   const char* getParameterValue(const char * args, const char* parameterNameToGetValueFor);
-
   void registerCommands();
   void registerNewCommand(const char cmd[], const char shortCut[], bool hasParameters, const char description[], void (ESPStepperMotorServer_CLI::*f)(char *, char*));
   bool started;
   TaskHandle_t xHandle = NULL;
+  ESPStepperMotorServer *serverRef;
   void (ESPStepperMotorServer_CLI::*command_functions[MAX_CLI_CMD_COUNTER + 1])(char *, char *);
   const char *command_details[MAX_CLI_CMD_COUNTER +1 ][4];
   unsigned int commandCounter = 0;
-  ESPStepperMotorServer *serverRef;
 
   const char* _CMD_PARAM_SEPRATOR = "=";
   const char* _PARAM_PARAM_SEPRATOR = "&";

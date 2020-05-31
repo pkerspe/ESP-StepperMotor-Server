@@ -31,6 +31,7 @@
 #include <ESPStepperMotorServer_Logger.h>
 
 byte ESPStepperMotorServer_Logger::_logLevel = ESPServerLogLevel_INFO;
+bool ESPStepperMotorServer_Logger::_isDebugLevelSet = false;
 
 char logString[400];
 const char *LEVEL_STRING_ALL = "ALL";
@@ -48,7 +49,7 @@ ESPStepperMotorServer_Logger::ESPStepperMotorServer_Logger()
     this->_loggerName = "root";
 }
 
-void ESPStepperMotorServer_Logger::printBinaryWithLeaingZeros(char *result, byte var)
+void ESPStepperMotorServer_Logger::printBinaryWithLeadingZeros(char *result, byte var)
 {
     int charIndex = 0;
     for (byte test = 0x80; test; test >>= 1)
@@ -62,19 +63,23 @@ void ESPStepperMotorServer_Logger::printBinaryWithLeaingZeros(char *result, byte
 
 void ESPStepperMotorServer_Logger::setLogLevel(byte logLevel)
 {
+    ESPStepperMotorServer_Logger::_isDebugLevelSet = false;
+    const char* msgTemplate = "Setting log level to %s\n";
     switch (logLevel)
     {
     case ESPServerLogLevel_ALL:
-        ESPStepperMotorServer_Logger::logInfof("Setting log level to %s\n", LEVEL_STRING_ALL);
+        ESPStepperMotorServer_Logger::logInfof(msgTemplate, LEVEL_STRING_ALL);
+        ESPStepperMotorServer_Logger::_isDebugLevelSet = true;
         break;
     case ESPServerLogLevel_DEBUG:
-        ESPStepperMotorServer_Logger::logInfof("Setting log level to %s\n", LEVEL_STRING_DEBUG);
+        ESPStepperMotorServer_Logger::logInfof(msgTemplate, LEVEL_STRING_DEBUG);
+        ESPStepperMotorServer_Logger::_isDebugLevelSet = true;
         break;
     case ESPServerLogLevel_INFO:
-        ESPStepperMotorServer_Logger::logInfof("Setting log level to %s\n", LEVEL_STRING_INFO);
+        ESPStepperMotorServer_Logger::logInfof(msgTemplate, LEVEL_STRING_INFO);
         break;
     case ESPServerLogLevel_WARNING:
-        ESPStepperMotorServer_Logger::logInfof("Setting log level to %s\n", LEVEL_STRING_WARNING);
+        ESPStepperMotorServer_Logger::logInfof(msgTemplate, LEVEL_STRING_WARNING);
         break;
     default:
         ESPStepperMotorServer_Logger::logWarning("Invalid log level given, log level will be set to info");
@@ -112,9 +117,14 @@ void ESPStepperMotorServer_Logger::log(const char *level, const char *msg, boole
     }
 }
 
+bool ESPStepperMotorServer_Logger::isDebugEnabled()
+{
+    return ESPStepperMotorServer_Logger::_isDebugLevelSet;
+}
+
 void ESPStepperMotorServer_Logger::logDebug(const char *msg, boolean newLine, boolean ommitLogLevel)
 {
-    if (getLogLevel() >= ESPServerLogLevel_DEBUG)
+    if (ESPStepperMotorServer_Logger::_isDebugLevelSet)
     {
         ESPStepperMotorServer_Logger::log(LEVEL_STRING_DEBUG, msg, newLine, ommitLogLevel);
     }
@@ -122,7 +132,7 @@ void ESPStepperMotorServer_Logger::logDebug(const char *msg, boolean newLine, bo
 
 void ESPStepperMotorServer_Logger::logDebugf(const char *format, ...)
 {
-    if (getLogLevel() >= ESPServerLogLevel_DEBUG)
+    if (ESPStepperMotorServer_Logger::_isDebugLevelSet)
     {
         va_list args;
         va_start(args, format);
@@ -133,7 +143,10 @@ void ESPStepperMotorServer_Logger::logDebugf(const char *format, ...)
 
 void ESPStepperMotorServer_Logger::logDebug(String msg, boolean newLine, boolean ommitLogLevel)
 {
-    ESPStepperMotorServer_Logger::logDebug(msg.c_str(), newLine, ommitLogLevel);
+    if (ESPStepperMotorServer_Logger::_isDebugLevelSet)
+    {
+        ESPStepperMotorServer_Logger::logDebug(msg.c_str(), newLine, ommitLogLevel);
+    }
 }
 
 void ESPStepperMotorServer_Logger::logInfo(const char *msg, boolean newLine, boolean ommitLogLevel)

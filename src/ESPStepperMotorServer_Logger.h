@@ -54,13 +54,15 @@ class ESPStepperMotorServer_Logger
     static void logInfof(const char *format, ...);
     static void logWarning(const char *msg, boolean newLine = true, boolean ommitLogLevel = false);
     static void logWarningf(const char *format, ...);
+    static bool isDebugEnabled();
     char logString[400];
 
   private:
     static void log(const char *level, const char *msg, boolean newLine, boolean ommitLogLevel);
-    static void printBinaryWithLeaingZeros(char *result, byte var);
+    static void printBinaryWithLeadingZeros(char *result, byte var);
     static void logf(const char *level, const char *format, va_list args);
     static byte _logLevel;
+    static bool _isDebugLevelSet;
     String _loggerName;
 };
 
