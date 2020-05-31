@@ -17,7 +17,7 @@ Connect one ore more stepper controllers with step and direction input, and opti
 - [API Documentation](#api-documentation)
   - [Library API documentation](#library-api-documentation)
   - [REST API documentation](#rest-api-documentation)
-  - [Serial command line interface (CLI)](#Serial-command-line-interface-(CLI))
+  - [Serial command line interface (CLI)](#Serial-command-line-interface)
 - [Further documentation](#further-documentation)
 - [License](#license)
 
@@ -229,7 +229,7 @@ The following is an excerpt of the endpoints being provided:
 To get a full list of endpoints navigate to the about page in the web ui and click on the REST API documentation link
 ![about screen][about_screen]
 
-## Serial command line interface (CLI)
+## Serial command line interface
 Once started, the stepper server offers a CLI (command line interface) on the serial port to control most of the functions that can also be controlled via the web interface or REST API and some additional functions.
 Once the server is started (and the CLI has not been disabled in the constructor) you will see some log output on the console and also the following line:
 `[INFO] Command Line Interface started, registered XX commands. Type 'help' to get a list of all supported commands`
