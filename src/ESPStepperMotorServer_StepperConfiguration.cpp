@@ -42,16 +42,24 @@ ESPStepperMotorServer_StepperConfiguration::ESPStepperMotorServer_StepperConfigu
     this->_flexyStepper->connectToPins(this->_stepIoPin, this->_directionIoPin);
 }
 
-ESPStepperMotorServer_StepperConfiguration::ESPStepperMotorServer_StepperConfiguration(byte stepIoPin, byte directionIoPin, String displayName, unsigned int stepsPerRev, unsigned int microsteppingDivisor, unsigned int rpmLimit)
+ESPStepperMotorServer_StepperConfiguration::ESPStepperMotorServer_StepperConfiguration(byte stepIoPin, byte directionIoPin, String displayName, unsigned int stepsPerRev, unsigned int stepsPerMM, unsigned int microsteppingDivisor, unsigned int rpmLimit)
 {
     this->_stepIoPin = stepIoPin;
     this->_directionIoPin = directionIoPin;
+    this->_microsteppingDivisor = microsteppingDivisor;
+    this->_displayName = displayName;
+    this->_rpmLimit = rpmLimit;
+
     this->_flexyStepper = new FlexyStepper();
     this->_flexyStepper->connectToPins(this->_stepIoPin, this->_directionIoPin);
-    this->_displayName = displayName;
+
+    //we store the value in flexistepper and locally, since flexystepper does not provider getters
+    this->_flexyStepper->setStepsPerMillimeter(stepsPerMM * this->_microsteppingDivisor);
+    this->_stepsPerMM = _stepsPerMM;
+
+    //we store the value in flexistepper and locally, since flexystepper does not provider getters
+    this->_flexyStepper->setStepsPerRevolution(stepsPerRev * this->_microsteppingDivisor);
     this->_stepsPerRev = stepsPerRev;
-    this->_microsteppingDivisor = microsteppingDivisor;
-    this->_rpmLimit = rpmLimit;
 }
 
 // ---------------------------------------------------------------------------------
@@ -102,6 +110,7 @@ byte ESPStepperMotorServer_StepperConfiguration::getDirectionIoPin()
 
 void ESPStepperMotorServer_StepperConfiguration::setStepsPerRev(unsigned int stepsPerRev)
 {
+    this->_flexyStepper->setStepsPerRevolution(stepsPerRev * this->_microsteppingDivisor);
     this->_stepsPerRev = stepsPerRev;
 }
 
@@ -110,16 +119,30 @@ unsigned int ESPStepperMotorServer_StepperConfiguration::getStepsPerRev()
     return this->_stepsPerRev;
 }
 
+void ESPStepperMotorServer_StepperConfiguration::setStepsPerMM(unsigned int stepsPerMM)
+{
+    this->_flexyStepper->setStepsPerMillimeter(stepsPerMM * this->_microsteppingDivisor);
+    this->_stepsPerMM = stepsPerMM;
+}
+
+unsigned int ESPStepperMotorServer_StepperConfiguration::getStepsPerMM()
+{
+    return this->_stepsPerMM;
+}
+
 void ESPStepperMotorServer_StepperConfiguration::setMicrostepsPerStep(unsigned int microstepsPerStep)
 {
     //check for power of two value, since others are not allowed in micro step sizes
-    if (microstepsPerStep && !(microstepsPerStep & (microstepsPerStep - 1)) == 0)
+    if (microstepsPerStep && !(microstepsPerStep & (microstepsPerStep - 1)))
     {
         this->_microsteppingDivisor = microstepsPerStep;
+        //update flexy stepper as well in regards to steps/rev and steps/mm
+        this->_flexyStepper->setStepsPerMillimeter(this->_stepsPerMM * this->_microsteppingDivisor);
+        this->_flexyStepper->setStepsPerRevolution(this->_stepsPerRev * this->_microsteppingDivisor);
     }
     else
     {
-        ESPStepperMotorServer_Logger::logWarning("ESPStepperMotorServer_StepperConfiguration::setMicrostepsPerStep: Invalid microstepping value given. Only values which are power of two are allowed");
+        ESPStepperMotorServer_Logger::logWarningf("Invalid microstepping value given: %i. Only values which are power of two are allowed", microstepsPerStep);
     }
 }
 

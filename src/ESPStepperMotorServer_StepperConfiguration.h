@@ -54,7 +54,7 @@ class ESPStepperMotorServer_StepperConfiguration
 {
 public:
   ESPStepperMotorServer_StepperConfiguration(byte stepIoPin, byte directionIoPin);
-  ESPStepperMotorServer_StepperConfiguration(byte stepIoPin, byte directionIoPin, String displayName, unsigned int stepsPerRev, unsigned int microsteppingDivisor, unsigned int rpmLimit);
+  ESPStepperMotorServer_StepperConfiguration(byte stepIoPin, byte directionIoPin, String displayName, unsigned int stepsPerRev, unsigned int stepsPerMM, unsigned int microsteppingDivisor, unsigned int rpmLimit);
 
   FlexyStepper *getFlexyStepper();
 
@@ -102,6 +102,19 @@ public:
   unsigned int getStepsPerRev();
 
   /**
+   * Set the number of full steps (not microsteps!) required to move the axis by 1mm.
+   * This depends on the lead screw pitch (if lead screws are used) or the gear ratio or whatever mechanism is used to transform revolutions of the stepper motor to linear motion
+   * The default value is 100 steps/rev since this is the most common value for T8 leadscrews in regards to pitch.
+   */
+  void setStepsPerMM(unsigned int);
+
+  /**
+   * Get the currently configured steps/mm value for this steppe motor
+   * The default value is 100 steps/mm since standard T8 lead screws have a pitch of 2mm per rev, this, combined with the standard 200steps/rev of stepper motors, leads to 100 steps/mm
+   **/
+  unsigned int getStepsPerMM();
+
+  /**
    * Set the number of microsteps you configured in the stepper driver (usually one with DIP switches on the driver board) for this stepper motor.
    * Common values are 1 (no micro stepping), 2 (half step), 4, 8, 16, 32, 64, 128 and sometimes 256 microsteps per step.
    * This setting is needed to calculate the proper amount of pulses that need to be send to the stepper driver.
@@ -143,6 +156,7 @@ private:
   byte _stepIoPin = ESPServerStepperUnsetIoPinNumber;
   byte _directionIoPin = ESPServerStepperUnsetIoPinNumber;
   unsigned int _stepsPerRev = 200;
+  unsigned int _stepsPerMM = 100;
   unsigned int _microsteppingDivisor = ESPSMS_MICROSTEPS_OFF;
   unsigned int _rpmLimit = 1200;
 };

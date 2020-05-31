@@ -11,10 +11,11 @@
         {
             "id": 0,
             "stepPin": 32,
-            "directionPin": 31,
+            "directionPin": 33,
             "name": "X-Axis",
-            "stepsPerRev": 100,
-            "microsteppingDivisor": 32,
+            "stepsPerRev": 200,
+            "stepsPerMM": 100,
+            "microsteppingDivisor": 1,
             "rpmLimit": 1000
         },
         {
@@ -22,8 +23,9 @@
             "stepPin": 22,
             "directionPin": 23,
             "name": "Y-Axis",
-            "stepsPerRev": 100,
-            "microsteppingDivisor": 32,
+            "stepsPerRev": 200,
+            "stepsPerMM": 100,
+            "microsteppingDivisor": 1,
             "rpmLimit": 1000
         }
     ],

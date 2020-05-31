@@ -532,8 +532,11 @@ void ESPStepperMotorServer_RestAPI::populateStepperDetailsToJsonObject(JsonObjec
     stepperDetails["name"] = stepper->getDisplayName();
     stepperDetails["stepPin"] = stepper->getStepIoPin();
     stepperDetails["dirPin"] = stepper->getDirectionIoPin();
+    stepperDetails["stepsPerMM"] = stepper->getStepsPerMM();
+    stepperDetails["stepsPerRev"] = stepper->getStepsPerRev();
+    stepperDetails["microsteppingDivisor"] = stepper->getMicrostepsPerStep();
+    
     JsonObject position = stepperDetails.createNestedObject("position");
-
     position["mm"] = stepper->getFlexyStepper()->getCurrentPositionInMillimeters();
     position["revs"] = stepper->getFlexyStepper()->getCurrentPositionInRevolutions();
     position["steps"] = stepper->getFlexyStepper()->getCurrentPositionInSteps();
@@ -576,11 +579,14 @@ void ESPStepperMotorServer_RestAPI::handlePostStepperRequest(AsyncWebServerReque
   }
   else
   {
-    if (doc.containsKey("name") && doc.containsKey("stepPin") && doc.containsKey("dirPin"))
+    if (doc.containsKey("name") && doc.containsKey("stepPin") && doc.containsKey("dirPin") && doc.containsKey("stepsPerMM") && doc.containsKey("stepsPerRev") && doc.containsKey("microsteppingDivisor"))
     {
       const char *name = doc["name"];
       int stepPin = doc["stepPin"];
       int dirPin = doc["dirPin"];
+      int stepsPerMM = doc["stepsPerMM"];
+      int stepsPerRev = doc["stepsPerRev"];
+      int microsteppingDivisor = doc["microsteppingDivisor"];
       if (stepPin >= 0 && stepPin <= ESPStepperHighestAllowedIoPin && dirPin >= 0 && dirPin <= ESPStepperHighestAllowedIoPin && dirPin != stepPin)
       {
         //check if pins are already in use by a stepper or switch configuration
@@ -597,6 +603,9 @@ void ESPStepperMotorServer_RestAPI::handlePostStepperRequest(AsyncWebServerReque
           int newId = -1;
           ESPStepperMotorServer_StepperConfiguration *stepperToAdd = new ESPStepperMotorServer_StepperConfiguration(stepPin, dirPin);
           stepperToAdd->setDisplayName(name);
+          stepperToAdd->setStepsPerMM(stepsPerMM);
+          stepperToAdd->setStepsPerRev(stepsPerRev);
+          stepperToAdd->setMicrostepsPerStep(microsteppingDivisor);
 
           if (stepperIndex == -1)
           {
@@ -620,7 +629,7 @@ void ESPStepperMotorServer_RestAPI::handlePostStepperRequest(AsyncWebServerReque
     }
     else
     {
-      request->send(400, "application/json", "{\"error\": \"Invalid request, missing one ore more required parameters: name, stepPin, dirPin\"}");
+      request->send(400, "application/json", "{\"error\": \"Invalid request, missing one ore more required parameters: name, stepPin, dirPin, stepsPerMM, stepsPerRev, microsteppingDivisor\"}");
     }
   }
 }
