@@ -43,15 +43,15 @@ ESPStepperMotorServer_MotionController::ESPStepperMotorServer_MotionController(E
 
 void ESPStepperMotorServer_MotionController::start()
 {
-  if (this->xHandle == NULL) //prevent multuple starts
+  if (this->xHandle == NULL) //prevent multiple starts
   {
     disableCore0WDT();
     xTaskCreate(
         ESPStepperMotorServer_MotionController::processMotionUpdates, /* Task function. */
         "MotionControl",                                /* String with name of task. */
-        50000,                                                        /* Stack size in bytes. */
+        10000,                                                        /* Stack size in bytes. */
         this,                                                         /* Parameter passed as input of the task */
-        2,                                                            /* Priority of the task. */
+        1,                                                            /* Priority of the task. */
         &this->xHandle);                                              /* Task handle. */
     ESPStepperMotorServer_Logger::logInfo("Motion Controller task started");
   }
@@ -71,7 +71,6 @@ void ESPStepperMotorServer_MotionController::processMotionUpdates(void *paramete
         stepper->getFlexyStepper()->processMovement();
       }
     }
-    vTaskDelay(0.01);
   }
 }
 

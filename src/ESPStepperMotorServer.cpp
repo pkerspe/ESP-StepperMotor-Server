@@ -847,7 +847,7 @@ void ESPStepperMotorServer::registerWebInterfaceUrls()
  */
 ESPStepperMotorServer_StepperConfiguration *ESPStepperMotorServer::getConfiguredStepper(byte index)
 {
-    if (index < 0 || index >= ESPServerMaxSteppers)
+  if (index < 0 || index >= ESPServerMaxSteppers)
   {
     ESPStepperMotorServer_Logger::logWarningf("index %i for requested stepper configuration is outside of the allowed range. It must be between 0 and %i. Null will be returned\n", index, ESPServerMaxSteppers);
     return NULL;
@@ -1018,7 +1018,8 @@ void ESPStepperMotorServer::connectToWifiNetwork()
   {
     delay(500); //Do not change this value unless also changing the formula in the declaration of the timeoutCounter integer above
     ESPStepperMotorServer_Logger::logInfo(".", false, true);
-    if(timeoutCounter == this->wifiClientConnectionTimeoutSeconds){
+    if (timeoutCounter == (this->wifiClientConnectionTimeoutSeconds + 15))
+    {
       WiFi.reconnect();
     }
     timeoutCounter--;
