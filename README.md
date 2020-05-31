@@ -228,6 +228,52 @@ The following is an excerpt of the endpoints being provided:
 To get a full list of endpoints navigate to the about page in the web ui and click on the REST API documentation link
 ![about screen][about_screen]
 
+## Serial command line interface (CLI)
+Once started, the stepper server offers a CLI (command line interface) on the serial port to control most of the functions that can also be controlled via the web interface or REST API and some additional functions.
+Once the server is started (and the CLI has not been disabled in the constructor) you will see some log output on the console and also the following line:
+`[INFO] Command Line Interface started, registered XX commands. Type 'help' to get a list of all supported commands`
+Now you can input commands via the serial port.
+To get a list of all available commands type `help` in the serial console and press enter.
+The output should look like this (depending on the version and how up2date this manual is, you might see some more commands):
+````
+-------- ESP-StepperMotor-Server-CLI Help -----------
+The following commands are available:
+
+<command> [<shortcut>]: <description>
+help [h]:               show a list of all available commands
+moveby [mb]*:           move by an specified amount of units. requires the id of the stepper to move, the amount pf movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. E.g. mb=0&v=-100&u=mm to move the stepper with id 0 by -100 mm
+moveto [mt]*:           move to an absolute position. requires the id of the stepper to move, the amount pf movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. E.g. mt=0&v=100&u=revs to move the stepper with id 0 to the absolute position at 100 revolutions
+config [c]:             print the current configuration to the console as JSON formatted string
+emergencystop [es]:     trigger emergency stop for all connected steppers. This will clear all target positions and stop the motion controller module immediately. In order to proceed normal operation after this command has been issued, you need to call the revokeemergencystop [res] command
+revokeemergencystop [res]:      revoke a previously triggered emergency stop. This must be called before any motions can proceed after a call to the emergencystop command
+position [p]*:          get the current position of a specific stepper or all steppers if no explicit index is given (e.g. by calling 'pos' or 'pos=&u:mm'). If no parameter for the unit is provided, will return the position in steps. Requires the ID of the stepper to get the position for as parameter and optional the unit using 'u:mm'/'u:steps'/'u:revs'. E.g.: p=0&u:steps to return the current position of stepper with id = 0 with unit 'steps'
+velocity [v]*:          get the current velocity of a specific stepper or all steppers if no explicit index is given (e.g. by calling 'pos' or 'pos=&u:mm'). If no parameter for the unit is provided, will return the position in steps. Requires the ID of the stepper to get the velocity for as parameter and optional the unit using 'u:mm'/'u:steps'/'u:revs'. E.g.: v=0&u:mm to return the velocity in mm per second of stepper with id = 0
+removeswitch [rsw]*:    remove an existing switch configuration. E.g. rsw=0 to remove the switch with the ID 0
+removestepper [rs]*:    remove and existing stepper configuration. E.g. rs=0 to remove the stepper config with the ID 0
+removeencoder [re]*:    remove an existing rotary encoder configuration. E.g. re=0 to remove the encoder with the ID 0
+reboot [r]:             reboot the ESP
+save [s]:               save the current configuration to the SPIFFS in config.json
+stop [st]:              stop the stepper server (also stops the CLI!)
+loglevel [ll]*:         set or get the current log level for serial output. valid values to set are: 1 (Warning) - 4 (ALL). E.g. to set to log level DEBUG use sll=3 to get the current loglevel call without parameter
+serverstatus [ss]:      print status details of the server as JSON formated string
+switchstatus [pss]:     print the status of all input switches as JSON formated string
+
+commmands marked with a * require input parameters.
+Parameters are provided with the command separarted by a = for the primary parameter.
+Secondary parameters are provided in the format '&<parametername>:<parametervalue'
+````
+
+In general there are two types of commands:
+Commands with parameters, and commands without parameters. Some command support also optional parameters.
+Each command also has a shortcut (listed in the `help` output in `[]`) that can be used if you are not so much into typing a lot.
+Commands with parmaeters need to be called following this schema:
+`<commandname or shortcut name>=<primary parameter>&<optional additional parameter name>:<optional additional parameter value>``
+An example for a command with multiple parameters is the `moveto` command. The shortcut for this command is `mt`.
+The command supports three parameters: the id of the stepper to move (primary parameter), the amount/value for the movement (v parameter) and the unit (u parameter) for the movement (mm, steps or revolutions).
+Example: 
+If you want to move the configured stepper motor with the id 0 by 10 revolutions the command looks as follows:
+`mt=0&v10&u=revs`
+
 ## Further documentation
 for further details have a look at 
 - the provided example files / projects in the examples folder of this repository
