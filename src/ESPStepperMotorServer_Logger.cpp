@@ -134,10 +134,10 @@ void ESPStepperMotorServer_Logger::logDebugf(const char *format, ...)
 {
     if (ESPStepperMotorServer_Logger::_isDebugLevelSet)
     {
-        va_list args;
-        va_start(args, format);
-        ESPStepperMotorServer_Logger::logf(LEVEL_STRING_DEBUG, format, args);
-        va_end(args);
+        va_list _argumentList;
+        va_start(_argumentList, format);
+        ESPStepperMotorServer_Logger::logf(LEVEL_STRING_DEBUG, format, _argumentList);
+        va_end(_argumentList);
     }
 }
 

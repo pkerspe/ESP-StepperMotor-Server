@@ -51,6 +51,7 @@ private:
   void cmdEmergencyStop(char *cmd, char *args);
   void cmdRevokeEmergencyStop(char *cmd, char *args);
   void cmdGetPosition(char *cmd, char *args);
+  void cmdGetCurrentVelocity(char *cmd, char *args);
   void cmdMoveBy(char *cmd, char *args);
   void cmdMoveTo(char *cmd, char *args);
   void cmdPrintConfig(char *cmd, char *args);
@@ -64,7 +65,7 @@ private:
   void cmdSetLogLevel(char *cmd, char *args);
   void cmdSaveConfiguration(char *cmd, char *args);
   int getValidStepperIdFromArg(char *arg);
-  const char* getParameterValue(const char * args, const char* parameterNameToGetValueFor);
+  void getParameterValue(const char * args, const char* parameterNameToGetValueFor, char* result);
   void registerCommands();
   void registerNewCommand(const char cmd[], const char shortCut[], bool hasParameters, const char description[], void (ESPStepperMotorServer_CLI::*f)(char *, char*));
   bool started;

@@ -105,8 +105,15 @@ void ESPStepperMotorServer_CLI::processSerialInput(void *parameter)
         commandLine[charsRead] = NULLCHAR; //null terminate our command char array
         if (charsRead > 0)
         {
-          charsRead = 0; //charsRead is static, so have to reset
-          ref->executeCommand(String(commandLine));
+          charsRead = 0; //charsRead behaves like 'static' in this taks, so have to reset
+          try
+          {
+            ref->executeCommand(String(commandLine));
+          }
+          catch (...)
+          {
+            ESPStepperMotorServer_Logger::logWarningf("Caught an exception wil trying to execute command line '%s'\n", commandLine);
+          }
         }
         break;
       case BS: // handle backspace in input: put a space in last char
@@ -136,6 +143,7 @@ void ESPStepperMotorServer_CLI::processSerialInput(void *parameter)
 void ESPStepperMotorServer_CLI::registerCommands()
 {
   this->registerNewCommand("help", "h", 0, "show a list of all available commands", &ESPStepperMotorServer_CLI::cmdHelp);
+  //TODO: implment missing cmd functions
   // this->registerNewCommand("addswitch", "asw", 1, "add a new switch configuration", &ESPStepperMotorServer_CLI::cmdAddSwitch);
   // this->registerNewCommand("addstepper", "as", 1, "add a new stepper configuration", &ESPStepperMotorServer_CLI::cmdAddStepper);
   // this->registerNewCommand("addencoder", "ae", 1, "add a new rotary encoder configuration", &ESPStepperMotorServer_CLI::cmdAddEncoder);
@@ -149,7 +157,8 @@ void ESPStepperMotorServer_CLI::registerCommands()
   this->registerNewCommand("config", "c", 0, "print the current configuration to the console as JSON formatted string", &ESPStepperMotorServer_CLI::cmdPrintConfig);
   this->registerNewCommand("emergencystop", "es", 0, "trigger emergency stop for all connected steppers. This will clear all target positions and stop the motion controller module immediately. In order to proceed normal operation after this command has been issued, you need to call the revokeemergencystop [res] command", &ESPStepperMotorServer_CLI::cmdEmergencyStop);
   this->registerNewCommand("revokeemergencystop", "res", 0, "revoke a previously triggered emergency stop. This must be called before any motions can proceed after a call to the emergencystop command", &ESPStepperMotorServer_CLI::cmdRevokeEmergencyStop);
-  this->registerNewCommand("pos", "pm", 1, "get the current position of the stepper. If no parameter for the unit is provided, will return the position in steps. Requires the ID of the stepper to get the position for as parameter and optional the unit using 'u:mm'/'u:steps'/'u:revs'. E.g.: psm=0&u:steps to return the current position of stepper with id = 0 with unit 'steps'.", &ESPStepperMotorServer_CLI::cmdGetPosition);
+  this->registerNewCommand("position", "p", 1, "get the current position of a specific stepper or all steppers if no explicit index is given (e.g. by calling 'pos' or 'pos=&u:mm'). If no parameter for the unit is provided, will return the position in steps. Requires the ID of the stepper to get the position for as parameter and optional the unit using 'u:mm'/'u:steps'/'u:revs'. E.g.: p=0&u:steps to return the current position of stepper with id = 0 with unit 'steps'", &ESPStepperMotorServer_CLI::cmdGetPosition);
+  this->registerNewCommand("velocity", "v", 1, "get the current velocity of a specific stepper or all steppers if no explicit index is given (e.g. by calling 'pos' or 'pos=&u:mm'). If no parameter for the unit is provided, will return the position in steps. Requires the ID of the stepper to get the velocity for as parameter and optional the unit using 'u:mm'/'u:steps'/'u:revs'. E.g.: v=0&u:mm to return the velocity in mm per second of stepper with id = 0", &ESPStepperMotorServer_CLI::cmdGetCurrentVelocity);
   this->registerNewCommand("removeswitch", "rsw", 1, "remove an existing switch configuration. E.g. rsw=0 to remove the switch with the ID 0", &ESPStepperMotorServer_CLI::cmdRemoveSwitch);
   this->registerNewCommand("removestepper", "rs", 1, "remove and existing stepper configuration. E.g. rs=0 to remove the stepper config with the ID 0", &ESPStepperMotorServer_CLI::cmdRemoveStepper);
   this->registerNewCommand("removeencoder", "re", 1, "remove an existing rotary encoder configuration. E.g. re=0 to remove the encoder with the ID 0", &ESPStepperMotorServer_CLI::cmdRemoveEncoder);
@@ -279,27 +288,79 @@ void ESPStepperMotorServer_CLI::cmdRemoveEncoder(char *cmd, char *args)
   }
 }
 
+void ESPStepperMotorServer_CLI::cmdGetCurrentVelocity(char *cmd, char *args)
+{
+  int stepperid = this->getValidStepperIdFromArg(args);
+  char unit[10];
+  this->getParameterValue(args, "u", unit);
+  if (unit[0] == NULLCHAR)
+  {
+    ESPStepperMotorServer_Logger::logDebug("no unit provided, will use 'steps' as default");
+    strcpy(unit, "steps");
+  }
+
+  if (stepperid > -1)
+  {
+    if (strcmp(unit, "mm") == 0)
+      Serial.printf("%f mm/s\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInMillimetersPerSecond());
+    else if (strcmp(unit, "revs") == 0)
+      Serial.printf("%f revs/s\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInRevolutionsPerSecond());
+    else
+      Serial.printf("%f steps/s\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInStepsPerSecond());
+  }
+  else
+  {
+    ESPStepperMotorServer_Logger::logDebugf("%s called without parameter for stepper index\n", cmd);
+    for (stepperid = 0; stepperid < ESPServerMaxSteppers; stepperid++)
+    {
+      ESPStepperMotorServer_StepperConfiguration *stepper = this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid);
+      if (stepper)
+      {
+        if (strcmp(unit, "mm") == 0)
+          Serial.printf("%i:%f mm/s\n", stepperid, this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInMillimetersPerSecond());
+        else if (strcmp(unit, "revs") == 0)
+          Serial.printf("%i:%f revs/s\n", stepperid, this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInRevolutionsPerSecond());
+        else
+          Serial.printf("%i:%f steps/s\n", stepperid, this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInStepsPerSecond());
+      }
+    }
+  }
+}
 void ESPStepperMotorServer_CLI::cmdGetPosition(char *cmd, char *args)
 {
   int stepperid = this->getValidStepperIdFromArg(args);
+  char unit[10];
+  this->getParameterValue(args, "u", unit);
+  if (unit[0] == NULLCHAR)
+  {
+    ESPStepperMotorServer_Logger::logDebug("no unit provided, will use 'steps' as default");
+    strcpy(unit, "steps");
+  }
+
   if (stepperid > -1)
   {
-    const char *unit = this->getParameterValue(args, "u");
-    if (unit[0] == NULLCHAR)
-    {
-      unit = "steps";
-    }
     if (strcmp(unit, "mm") == 0)
-    {
-      Serial.printf("%f\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInMillimeters());
-    }
+      Serial.printf("%f mm\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInMillimeters());
     else if (strcmp(unit, "revs") == 0)
-    {
-      Serial.printf("%f\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInRevolutions());
-    }
+      Serial.printf("%f revs\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInRevolutions());
     else
+      Serial.printf("%ld steps\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInSteps());
+  }
+  else
+  {
+    ESPStepperMotorServer_Logger::logDebugf("%s called without parameter for stepper index\n", cmd);
+    for (stepperid = 0; stepperid < ESPServerMaxSteppers; stepperid++)
     {
-      Serial.printf("%ld\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInSteps());
+      ESPStepperMotorServer_StepperConfiguration *stepper = this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid);
+      if (stepper)
+      {
+        if (strcmp(unit, "mm") == 0)
+          Serial.printf("%i:%f mm\n", stepperid, this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInMillimeters());
+        else if (strcmp(unit, "revs") == 0)
+          Serial.printf("%i:%f revs\n", stepperid, this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInRevolutions());
+        else
+          Serial.printf("%i:%ld steps\n", stepperid, this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInSteps());
+      }
     }
   }
 }
@@ -307,14 +368,20 @@ void ESPStepperMotorServer_CLI::cmdGetPosition(char *cmd, char *args)
 void ESPStepperMotorServer_CLI::cmdMoveTo(char *cmd, char *args)
 {
   int stepperid = this->getValidStepperIdFromArg(args);
+  char value[20];
+  char unit[10];
   if (stepperid > -1)
   {
-    const char *value = this->getParameterValue(args, "v");
+    this->getParameterValue(args, "v", value);
     if (value[0] != NULLCHAR)
     {
-      const char *unit = this->getParameterValue(args, "u");
-      if (unit[0] != NULLCHAR || strcmp(unit, "steps") == 0)
+      this->getParameterValue(args, "u", unit);
+      if (unit[0] == NULLCHAR || strcmp(unit, "steps") == 0)
       {
+        if (unit[0] == NULLCHAR)
+        {
+          Serial.println("no unit provided, will use 'steps' as default");
+        }
         this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid)->getFlexyStepper()->setTargetPositionInSteps((String(value).toInt()));
       }
       else if (strcmp(unit, "revs") == 0)
@@ -345,13 +412,19 @@ void ESPStepperMotorServer_CLI::cmdMoveBy(char *cmd, char *args)
   ESPStepperMotorServer_Logger::logDebugf("%s called for stepper id %i\n", cmd, stepperid);
   if (stepperid > -1)
   {
-    const char *value = this->getParameterValue(args, "v");
+    char value[20];
+    this->getParameterValue(args, "v", value);
     if (value[0] != NULLCHAR)
     {
       ESPStepperMotorServer_Logger::logDebugf("cmdMoveBy called with v = %s\n", value);
-      const char *unit = this->getParameterValue(args, "u");
+      char unit[10];
+      this->getParameterValue(args, "u", unit);
       if (unit[0] == NULLCHAR || strcmp(unit, "steps") == 0)
       {
+        if (unit[0] == NULLCHAR)
+        {
+          Serial.println("no unit provided, will use 'steps' as default");
+        }
         int targetPosition = (String(value).toInt());
         ESPStepperMotorServer_Logger::logDebugf("Setting target position to %i steps\n", targetPosition);
         this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid)->getFlexyStepper()->setTargetPositionRelativeInSteps(targetPosition);
@@ -417,25 +490,41 @@ void ESPStepperMotorServer_CLI::cmdSetLogLevel(char *cmd, char *args)
  */
 int ESPStepperMotorServer_CLI::getValidStepperIdFromArg(char *arg)
 {
-  unsigned int id = (String(arg)).toInt();
-  if (id > ESPServerMaxSteppers || !this->serverRef->getConfiguredStepper((byte)id))
+  if (arg && isdigit(arg[0]))
   {
-    Serial.println("error: invalid stepper id given");
-    return -1;
+    int id = (String(arg)).toInt();
+    ESPStepperMotorServer_Logger::logDebugf("extracted stepper id %i from argument string %s\n", id, arg);
+    if (id > ESPServerMaxSteppers || !this->serverRef->getConfiguredStepper((byte)id))
+    {
+      Serial.println("error: invalid stepper id given");
+      return -1;
+    }
+    return (byte)id;
   }
-  return (byte)id;
+  else
+  {
+    ESPStepperMotorServer_Logger::logDebug("no argument string given to extract stepper id from, will return -1");
+  }
+  return -1;
 }
 
 /**
  * helper function to extract parameters and values from the given argument string
  */
-const char *ESPStepperMotorServer_CLI::getParameterValue(const char *args, const char *parameterNameToGetValueFor)
+void ESPStepperMotorServer_CLI::getParameterValue(const char *args, const char *parameterNameToGetValueFor, char *result)
 {
+  if (args == NULL)
+  {
+    ESPStepperMotorServer_Logger::logDebugf("getParameterValue called with on NULL and %s\n", parameterNameToGetValueFor);
+    strcpy(result, "");
+    return;
+  }
+
   ESPStepperMotorServer_Logger::logDebugf("getParameterValue called with %s and %s\n", args, parameterNameToGetValueFor);
   char *parameterName;
   char *parameterValue;
   char *save_ptr;
-  char workingCopy[40];
+  char workingCopy[strlen(args) + 1];
   strcpy(workingCopy, args);
 
   char *keyValuePairString = strtok_r(workingCopy, this->_PARAM_PARAM_SEPRATOR, &save_ptr);
@@ -446,11 +535,13 @@ const char *ESPStepperMotorServer_CLI::getParameterValue(const char *args, const
     parameterName = strtok_r(restKeyValuePair, this->_PARAM_VALUE_SEPRATOR, &restKeyValuePair);
     if (parameterName != NULL)
     {
-      ESPStepperMotorServer_Logger::logDebugf("Found a parameter: %s\n", parameterName);
+      ESPStepperMotorServer_Logger::logDebugf("Found parameter '%s'\n", parameterName);
       if (strcmp(parameterName, parameterNameToGetValueFor) == 0)
       {
         parameterValue = strtok_r(restKeyValuePair, this->_PARAM_VALUE_SEPRATOR, &restKeyValuePair);
-        return parameterValue;
+        ESPStepperMotorServer_Logger::logDebugf("Found matching parameter: %s with value %s\n", parameterName, parameterValue);
+        strcpy(result, parameterValue);
+        return;
       }
       else
       {
@@ -460,6 +551,6 @@ const char *ESPStepperMotorServer_CLI::getParameterValue(const char *args, const
     keyValuePairString = strtok_r(NULL, this->_PARAM_PARAM_SEPRATOR, &save_ptr);
   }
   ESPStepperMotorServer_Logger::logDebug("No match found");
-  return "";
+  strcpy(result, "");
 }
 // -------------------------------------- End --------------------------------------
