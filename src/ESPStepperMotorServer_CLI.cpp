@@ -210,7 +210,7 @@ void ESPStepperMotorServer_CLI::cmdHelp(char *cmd, char *args)
   {
     Serial.printf("%s [%s]%s:\t%s%s\n", this->command_details[i][0], this->command_details[i][2], ((strcmp(this->command_details[i][3], "1") == 0) ? "*" : ""), (strlen(this->command_details[i][0]) + strlen(this->command_details[i][2]) < 12) ? "\t" : "", this->command_details[i][1]);
   }
-  Serial.println("\ncommmands marked with a * require input parameters.\nParameters are provided with the command separarted by a = for the primary parameter.\nSecondary parameters are provided in the format '&<parametername>:<parametervalue'\n");
+  Serial.println("\ncommmands marked with a * require input parameters.\nParameters are provided with the command separarted by a = for the primary parameter.\nSecondary parameters are provided in the format '&<parametername>:<parametervalue>'\n");
   Serial.println("-------------------------------------------------------");
 }
 
