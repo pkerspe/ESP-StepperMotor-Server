@@ -1018,6 +1018,9 @@ void ESPStepperMotorServer::connectToWifiNetwork()
   {
     delay(500); //Do not change this value unless also changing the formula in the declaration of the timeoutCounter integer above
     ESPStepperMotorServer_Logger::logInfo(".", false, true);
+    if(timeoutCounter == this->wifiClientConnectionTimeoutSeconds){
+      WiFi.reconnect();
+    }
     timeoutCounter--;
   }
   ESPStepperMotorServer_Logger::logInfo("\n", false, true);

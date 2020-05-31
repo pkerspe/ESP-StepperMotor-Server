@@ -45,12 +45,13 @@ void ESPStepperMotorServer_MotionController::start()
 {
   if (this->xHandle == NULL) //prevent multuple starts
   {
+    disableCore0WDT();
     xTaskCreate(
         ESPStepperMotorServer_MotionController::processMotionUpdates, /* Task function. */
-        "MotionControllerTriggerTask",                                /* String with name of task. */
-        10000,                                                        /* Stack size in bytes. */
+        "MotionControl",                                /* String with name of task. */
+        50000,                                                        /* Stack size in bytes. */
         this,                                                         /* Parameter passed as input of the task */
-        1,                                                            /* Priority of the task. */
+        2,                                                            /* Priority of the task. */
         &this->xHandle);                                              /* Task handle. */
     ESPStepperMotorServer_Logger::logInfo("Motion Controller task started");
   }
@@ -61,23 +62,16 @@ void ESPStepperMotorServer_MotionController::processMotionUpdates(void *paramete
   ESPStepperMotorServer_MotionController *ref = (ESPStepperMotorServer_MotionController *)parameter;
   while (true)
   {
-    byte updatedSteppers = 0;
     //TODO create function in Configuration class to return all configured steppers in one call or even all flexystepper instances (that need movement) and maybe even in a "cached" way
     for (byte i = 0; i < ESPServerMaxSteppers; i++)
     {
       ESPStepperMotorServer_StepperConfiguration *stepper = ref->serverRef->getConfiguredStepper(i);
       if (stepper)
       {
-        if (!stepper->getFlexyStepper()->processMovement())
-        {
-          if (ESPStepperMotorServer_Logger::isDebugEnabled())
-            ESPStepperMotorServer_Logger::logDebugf("Stepper %i position updated", stepper->getId());
-        }
-        updatedSteppers++;
+        stepper->getFlexyStepper()->processMovement();
       }
     }
-    delay(20);
-    yield();
+    vTaskDelay(0.01);
   }
 }
 

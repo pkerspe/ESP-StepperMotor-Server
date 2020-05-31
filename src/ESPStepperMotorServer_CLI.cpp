@@ -132,7 +132,7 @@ void ESPStepperMotorServer_CLI::processSerialInput(void *parameter)
         break;
       }
     }
-    delay(100);
+    vTaskDelay(10);
   }
 }
 
