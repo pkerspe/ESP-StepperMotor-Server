@@ -204,6 +204,34 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     request->send(400);
   });
 
+  // GET /api/steppers/stop?id=<id>
+  // endpoint to send a stop signal to the selected stepper
+  httpServer->on("/api/steppers/stop", HTTP_GET, [this](AsyncWebServerRequest *request) {
+    this->logDebugRequestUrl(request);
+
+    if (request->hasParam("id", false))
+    {
+      int stepperIndex = request->getParam("id", false)->value().toInt();
+      ESPStepperMotorServer_StepperConfiguration *stepper = this->_stepperMotorServer->getConfiguredStepper(stepperIndex);
+      if (stepper == NULL)
+      {
+        request->send(404);
+        return;
+      }
+      else
+      {
+        stepper->getFlexyStepper()->setTargetPositionToStop();
+        request->send(204);
+        return;
+      }
+    }
+    else
+    {
+      request->send(400, "application/json", "{\"error\": \"Missing id paramter\"}");
+      return;
+    }
+  });
+
   // GET /api/steppers
   // GET /api/steppers?id=<id>
   // endpoint to list all configured steppers or a specific one if "id" query parameter is given
@@ -255,17 +283,17 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
   // POST /api/steppers
   // add a new stepper configuration entry
   httpServer->on(
-      "/api/steppers", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) { 
-    this->logDebugRequestUrl(request); 
+      "/api/steppers", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+    this->logDebugRequestUrl(request);
     this->handlePostStepperRequest(request, data, len, index, total, -1); });
 
   // PUT /api/steppers?id=<id>
   // upate an existing stepper configuration entry
   httpServer->on(
-      "/api/steppers", HTTP_PUT, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) { 
+      "/api/steppers", HTTP_PUT, [](AsyncWebServerRequest *request) {}, NULL, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
     this->logDebugRequestUrl(request);
-      int stepperIndex = request->getParam("id")->value().toInt();
-      this->handlePostStepperRequest(request, data, len, index, total, stepperIndex); });
+    int stepperIndex = request->getParam("id")->value().toInt();
+    this->handlePostStepperRequest(request, data, len, index, total, stepperIndex); });
 
   // GET /api/switches/status
   // GET /api/switches/status?id=<id>
@@ -451,7 +479,9 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     {
       int encoderIndex = request->getParam("id")->value().toInt();
       this->handlePostRotaryEncoderRequest(request, data, len, index, total, encoderIndex);
-    } else {
+    }
+    else
+    {
       request->send(deleteRC, "application/json", "{\"error\": \"Failed to update rotary encoder\"}");
     } });
 
@@ -546,9 +576,9 @@ void ESPStepperMotorServer_RestAPI::populateStepperDetailsToJsonObject(JsonObjec
 
 void ESPStepperMotorServer_RestAPI::logDebugRequestUrl(AsyncWebServerRequest *request)
 {
-  if (this->logger->getLogLevel() >= ESPServerLogLevel_DEBUG)
+  if (this->logger->isDebugEnabled())
   {
-    this->logger->logDebug((String)request->methodToString() + " " + request->url(), false, false);
+    this->logger->logDebug((String)request->methodToString() + " " + request->url() + ((request->params()) ? "?" : ""), false, false);
     int params = request->params();
     for (int i = 0; i < params; i++)
     {
