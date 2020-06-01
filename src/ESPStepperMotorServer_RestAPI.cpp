@@ -232,7 +232,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     }
   });
 
-  // GET /api/emergencystop
+  // GET /api/emergencystop/trigger
   // endpoint to send a emergencystop signal for all steppers
   httpServer->on("/api/emergencystop/trigger", HTTP_GET, [this](AsyncWebServerRequest *request) {
     this->logDebugRequestUrl(request);
@@ -241,8 +241,8 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     return;
   });
 
-  // GET /api/emergencystop
-  // endpoint to send a emergencystop signal for all steppers
+  // GET /api/emergencystop/revoke
+  // endpoint to revoke the emergencystop signal for all steppers
   httpServer->on("/api/emergencystop/revoke", HTTP_GET, [this](AsyncWebServerRequest *request) {
     this->logDebugRequestUrl(request);
     this->_stepperMotorServer->revokeEmergencyStop();
