@@ -97,6 +97,11 @@ bool ESPStepperMotorServer_PositionSwitch::isActiveHigh()
     return this->isTypeBitSet(SWITCHTYPE_STATE_ACTIVE_HIGH_BIT);
 }
 
+bool ESPStepperMotorServer_PositionSwitch::isEmergencySwitch()
+{
+    return this->isTypeBitSet(SWITCHTYPE_EMERGENCY_STOP_SWITCH_BIT);
+}
+
 bool ESPStepperMotorServer_PositionSwitch::isTypeBitSet(byte bitToCheck)
 {
     return this->_switchType & (1 << (bitToCheck - 1));

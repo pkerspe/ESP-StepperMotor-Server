@@ -86,7 +86,6 @@
 #define ESPServerSwitchType_GeneralPositionSwitch 16
 #define ESPServerSwitchType_EmergencyStopSwitch 32
 
-#define ESPServerPositionSwitchUnsetPinNumber 255
 #define ESPStepperHighestAllowedIoPin 50
 
 //just declare class here for compiler, since we have a circular dependency (due to bad api design :-))
@@ -115,7 +114,7 @@ public:
   void removeStepper(byte stepperConfigurationIndex);
   void removeRotaryEncoder(byte rotaryEncoderConfigurationIndex);
   void printPositionSwitchStatus();
-  void performEmergencyStop();
+  void performEmergencyStop(int stepperIndex = -1);
   void revokeEmergencyStop();
   void start();
   void stop();
@@ -156,7 +155,9 @@ private:
   bool checkIfGuiExistsInSpiffs();
   void printSPIFFSRootFolderContents();
   bool downloadFileToSpiffs(const char *url, const char *targetPath);
-  void setupPositionSwitchIOPin(ESPStepperMotorServer_PositionSwitch *posSwitchToAdd);
+  void setupAllIOPins();
+  void setupPositionSwitchIOPin(ESPStepperMotorServer_PositionSwitch *posSwitch);
+  void setupRotaryEncoderIOPin(ESPStepperMotorServer_RotaryEncoder *rotaryEncoder);
   void detachInterruptForPositionSwitch(ESPStepperMotorServer_PositionSwitch *posSwitch);
   void detachInterruptForRotaryEncoder(ESPStepperMotorServer_RotaryEncoder *rotaryEncoder);
   void detachAllInterrupts();

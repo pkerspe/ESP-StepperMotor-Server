@@ -30,6 +30,7 @@
 // SOFTWARE.
 
 #include <ESPStepperMotorServer_MotionController.h>
+//#include "esp_task_wdt.h"
 
 //
 // constructor for the motion controller module
@@ -48,11 +49,12 @@ void ESPStepperMotorServer_MotionController::start()
     disableCore0WDT();
     xTaskCreate(
         ESPStepperMotorServer_MotionController::processMotionUpdates, /* Task function. */
-        "MotionControl",                                /* String with name of task. */
+        "MotionControl",                                              /* String with name of task. */
         10000,                                                        /* Stack size in bytes. */
         this,                                                         /* Parameter passed as input of the task */
         1,                                                            /* Priority of the task. */
         &this->xHandle);                                              /* Task handle. */
+    //esp_task_wdt_delete(this->xHandle);
     ESPStepperMotorServer_Logger::logInfo("Motion Controller task started");
   }
 }
@@ -62,13 +64,17 @@ void ESPStepperMotorServer_MotionController::processMotionUpdates(void *paramete
   ESPStepperMotorServer_MotionController *ref = (ESPStepperMotorServer_MotionController *)parameter;
   while (true)
   {
-    //TODO create function in Configuration class to return all configured steppers in one call or even all flexystepper instances (that need movement) and maybe even in a "cached" way
-    for (byte i = 0; i < ESPServerMaxSteppers; i++)
+    //only perform movement if no emergency switch is triggered
+    if (!ref->serverRef->emergencySwitchIsActive)
     {
-      ESPStepperMotorServer_StepperConfiguration *stepper = ref->serverRef->getConfiguredStepper(i);
-      if (stepper)
+      //TODO create function in Configuration class to return all configured steppers in one call or even all flexystepper instances (that need movement) and maybe even in a "cached" way
+      for (byte i = 0; i < ESPServerMaxSteppers; i++)
       {
-        stepper->getFlexyStepper()->processMovement();
+        ESPStepperMotorServer_StepperConfiguration *stepper = ref->serverRef->getConfiguredStepper(i);
+        if (stepper)
+        {
+          stepper->getFlexyStepper()->processMovement();
+        }
       }
     }
   }

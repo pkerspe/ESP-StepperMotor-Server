@@ -42,6 +42,7 @@ public:
   void setPositionName(String name);
 
   bool isActiveHigh();
+  bool isEmergencySwitch();
   bool isTypeBitSet(byte bitToCheck);
 
   long getSwitchPosition(void);

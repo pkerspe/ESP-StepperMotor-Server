@@ -43,6 +43,13 @@
 #include <ESPStepperMotorServer_RotaryEncoder.h>
 #include <ESPStepperMotorServer_StepperConfiguration.h>
 
+// TODO: get IO pin configration rules implemented and helper to provide information about which pins to use and which not
+// https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
+// Input only pins
+// GPIOs 34 to 39 are GPIs – input only pins. These pins don’t have internal pull-ups or pull-down resistors. They can’t be used as outputs, so use these pins only as inputs:
+// GPIO 34, GPIO 35, GPIO 36, GPIO 39
+// GPIO 12 boot fail if pulled high, better not use as active low switch
+
 #define DEFAULT_SERVER_PORT 80
 #define DEFAULT_WIFI_MODE 1
 //
