@@ -71,6 +71,7 @@
 
 //due to circular dependency the follwoing two classes must be inlcuded here, rahter than in the header file (for now, maybe fix this bad api design later)
 #include <ESPStepperMotorServer_CLI.h>
+#include <ESPStepperMotorServer_WebInterface.h>
 #include <ESPStepperMotorServer_MotionController.h>
 // ---------------------------------------------------------------------------------
 //                                  Setup functions
@@ -92,6 +93,7 @@ ESPStepperMotorServer::ESPStepperMotorServer(byte serverMode, byte logLevel)
   if ((this->enabledServices & ESPServerWebserverEnabled) == ESPServerWebserverEnabled)
   {
     this->isWebserverEnabled = true;
+    this->webInterfaceHandler = new ESPStepperMotorServer_WebInterface(this);
   }
   //rest api needs to be started either if web UI is enabled (which uses the REST API itself) or if REST API is enabled
   if ((this->enabledServices & ESPServerRestApiEnabled) == ESPServerRestApiEnabled || this->isWebserverEnabled)
@@ -477,6 +479,7 @@ int ESPStepperMotorServer::getSPIFFSFreeSpace()
   return ((int)SPIFFS.totalBytes() - (int)SPIFFS.usedBytes());
 }
 
+//TODO: test this part and implement sending of status updates
 void ESPStepperMotorServer::onWebSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
 {
   if (type == WS_EVT_CONNECT)
@@ -599,14 +602,11 @@ void ESPStepperMotorServer::startWebserver()
 
     if (isWebserverEnabled)
     {
-      if (checkIfGuiExistsInSpiffs())
-      {
-        this->registerWebInterfaceUrls();
-      }
+      this->webInterfaceHandler->registerWebInterfaceUrls(this->httpServer);
     }
     if (isRestApiEnabled)
     {
-      this->registerRestApiEndpoints();
+      this->restApiHandler->registerRestEndpoints(this->httpServer);
     }
     // SETUP CORS responses/headers
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
@@ -645,113 +645,6 @@ String ESPStepperMotorServer::getIpAddress()
   }
 }
 
-bool ESPStepperMotorServer::checkIfGuiExistsInSpiffs()
-{
-  ESPStepperMotorServer_Logger::logDebug("Checking if web UI is installed in SPIFFS");
-  bool uiComplete = true;
-  const char *notPresent = "The file %s could not be found on SPIFFS";
-  const char *files[7] = {this->webUiIndexFile, this->webUiJsFile, this->webUiLogoFile, this->webUiFaviconFile, this->webUiEncoderGraphic, this->webUiStepperGraphic, this->webUiSwitchGraphic};
-
-  for (int i = 0; i < 4; i++)
-  {
-    if (!SPIFFS.exists(files[i]))
-    {
-      sprintf(this->logString, notPresent, files[i]);
-      ESPStepperMotorServer_Logger::logInfo(this->logString);
-      if (this->serverConfiguration->wifiMode == ESPServerWifiModeClient && WiFi.isConnected())
-      {
-        char downloadUrl[200];
-        strcpy(downloadUrl, webUiRepositoryBasePath);
-        strcat(downloadUrl, files[i]);
-        if (!this->downloadFileToSpiffs(downloadUrl, files[i]))
-        {
-          uiComplete = false;
-        }
-      }
-      else
-      {
-        uiComplete = false;
-      }
-    }
-  }
-
-  if (!uiComplete && this->serverConfiguration->wifiMode == ESPServerWifiModeAccessPoint)
-  {
-    ESPStepperMotorServer_Logger::logWarning("The UI does not seem to be installed completely on SPIFFS. Automatic download failed since the server is in Access Point mode and not connected to the internet");
-    ESPStepperMotorServer_Logger::logWarning("Start the server in wifi client (STA) mode to enable automatic download of the web interface files to SPIFFS");
-  }
-  else if (uiComplete)
-  {
-    ESPStepperMotorServer_Logger::logDebug("Check completed successfully");
-  }
-  else if (!uiComplete)
-  {
-    ESPStepperMotorServer_Logger::logDebug("Check failed, one or more UI files are missing and could not be downloaded automatically");
-  }
-  return uiComplete;
-}
-
-HTTPClient http;
-// Perform an HTTP GET request to a remote page to download a file to SPIFFS
-bool ESPStepperMotorServer::downloadFileToSpiffs(const char *url, const char *targetPath)
-{
-  sprintf(this->logString, "downloading %s from %s", targetPath, url);
-  ESPStepperMotorServer_Logger::logDebug(this->logString);
-
-  if (http.begin(url))
-  {
-    int httpCode = http.GET();
-    sprintf(this->logString, "server responded with %i", httpCode);
-    ESPStepperMotorServer_Logger::logDebug(this->logString);
-
-    //////////////////
-    // get length of document (is -1 when Server sends no Content-Length header)
-    int len = http.getSize();
-    uint8_t buff[128] = {0};
-
-    sprintf(this->logString, "starting download stream for file size %i", len);
-    ESPStepperMotorServer_Logger::logDebug(this->logString);
-
-    WiFiClient *stream = &http.getStream();
-
-    ESPStepperMotorServer_Logger::logDebug("opening file for writing");
-    File f = SPIFFS.open(targetPath, "w+");
-
-    // read all data from server
-    while (http.connected() && (len > 0 || len == -1))
-    {
-      // get available data size
-      size_t size = stream->available();
-
-      sprintf(this->logString, "%i bytes available to read from stream", size);
-      ESPStepperMotorServer_Logger::logDebug(this->logString);
-
-      if (size)
-      {
-        // read up to 128 byte
-        int c = stream->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));
-        // write it to file
-        for (int i = 0; i < c; i++)
-        {
-          f.write(buff[i]);
-        }
-        if (len > 0)
-        {
-          len -= c;
-        }
-      }
-      delay(1);
-    }
-    ESPStepperMotorServer_Logger::logDebug("Closing file handler");
-    f.close();
-    sprintf(this->logString, "Download of %s completed", targetPath);
-    ESPStepperMotorServer_Logger::logInfo(this->logString);
-    http.end(); //Close connection
-  }
-
-  return SPIFFS.exists(targetPath);
-}
-
 /**
  * get some server status information as a JSON formatted string.
  * Returns: version, wifi mode, ip address, spiffs information, enabled server modules
@@ -776,62 +669,6 @@ void ESPStepperMotorServer::getServerStatusAsJsonString(String &statusString)
   activeModules["web_ui"] = (this->isWebserverEnabled);
 
   serializeJson(root, statusString);
-}
-
-void ESPStepperMotorServer::registerRestApiEndpoints()
-{
-  this->restApiHandler->registerRestEndpoints(this->httpServer);
-}
-
-void ESPStepperMotorServer::registerWebInterfaceUrls()
-{
-  httpServer->on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
-    request->send(SPIFFS, this->webUiIndexFile);
-  });
-  httpServer->on(this->webUiIndexFile, HTTP_GET, [this](AsyncWebServerRequest *request) {
-    request->send(SPIFFS, this->webUiIndexFile);
-  });
-  httpServer->on(this->webUiFaviconFile, HTTP_GET, [this](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiFaviconFile, "image/x-icon");
-    //response->addHeader("Content-Encoding", "gzip");
-    request->send(response);
-  });
-  httpServer->on(this->defaultConfigurationFilename, HTTP_GET, [this](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->defaultConfigurationFilename, "application/json", true);
-    request->send(response);
-  });
-  httpServer->on("/js/app.js", HTTP_GET, [this](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiJsFile, "text/javascript");
-    response->addHeader("Content-Encoding", "gzip");
-    request->send(response);
-  });
-  httpServer->on(this->webUiJsFile, HTTP_GET, [this](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiJsFile, "text/javascript");
-    response->addHeader("Content-Encoding", "gzip");
-    request->send(response);
-  });
-
-  // register image paths with caching header present
-  httpServer->on(this->webUiLogoFile, HTTP_GET, [this](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiLogoFile, "image/svg+xml");
-    response->addHeader("Cache-Control", "max-age=36000, public");
-    request->send(response);
-  });
-  httpServer->on(this->webUiStepperGraphic, HTTP_GET, [this](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiStepperGraphic, "image/svg+xml");
-    response->addHeader("Cache-Control", "max-age=36000, public");
-    request->send(response);
-  });
-  httpServer->on(this->webUiEncoderGraphic, HTTP_GET, [this](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiEncoderGraphic, "image/svg+xml");
-    response->addHeader("Cache-Control", "max-age=36000, public");
-    request->send(response);
-  });
-  httpServer->on(this->webUiSwitchGraphic, HTTP_GET, [this](AsyncWebServerRequest *request) {
-    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiSwitchGraphic, "image/svg+xml");
-    response->addHeader("Cache-Control", "max-age=36000, public");
-    request->send(response);
-  });
 }
 
 // ---------------------------------------------------------------------------------

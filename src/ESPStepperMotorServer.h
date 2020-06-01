@@ -62,7 +62,6 @@
 #include <SPIFFS.h>
 #include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
-#include <HTTPClient.h>
 #include <ESPStepperMotorServer_Configuration.h>
 #include <ESPStepperMotorServer_PositionSwitch.h>
 #include <ESPStepperMotorServer_StepperConfiguration.h>
@@ -93,6 +92,7 @@ class ESPStepperMotorServer_CLI;
 class ESPStepperMotorServer_RestAPI;
 class ESPStepperMotorServer_Configuration;
 class ESPStepperMotorServer_MotionController;
+class ESPStepperMotorServer_WebInterface;
 
 //
 // the ESPStepperMotorServer class
@@ -137,6 +137,7 @@ public:
   //
   // public member variables
   //
+  const char *defaultConfigurationFilename = "/config.json";
   int wifiClientConnectionTimeoutSeconds = 25;
   //this boolean value indicates wether a state change has occurred on one of the position switches or not
   volatile boolean positionSwitchUpdateAvailable = false;
@@ -148,7 +149,6 @@ private:
   void connectToWifiNetwork();
   void startAccessPoint();
   void startWebserver();
-  void registerRestApiEndpoints();
   void registerWebInterfaceUrls();
   void startSPIFFS();
   void printSPIFFSStats();
@@ -164,7 +164,7 @@ private:
   void detachAllInterrupts();
   void attachAllInterrupts();
   void setPositionSwitchStatus(int positionSwitchIndex, byte status);
-  
+
   // ISR handling
   static void staticPositionSwitchISR();
   void internalPositionSwitchISR();
@@ -177,16 +177,7 @@ private:
   byte enabledServices;
   const char *wifiClientSsid;
   const char *wifiPassword;
-  const char *version = "0.0.6";
-  const char *webUiIndexFile = "/index.html";
-  const char *webUiJsFile = "/js/app.js.gz";
-  const char *webUiLogoFile = "/img/logo.svg";
-  const char *webUiEncoderGraphic = "/img/rotaryEncoderWheel.svg";
-  const char *webUiStepperGraphic = "/img/stepper.svg";
-  const char *webUiSwitchGraphic = "/img/switch.svg";
-  const char *webUiFaviconFile = "/favicon.ico";
-  const char *defaultConfigurationFilename = "/config.json";
-  const char *webUiRepositoryBasePath = "https://raw.githubusercontent.com/pkerspe/ESP-StepperMotor-Server/master/data";
+  const char *version = "0.2.2";
   boolean isWebserverEnabled = false;
   boolean isRestApiEnabled = false;
   boolean isCLIEnabled = false;
@@ -194,6 +185,7 @@ private:
   char logString[1000];
 
   ESPStepperMotorServer_Configuration *serverConfiguration;
+  ESPStepperMotorServer_WebInterface *webInterfaceHandler;
   ESPStepperMotorServer_RestAPI *restApiHandler;
   ESPStepperMotorServer_CLI *cliHandler;
   ESPStepperMotorServer_MotionController *motionControllerHandler;
