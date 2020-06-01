@@ -264,9 +264,6 @@ int ESPStepperMotorServer::addOrUpdatePositionSwitch(ESPStepperMotorServer_Posit
   {
     switchIndex = (unsigned int)this->serverConfiguration->addSwitch(posSwitchToAdd);
   }
-  //TODO: move switch pin inventory to server config
-  this->configuredPositionSwitchIoPins[switchIndex] = posSwitchToAdd->getIoPinNumber();
-  this->emergencySwitchIndexes[switchIndex] = ((posSwitchToAdd->getSwitchType() & ESPServerSwitchType_EmergencyStopSwitch) == ESPServerSwitchType_EmergencyStopSwitch);
   //Setup IO Pin
   this->setupPositionSwitchIOPin(posSwitchToAdd);
 
@@ -282,7 +279,6 @@ void ESPStepperMotorServer::removePositionSwitch(int positionSwitchIndex)
     this->detachInterruptForPositionSwitch(posSwitch);
     ESPStepperMotorServer_Logger::logDebugf("removing position switch %s (idx: %i) from configured position switches\n", posSwitch->getPositionName().c_str(), positionSwitchIndex);
     this->serverConfiguration->removeSwitch(positionSwitchIndex);
-    this->emergencySwitchIndexes[positionSwitchIndex] = 0;
   }
   else
   {

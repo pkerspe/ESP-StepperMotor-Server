@@ -199,10 +199,6 @@ private:
   static ESPStepperMotorServer *anchor; //used for self-reference in ISR
   // the button status register for all configured button switches
   volatile byte buttonStatus[ESPServerSwitchStatusRegisterCount] = {0};
-  // a helper array the contains only the IO pins of all configured postion switches for faster access in the ISR
-  volatile byte configuredPositionSwitchIoPins[ESPServerMaxSwitches];
-  // an array of all position switch configuration indexes where a emergency switch is connected to
-  volatile byte emergencySwitchIndexes[ESPServerMaxSwitches];
 
   AsyncWebServer *httpServer;
   AsyncWebSocket *webSockerServer;
