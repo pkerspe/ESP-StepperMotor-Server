@@ -232,6 +232,24 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     }
   });
 
+  // GET /api/emergencystop
+  // endpoint to send a emergencystop signal for all steppers
+  httpServer->on("/api/emergencystop/trigger", HTTP_GET, [this](AsyncWebServerRequest *request) {
+    this->logDebugRequestUrl(request);
+    this->_stepperMotorServer->performEmergencyStop();
+    request->send(204);
+    return;
+  });
+
+  // GET /api/emergencystop
+  // endpoint to send a emergencystop signal for all steppers
+  httpServer->on("/api/emergencystop/revoke", HTTP_GET, [this](AsyncWebServerRequest *request) {
+    this->logDebugRequestUrl(request);
+    this->_stepperMotorServer->revokeEmergencyStop();
+    request->send(204);
+    return;
+  });
+
   // GET /api/steppers
   // GET /api/steppers?id=<id>
   // endpoint to list all configured steppers or a specific one if "id" query parameter is given
