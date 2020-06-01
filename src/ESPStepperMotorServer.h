@@ -113,6 +113,7 @@ public:
   void removePositionSwitch(int positionSwitchIndex);
   void removeStepper(byte stepperConfigurationIndex);
   void removeRotaryEncoder(byte rotaryEncoderConfigurationIndex);
+  void getFormattedPositionSwitchStatusRegister(byte registerIndex, String &output);
   void printPositionSwitchStatus();
   void performEmergencyStop(int stepperIndex = -1);
   void revokeEmergencyStop();

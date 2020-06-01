@@ -315,6 +315,16 @@ void ESPStepperMotorServer::getButtonStatusRegister(byte buffer[ESPServerSwitchS
   }
 }
 
+void ESPStepperMotorServer::getFormattedPositionSwitchStatusRegister(byte registerIndex, String &output)
+{
+  String binary = String(this->buttonStatus[registerIndex], BIN);
+  for (int i = 0; i < 8 - binary.length(); i++)
+  {
+    output += "0";
+  }
+  output += binary;
+}
+
 void ESPStepperMotorServer::printPositionSwitchStatus()
 {
   // TODO reuse code in REST API
@@ -333,12 +343,7 @@ void ESPStepperMotorServer::printPositionSwitchStatus()
     positionSwitchRegister["statusRegisterIndex"] = i;
 
     String binaryPadded = "";
-    String binary = String(this->buttonStatus[i], BIN);
-    for (int i = 0; i < 8 - binary.length(); i++)
-    {
-      binaryPadded += "0";
-    }
-    binaryPadded += binary;
+    this->getFormattedPositionSwitchStatusRegister(i, binaryPadded);
     positionSwitchRegister["status"] = binaryPadded;
   }
 
@@ -1202,8 +1207,10 @@ void ESPStepperMotorServer::detachAllInterrupts()
 /**
  * Trigger an emergency stop. Can be called with optional stepper ID to only trigger emergency stop for a specific stepper.
  * If called without the parameter, all configured steppers will be stopped
- * NOTE: This function can be called manually, but will also be called from the ISR of the Emegerncy switches, 
- * so it should be kept as short as possible
+ **************************************************************************************************************************
+ * IMPORTANT NOTE: This function can be called manually, but will also be called from the ISR of the Emegerncy switches,  *
+ * so it should be kept as short as possible and not use the CoProcessor (E.g. for floating point arithmetic operations)  *
+ ************************************************************************************************************************** 
  */
 void ESPStepperMotorServer::performEmergencyStop(int stepperId)
 {
@@ -1216,8 +1223,7 @@ void ESPStepperMotorServer::performEmergencyStop(int stepperId)
     // check if stepper is moving at all
     if (!flexyStepper->motionComplete())
     {
-      flexyStepper->setAccelerationInStepsPerSecondPerSecond(9999);
-      flexyStepper->setTargetPositionToStop();
+      flexyStepper->setTargetPositionRelativeInSteps(0);
     }
   }
   else
@@ -1231,8 +1237,10 @@ void ESPStepperMotorServer::performEmergencyStop(int stepperId)
         // TODO: check back on the status of this Pull request and switch to emergencyStop function once done:
         // https://github.com/Stan-Reifel/FlexyStepper/pull/4
         FlexyStepper *flexyStepper = stepper->getFlexyStepper();
-        flexyStepper->setAccelerationInStepsPerSecondPerSecond(9999);
-        flexyStepper->setTargetPositionToStop();
+        if (!flexyStepper->motionComplete())
+        {
+          flexyStepper->setTargetPositionRelativeInSteps(0);
+        }
       }
     }
   }
@@ -1270,14 +1278,19 @@ void IRAM_ATTR ESPStepperMotorServer::internalPositionSwitchISR()
       pinNumber = switchConfig->getIoPinNumber();
       if (digitalRead(pinNumber))
       {
-        if (ESPStepperMotorServer_Logger::isDebugEnabled())
-          ESPStepperMotorServer_Logger::logDebugf("ISR: IO Pin %i has gone high (%s state). Is emergency switch = %i\n", pinNumber, (switchConfig->isActiveHigh()) ? "triggered" : "released", switchConfig->isEmergencySwitch());
         //PIN STATE IS HIGH
         bitSet(this->buttonStatus[registerIndex], switchIndex % 8);
-        if (switchConfig->isEmergencySwitch() && switchConfig->isActiveHigh())
+        if (switchConfig->isEmergencySwitch())
         {
-          this->emergencySwitchIsActive = true; //this flag will be read in the motion controller task frequently
-          this->performEmergencyStop(switchConfig->getStepperIndex());
+          if (switchConfig->isActiveHigh())
+          {
+            this->emergencySwitchIsActive = true; //this flag will be read in the motion controller task frequently
+            this->performEmergencyStop();
+          }
+          else
+          {
+            this->emergencySwitchIsActive = false; //clear emergency status
+          }
         }
       }
       else
@@ -1286,10 +1299,17 @@ void IRAM_ATTR ESPStepperMotorServer::internalPositionSwitchISR()
           ESPStepperMotorServer_Logger::logDebugf("ISR: IO Pin %i has gone low (%s state). Is emergency switch = %i\n", pinNumber, (!switchConfig->isActiveHigh()) ? "triggered" : "released", switchConfig->isEmergencySwitch());
         //PIN STATE IS LOW
         bitClear(this->buttonStatus[registerIndex], switchIndex % 8);
-        if (switchConfig->isEmergencySwitch() && !switchConfig->isActiveHigh())
+        if (switchConfig->isEmergencySwitch())
         {
-          this->emergencySwitchIsActive = true; //this flag will be read in the motion controller task frequently
-          this->performEmergencyStop(switchConfig->getStepperIndex());
+          if (!switchConfig->isActiveHigh())
+          {
+            this->emergencySwitchIsActive = true; //this flag will be read in the motion controller task frequently
+            this->performEmergencyStop();
+          }
+          else
+          {
+            this->emergencySwitchIsActive = false; //clear emergency status
+          }
         }
       }
     }
