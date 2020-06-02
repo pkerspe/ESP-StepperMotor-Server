@@ -13,7 +13,7 @@
 // a potentiometer on the board or using dip switches.
 // Read the driver board's documentation to learn how to configure the driver
 //
-// all you need to do, to get started with this example, is fill in your wifi credentials in lines 27/28, then compile and upload to your ESP32.
+// all you need to do, to get started with this example, is fill in your wifi credentials in lines 26/27, then compile and upload to your ESP32.
 // In order to use the Web Interface of the server, you need to upload the contents of the "data" folder in this example to the SPIFFS of your ESP32
 //
 // for a detailed manual on how to use this library please visit: https://github.com/pkerspe/ESP-StepperMotor-Server/blob/master/README.md

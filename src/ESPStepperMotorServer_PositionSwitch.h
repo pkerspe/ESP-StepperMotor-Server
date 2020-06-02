@@ -20,7 +20,7 @@ class ESPStepperMotorServer_PositionSwitch
 {
 public:
   ESPStepperMotorServer_PositionSwitch();
-  ESPStepperMotorServer_PositionSwitch(byte ioPin, byte stepperIndex, byte switchType, String name = "", long switchPosition = 0);
+  ESPStepperMotorServer_PositionSwitch(byte ioPin, int stepperIndex, byte switchType, String name = "", long switchPosition = 0);
 
   /**
    * setter to set the id of this switch.
@@ -33,7 +33,7 @@ public:
     */
   byte getId();
 
-  byte getStepperIndex(void);
+  int getStepperIndex(void);
 
   byte getIoPinNumber(void);
   byte getSwitchType(void);

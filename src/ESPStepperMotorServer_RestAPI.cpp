@@ -827,11 +827,17 @@ void ESPStepperMotorServer_RestAPI::handlePostSwitchRequest(AsyncWebServerReques
   {
     if (doc.containsKey("stepperId") && doc.containsKey("ioPinNumber") && doc.containsKey("positionName") && doc.containsKey("switchPosition") && doc.containsKey("switchType"))
     {
-      byte stepperConfigIndex = doc["stepperId"];
+      int stepperConfigIndex = doc["stepperId"];
       byte ioPinNumber = doc["ioPinNumber"];
       const char *name = doc["positionName"];
       long switchPosition = doc["switchPosition"];
       byte switchType = doc["switchType"];
+
+      //stepperConfigIndex can be -1 for emergency switch only
+      if(stepperConfigIndex == -1 && !(switchType & (1 << (SWITCHTYPE_EMERGENCY_STOP_SWITCH_BIT - 1)))){
+        request->send(400, "application/json", "{\"error\": \"Invalid Stepper ID. Only emergency stop switches are allowed to have -1 as stepper configuration reference\"}");
+            return;
+      }
 
       if (ioPinNumber >= 0 && ioPinNumber <= ESPStepperHighestAllowedIoPin) //check valid pin range value
       {
@@ -846,7 +852,8 @@ void ESPStepperMotorServer_RestAPI::handlePostSwitchRequest(AsyncWebServerReques
             return;
           }
         }
-        if (this->_stepperMotorServer->getConfiguredStepper(stepperConfigIndex) == NULL)
+        
+        if (stepperConfigIndex > -1 && this->_stepperMotorServer->getConfiguredStepper(stepperConfigIndex) == NULL)
         {
           request->send(404, "application/json", "{\"error\": \"The given stepper id is invalid\"}");
           return;

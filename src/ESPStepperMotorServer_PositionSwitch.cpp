@@ -29,7 +29,7 @@
 //
 #include <ESPStepperMotorServer_PositionSwitch.h>
 
-byte _stepperIndex;
+int _stepperIndex; // can be -1 for emergency stop switches only
 byte _ioPinNumber = 255;
 byte _switchType; //bit mask for active state and the general type of switch
 String _positionName = "";
@@ -40,7 +40,7 @@ ESPStepperMotorServer_PositionSwitch::ESPStepperMotorServer_PositionSwitch()
 {
 }
 
-ESPStepperMotorServer_PositionSwitch::ESPStepperMotorServer_PositionSwitch(byte ioPin, byte stepperIndex, byte switchType, String name, long switchPosition)
+ESPStepperMotorServer_PositionSwitch::ESPStepperMotorServer_PositionSwitch(byte ioPin, int stepperIndex, byte switchType, String name, long switchPosition)
 {
     this->_ioPinNumber = ioPin;
     this->_stepperIndex = stepperIndex;
@@ -59,7 +59,7 @@ byte ESPStepperMotorServer_PositionSwitch::getId()
     return this->_switchIndex;
 }
 
-byte ESPStepperMotorServer_PositionSwitch::getStepperIndex(void)
+int ESPStepperMotorServer_PositionSwitch::getStepperIndex(void)
 {
     return this->_stepperIndex;
 }
