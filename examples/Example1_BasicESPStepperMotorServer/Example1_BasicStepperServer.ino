@@ -55,6 +55,8 @@ void setup()
 
   //start the server
   stepperMotorServer->start();
+  // the server will now connect to the wifi and start the webserver, rest API and serial command line interface.
+  // check the serial console for more details like the URL of the WebInterface
 }
 
 void loop() 

@@ -1,6 +1,6 @@
 {
     "serverConfiguration": {
-        "port": 8080,
+        "port": 800,
         "apName": "ESP-StepperMotor-Server",
         "apPassword": "ServerPassword",
         "wififMode": 2,
