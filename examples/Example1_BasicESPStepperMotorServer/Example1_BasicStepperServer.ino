@@ -1,30 +1,23 @@
-
 //      ******************************************************************
-//      *                                                                *
 //      *     Simple example for starting the stepper motor server       *
-//      *                                                                *
 //      *            Paul Kerspe                31.5.2020                *
-//      *                                                                *
 //      ******************************************************************
 //
 // This is the simplest example of how to start the ESP Stepper Motor Server with the Webinterface to perform all setup steps via the Web UI
 //
-// This library requires that your stepper motor be connected to the ESP32/ESP8266
+// This library requires that your stepper motor be connected to the ESP32
 // using an external driver that has a "Step and Direction" interface.
-// The library provides an easy to setup server that allows configuration and controlling
-// of 1-n stepper motors via a serial connection, web user interface and a REST API.
 //
 // For all driver boards, it is VERY important that you set the motor
 // current before running the example. This is typically done by adjusting
 // a potentiometer on the board or using dip switches.
 // Read the driver board's documentation to learn how to configure the driver
 //
-// all you need to do, to get started with this example, is fill in your wifi credentials in lines 33/34, then compile and upload to your ESP32.
+// all you need to do, to get started with this example, is fill in your wifi credentials in lines 27/28, then compile and upload to your ESP32.
 // In order to use the Web Interface of the server, you need to upload the contents of the "data" folder in this example to the SPIFFS of your ESP32
 //
 // for a detailed manual on how to use this library please visit: https://github.com/pkerspe/ESP-StepperMotor-Server/blob/master/README.md
 // ***********************************************************************
-
 #include <Arduino.h>
 #include <ESPStepperMotorServer.h>
 
@@ -42,7 +35,6 @@ void setup()
   // now create a new ESPStepperMotorServer instance (this must be done AFTER the Serial interface has been started)
   // In this example We create the server instance with all modules activated and log level set to INFO (which is the default, you can also use ESPServerLogLevel_DEBUG to set it to debug instead)
   stepperMotorServer = new ESPStepperMotorServer(ESPServerRestApiEnabled | ESPServerWebserverEnabled | ESPServerSerialEnabled, ESPServerLogLevel_INFO;
-
   // connect to an existing WiFi network. Make sure you set the vairables wifiName and wifiSecret to match you SSID and wifi pasword (see above before the setup function)
   stepperMotorServer->setWifiCredentials(wifiName, wifiSecret);
   stepperMotorServer->setWifiMode(ESPServerWifiModeClient); //start the server as a wifi client (DHCP client of an existing wifi network)
