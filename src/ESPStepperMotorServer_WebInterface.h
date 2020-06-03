@@ -50,6 +50,7 @@ private:
   const char *webUiJsFile = "/js/app.js.gz";
   const char *webUiLogoFile = "/img/logo.svg";
   const char *webUiEncoderGraphic = "/img/rotaryEncoderWheel.svg";
+  const char *webUiEmergencySwitchGraphic = "/img/emergencyStopSwitch.svg";
   const char *webUiStepperGraphic = "/img/stepper.svg";
   const char *webUiSwitchGraphic = "/img/switch.svg";
   const char *webUiFaviconFile = "/favicon.ico";

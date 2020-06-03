@@ -94,6 +94,11 @@ void ESPStepperMotorServer_WebInterface::registerWebInterfaceUrls(AsyncWebServer
       response->addHeader("Cache-Control", "max-age=36000, public");
       request->send(response);
     });
+    this->_httpServer->on(this->webUiEmergencySwitchGraphic, HTTP_GET, [this](AsyncWebServerRequest *request) {
+      AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiEmergencySwitchGraphic, "image/svg+xml");
+      response->addHeader("Cache-Control", "max-age=36000, public");
+      request->send(response);
+    });
     this->_httpServer->on(this->webUiSwitchGraphic, HTTP_GET, [this](AsyncWebServerRequest *request) {
       AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiSwitchGraphic, "image/svg+xml");
       response->addHeader("Cache-Control", "max-age=36000, public");
@@ -111,7 +116,7 @@ bool ESPStepperMotorServer_WebInterface::checkIfGuiExistsInSpiffs()
   ESPStepperMotorServer_Logger::logDebug("Checking if web UI is installed in SPIFFS");
   bool uiComplete = true;
   const char *notPresent = "The file %s could not be found on SPIFFS";
-  const char *files[7] = {this->webUiIndexFile, this->webUiJsFile, this->webUiLogoFile, this->webUiFaviconFile, this->webUiEncoderGraphic, this->webUiStepperGraphic, this->webUiSwitchGraphic};
+  const char *files[7] = {this->webUiIndexFile, this->webUiJsFile, this->webUiLogoFile, this->webUiFaviconFile, this->webUiEncoderGraphic, this->webUiEmergencySwitchGraphic, this->webUiStepperGraphic, this->webUiSwitchGraphic};
 
   for (int i = 0; i < 4; i++)
   {
