@@ -38,7 +38,7 @@ ESPStepperMotorServer_StepperConfiguration::ESPStepperMotorServer_StepperConfigu
 {
     this->_stepIoPin = stepIoPin;
     this->_directionIoPin = directionIoPin;
-    this->_flexyStepper = new FlexyStepper();
+    this->_flexyStepper = new ESP_FlexyStepper();
     this->_flexyStepper->connectToPins(this->_stepIoPin, this->_directionIoPin);
 }
 
@@ -50,7 +50,7 @@ ESPStepperMotorServer_StepperConfiguration::ESPStepperMotorServer_StepperConfigu
     this->_displayName = displayName;
     this->_rpmLimit = rpmLimit;
 
-    this->_flexyStepper = new FlexyStepper();
+    this->_flexyStepper = new ESP_FlexyStepper();
     this->_flexyStepper->connectToPins(this->_stepIoPin, this->_directionIoPin);
 
     //we store the value in flexistepper and locally, since flexystepper does not provider getters
@@ -65,7 +65,7 @@ ESPStepperMotorServer_StepperConfiguration::ESPStepperMotorServer_StepperConfigu
 // ---------------------------------------------------------------------------------
 //                                  Getters / Setters
 // ---------------------------------------------------------------------------------
-FlexyStepper *ESPStepperMotorServer_StepperConfiguration::getFlexyStepper()
+ESP_FlexyStepper *ESPStepperMotorServer_StepperConfiguration::getFlexyStepper()
 {
     return this->_flexyStepper;
 }

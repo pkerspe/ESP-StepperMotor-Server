@@ -30,7 +30,7 @@
 // SOFTWARE.
 
 #include <ESPStepperMotorServer_CLI.h>
-#include <FlexyStepper.h>
+#include <ESP_FlexyStepper.h>
 
 #define CR '\r'
 #define LF '\n'

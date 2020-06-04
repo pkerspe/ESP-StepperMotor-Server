@@ -35,25 +35,11 @@
 //    Near the top of the program, add:
 //        include "ESPStepperMotorServer.h"
 //
-//    For each stepper, declare a global object outside of all functions as
-//    follows:
-//        FlexyStepper flexyStepper1;
-//        FlexyStepper flexyStepper2;
-//    and then "wrap" it in a ESPStepperMotorServer_Stepper class:
-//        ESPStepperMotorServer_Stepper stepper1(*flexyStepper1);
-//        ESPStepperMotorServer_Stepper stepper2(*flexyStepper2);
-//    also declare the server instance here along with the required settings:
 //    e.g. to start the server and enable the web based uster interface, the REST API and the serial server use:
 //        ESPStepperMotorServer server(ESPServerRestApiEnabled|ESPServerWebserverEnabled|ESPServerSerialEnabled);
 //    eg. to only start the web user interface and disable the rest API and serial server use:
 //        ESPStepperMotorServer server(ESPServerWebserverEnabled);
 //
-//    In Setup(), assign pin numbers of the ESP where the step and direction inputs of the stepper driver module are connected to ESP:
-//        flexyStepper1.connectToPins(10, 11); //bye stepPinNumber, byte directionPinNumber
-//        flexyStepper1.connectToPins(12, 14);
-//    And then add the steppers to the server and start the server
-//        server.addStepper(*stepper1);
-//        server.addStepper(*stepper2);
 //    if the server is started with the ESPServerWebserverEnabled or ESPServerRestApiEnabled flag, you can specify a http port (default is port 80), for the server to listen for connections (e.g. port 80 in this example) if only starting in serial mode, you can ommit this step
 //        server.setHttpPort(80);
 //
@@ -1056,7 +1042,7 @@ void ESPStepperMotorServer::performEmergencyStop(int stepperId)
   if (stepperId > -1)
   {
     ESPStepperMotorServer_StepperConfiguration *stepper = this->serverConfiguration->getStepperConfiguration(stepperId);
-    FlexyStepper *flexyStepper = stepper->getFlexyStepper();
+    ESP_FlexyStepper *flexyStepper = stepper->getFlexyStepper();
     // check if stepper is moving at all
     if (!flexyStepper->motionComplete())
     {
@@ -1073,7 +1059,7 @@ void ESPStepperMotorServer::performEmergencyStop(int stepperId)
       {
         // TODO: check back on the status of this Pull request and switch to emergencyStop function once done:
         // https://github.com/Stan-Reifel/FlexyStepper/pull/4
-        FlexyStepper *flexyStepper = stepper->getFlexyStepper();
+        ESP_FlexyStepper *flexyStepper = stepper->getFlexyStepper();
         if (!flexyStepper->motionComplete())
         {
           flexyStepper->setTargetPositionRelativeInSteps(0);

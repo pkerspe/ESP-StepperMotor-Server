@@ -58,7 +58,7 @@
 #define ESPStepperMotorServer_SwitchDisplayName_MaxLength 20
 
 #include <Arduino.h>
-#include <FlexyStepper.h>
+#include <ESP_FlexyStepper.h>
 #include <SPIFFS.h>
 #include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>

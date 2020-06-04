@@ -34,7 +34,7 @@
 #include <Arduino.h>
 #include <ESPStepperMotorServer.h>
 #include <ESPStepperMotorServer_Logger.h>
-#include <FlexyStepper.h>
+#include <ESP_FlexyStepper.h>
 
 class ESPStepperMotorServer_MotionController
 {

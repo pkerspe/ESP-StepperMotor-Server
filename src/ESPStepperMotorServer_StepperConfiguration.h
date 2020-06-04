@@ -32,7 +32,7 @@
 #define ESPStepperMotorServer_StepperConfiguration_h
 
 #include <ESPStepperMotorServer_Logger.h>
-#include <FlexyStepper.h>
+#include <ESP_FlexyStepper.h>
 
 #define ESPSMS_MICROSTEPS_OFF 1
 #define ESPSMS_MICROSTEPS_2 2
@@ -56,7 +56,7 @@ public:
   ESPStepperMotorServer_StepperConfiguration(byte stepIoPin, byte directionIoPin);
   ESPStepperMotorServer_StepperConfiguration(byte stepIoPin, byte directionIoPin, String displayName, unsigned int stepsPerRev, unsigned int stepsPerMM, unsigned int microsteppingDivisor, unsigned int rpmLimit);
 
-  FlexyStepper *getFlexyStepper();
+  ESP_FlexyStepper *getFlexyStepper();
 
   /**
    * Internally used setter to set the id of this stepper motor.
@@ -150,7 +150,7 @@ private:
   //
   // private member variables
   //
-  FlexyStepper *_flexyStepper;
+  ESP_FlexyStepper *_flexyStepper;
   String _displayName;
   byte _stepperIndex = 0;
   byte _stepIoPin = ESPServerStepperUnsetIoPinNumber;
