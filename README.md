@@ -157,6 +157,7 @@ To figure out the IP Adresse of your ESP-32 module, you can either check your ro
 The following wiring chart shows an example of a setup with an emergency/kill switch and two homing/limit switches. In a real setup, the homing switches would be attached for example to each end of a linear rail to detect when the object moved by the stepper motor reaches the end of the track. 
 
 ![hardware example setup][connection_setup_example]
+(image created with [fritzing](https://fritzing.org/home/))
 
 ## Configuation via the web user interface
 After you installed everything on the hardware side, you can open the web UI to setup/configure the server.
