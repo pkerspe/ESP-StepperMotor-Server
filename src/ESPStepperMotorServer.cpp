@@ -1043,11 +1043,7 @@ void ESPStepperMotorServer::performEmergencyStop(int stepperId)
   {
     ESPStepperMotorServer_StepperConfiguration *stepper = this->serverConfiguration->getStepperConfiguration(stepperId);
     ESP_FlexyStepper *flexyStepper = stepper->getFlexyStepper();
-    // check if stepper is moving at all
-    if (!flexyStepper->motionComplete())
-    {
-      flexyStepper->setTargetPositionRelativeInSteps(0);
-    }
+    flexyStepper->emergencyStop();
   }
   else
   {
@@ -1057,13 +1053,9 @@ void ESPStepperMotorServer::performEmergencyStop(int stepperId)
       ESPStepperMotorServer_StepperConfiguration *stepper = this->serverConfiguration->getStepperConfiguration(stepperIndex);
       if (stepper)
       {
-        // TODO: check back on the status of this Pull request and switch to emergencyStop function once done:
-        // https://github.com/Stan-Reifel/FlexyStepper/pull/4
         ESP_FlexyStepper *flexyStepper = stepper->getFlexyStepper();
         if (!flexyStepper->motionComplete())
-        {
-          flexyStepper->setTargetPositionRelativeInSteps(0);
-        }
+        flexyStepper->emergencyStop();
       }
     }
   }
