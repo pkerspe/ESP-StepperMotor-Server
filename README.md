@@ -154,7 +154,7 @@ Once all is done you can enter the IP Adress of you ESP32 module in the browser 
 To figure out the IP Adresse of your ESP-32 module, you can either check your routers admin ui or you can connect to the serial port of the ESP-32 and check the output. Once the connection to you WiFi has been established, the module will print the IP address to the serial console.
 
 ## Connecting the hardware
-The following wiring chart shows an example of a setup with an emergency/kill switch and two homing/limit switches. In a real setup, the homing switches would be attached for example to each end of a linear rail to detect when the object moved by the stepper motor reaches the end of the track. 
+The following wiring chart shows an example of a setup with an optional emergency/kill switch and two optional homing/limit switches. In a real setup, the homing switches would be attached for example to each end of a linear rail to detect when the object moved by the stepper motor reaches the end of the track.
 
 ![hardware example setup][connection_setup_example]
 (image created with [fritzing](https://fritzing.org/home/))
