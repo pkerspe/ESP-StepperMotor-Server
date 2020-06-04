@@ -116,7 +116,7 @@ bool ESPStepperMotorServer_WebInterface::checkIfGuiExistsInSpiffs()
   ESPStepperMotorServer_Logger::logDebug("Checking if web UI is installed in SPIFFS");
   bool uiComplete = true;
   const char *notPresent = "The file %s could not be found on SPIFFS";
-  const char *files[7] = {this->webUiIndexFile, this->webUiJsFile, this->webUiLogoFile, this->webUiFaviconFile, this->webUiEncoderGraphic, this->webUiEmergencySwitchGraphic, this->webUiStepperGraphic, this->webUiSwitchGraphic};
+  const char *files[] = {this->webUiIndexFile, this->webUiJsFile, this->webUiLogoFile, this->webUiFaviconFile, this->webUiEncoderGraphic, this->webUiEmergencySwitchGraphic, this->webUiStepperGraphic, this->webUiSwitchGraphic};
 
   for (int i = 0; i < 4; i++)
   {
