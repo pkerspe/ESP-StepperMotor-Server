@@ -154,7 +154,9 @@ Once all is done you can enter the IP Adress of you ESP32 module in the browser 
 To figure out the IP Adresse of your ESP-32 module, you can either check your routers admin ui or you can connect to the serial port of the ESP-32 and check the output. Once the connection to you WiFi has been established, the module will print the IP address to the serial console.
 
 ## Connecting the hardware
-TBD
+The following wiring chart shows an example of a setup with an emergency/kill switch and two homing/limit switches. In a real setup, the homing switches would be attached for example to each end of a linear rail to detect when the object moved by the stepper motor reaches the end of the track. 
+
+![hardware example setup][connection_setup_example]
 
 ## Configuation via the web user interface
 After you installed everything on the hardware side, you can open the web UI to setup/configure the server.
@@ -172,7 +174,6 @@ The following devices can be configured:
 ![startup screen][add_stepper_dialog]
 ![startup screen][add_switch_dialog]
 ![startup screen][add_rotary_encoder_dialog]
-
 
 # API documentation
 
@@ -290,3 +291,4 @@ Copyright (c) 2019 Paul Kerspe - Licensed under the MIT license.
 [add_switch_dialog]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/add_switch_dialog.png "The dialog to add a new switch (input signal) configuration"
 [add_rotary_encoder_dialog]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/add_rotary_encoder_dialog.png "The dialog to add a new rotary encoder to control a stepper"
 [about_screen]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/about_screen.png "The about screen with the link to the REST API documentation"
+[connection_setup_example]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/connection_setup_example.png "Example setup wiring diagram"
