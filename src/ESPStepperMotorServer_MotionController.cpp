@@ -64,17 +64,13 @@ void ESPStepperMotorServer_MotionController::processMotionUpdates(void *paramete
   ESPStepperMotorServer_MotionController *ref = (ESPStepperMotorServer_MotionController *)parameter;
   while (true)
   {
-    //only perform movement if no emergency switch is triggered
-    if (!ref->serverRef->emergencySwitchIsActive)
+    //TODO create function in Configuration class to return all configured steppers in one call or even all flexystepper instances (that need movement) and maybe even in a "cached" way
+    for (byte i = 0; i < ESPServerMaxSteppers; i++)
     {
-      //TODO create function in Configuration class to return all configured steppers in one call or even all flexystepper instances (that need movement) and maybe even in a "cached" way
-      for (byte i = 0; i < ESPServerMaxSteppers; i++)
+      ESPStepperMotorServer_StepperConfiguration *stepper = ref->serverRef->getConfiguredStepper(i);
+      if (stepper)
       {
-        ESPStepperMotorServer_StepperConfiguration *stepper = ref->serverRef->getConfiguredStepper(i);
-        if (stepper)
-        {
-          stepper->getFlexyStepper()->processMovement();
-        }
+        stepper->getFlexyStepper()->processMovement();
       }
     }
   }
