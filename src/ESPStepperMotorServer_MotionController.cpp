@@ -62,12 +62,13 @@ void ESPStepperMotorServer_MotionController::start()
 void ESPStepperMotorServer_MotionController::processMotionUpdates(void *parameter)
 {
   ESPStepperMotorServer_MotionController *ref = (ESPStepperMotorServer_MotionController *)parameter;
+  ESPStepperMotorServer_Configuration *configuration = ref->serverRef->getCurrentServerConfiguration();
   while (true)
   {
     //TODO create function in Configuration class to return all configured steppers in one call or even all flexystepper instances (that need movement) and maybe even in a "cached" way
     for (byte i = 0; i < ESPServerMaxSteppers; i++)
     {
-      ESPStepperMotorServer_StepperConfiguration *stepper = ref->serverRef->getConfiguredStepper(i);
+      ESPStepperMotorServer_StepperConfiguration *stepper = configuration->getStepperConfiguration(i);
       if (stepper)
       {
         stepper->getFlexyStepper()->processMovement();

@@ -128,9 +128,6 @@ public:
   //delegator functions only
   void setLogLevel(byte);
   void getServerStatusAsJsonString(String &statusString);
-  ESPStepperMotorServer_StepperConfiguration *getConfiguredStepper(byte index);
-  ESPStepperMotorServer_PositionSwitch *getConfiguredSwitch(byte index);
-  ESPStepperMotorServer_RotaryEncoder *getConfiguredRotaryEncoder(byte index);
   byte getFirstAvailableConfigurationSlotForRotaryEncoder();
   bool isIoPinUsed(int);
 

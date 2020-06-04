@@ -253,7 +253,7 @@ void ESPStepperMotorServer_CLI::cmdRevokeEmergencyStop(char *cmd, char *args)
 void ESPStepperMotorServer_CLI::cmdRemoveSwitch(char *cmd, char *args)
 {
   unsigned int id = (String(args)).toInt();
-  if (id > ESPServerMaxSwitches || !this->serverRef->getConfiguredSwitch((byte)id))
+  if (id > ESPServerMaxSwitches || !this->serverRef->getCurrentServerConfiguration()->getSwitch((byte)id))
   {
     Serial.println("error: invalid switch id given");
   }
@@ -277,7 +277,7 @@ void ESPStepperMotorServer_CLI::cmdRemoveStepper(char *cmd, char *args)
 void ESPStepperMotorServer_CLI::cmdRemoveEncoder(char *cmd, char *args)
 {
   unsigned int id = (String(args)).toInt();
-  if (id > ESPServerMaxRotaryEncoders || !this->serverRef->getConfiguredRotaryEncoder((byte)id))
+  if (id > ESPServerMaxRotaryEncoders || !this->serverRef->getCurrentServerConfiguration()->getRotaryEncoder((byte)id))
   {
     Serial.println("error: invalid encoder id given");
   }
@@ -290,6 +290,7 @@ void ESPStepperMotorServer_CLI::cmdRemoveEncoder(char *cmd, char *args)
 
 void ESPStepperMotorServer_CLI::cmdGetCurrentVelocity(char *cmd, char *args)
 {
+  ESPStepperMotorServer_Configuration *config = this->serverRef->getCurrentServerConfiguration();
   int stepperid = this->getValidStepperIdFromArg(args);
   char unit[10];
   this->getParameterValue(args, "u", unit);
@@ -302,11 +303,11 @@ void ESPStepperMotorServer_CLI::cmdGetCurrentVelocity(char *cmd, char *args)
   if (stepperid > -1)
   {
     if (strcmp(unit, "mm") == 0)
-      Serial.printf("%f mm/s\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInMillimetersPerSecond());
+      Serial.printf("%f mm/s\n", config->getStepperConfiguration((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInMillimetersPerSecond());
     else if (strcmp(unit, "revs") == 0)
-      Serial.printf("%f revs/s\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInRevolutionsPerSecond());
+      Serial.printf("%f revs/s\n", config->getStepperConfiguration((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInRevolutionsPerSecond());
     else
-      Serial.printf("%f steps/s\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInStepsPerSecond());
+      Serial.printf("%f steps/s\n", config->getStepperConfiguration((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInStepsPerSecond());
   }
   else
   {
@@ -317,17 +318,18 @@ void ESPStepperMotorServer_CLI::cmdGetCurrentVelocity(char *cmd, char *args)
       if (stepper)
       {
         if (strcmp(unit, "mm") == 0)
-          Serial.printf("%i:%f mm/s\n", stepperid, this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInMillimetersPerSecond());
+          Serial.printf("%i:%f mm/s\n", stepperid, config->getStepperConfiguration((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInMillimetersPerSecond());
         else if (strcmp(unit, "revs") == 0)
-          Serial.printf("%i:%f revs/s\n", stepperid, this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInRevolutionsPerSecond());
+          Serial.printf("%i:%f revs/s\n", stepperid, config->getStepperConfiguration((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInRevolutionsPerSecond());
         else
-          Serial.printf("%i:%f steps/s\n", stepperid, this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInStepsPerSecond());
+          Serial.printf("%i:%f steps/s\n", stepperid, config->getStepperConfiguration((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInStepsPerSecond());
       }
     }
   }
 }
 void ESPStepperMotorServer_CLI::cmdGetPosition(char *cmd, char *args)
 {
+  ESPStepperMotorServer_Configuration *config = this->serverRef->getCurrentServerConfiguration();
   int stepperid = this->getValidStepperIdFromArg(args);
   char unit[10];
   this->getParameterValue(args, "u", unit);
@@ -340,26 +342,26 @@ void ESPStepperMotorServer_CLI::cmdGetPosition(char *cmd, char *args)
   if (stepperid > -1)
   {
     if (strcmp(unit, "mm") == 0)
-      Serial.printf("%f mm\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInMillimeters());
+      Serial.printf("%f mm\n", config->getStepperConfiguration((byte)stepperid)->getFlexyStepper()->getCurrentPositionInMillimeters());
     else if (strcmp(unit, "revs") == 0)
-      Serial.printf("%f revs\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInRevolutions());
+      Serial.printf("%f revs\n", config->getStepperConfiguration((byte)stepperid)->getFlexyStepper()->getCurrentPositionInRevolutions());
     else
-      Serial.printf("%ld steps\n", this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInSteps());
+      Serial.printf("%ld steps\n", config->getStepperConfiguration((byte)stepperid)->getFlexyStepper()->getCurrentPositionInSteps());
   }
   else
   {
     ESPStepperMotorServer_Logger::logDebugf("%s called without parameter for stepper index\n", cmd);
     for (stepperid = 0; stepperid < ESPServerMaxSteppers; stepperid++)
     {
-      ESPStepperMotorServer_StepperConfiguration *stepper = this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid);
+      ESPStepperMotorServer_StepperConfiguration *stepper = config->getStepperConfiguration(stepperid);
       if (stepper)
       {
         if (strcmp(unit, "mm") == 0)
-          Serial.printf("%i:%f mm\n", stepperid, this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInMillimeters());
+          Serial.printf("%i:%f mm\n", stepperid, stepper->getFlexyStepper()->getCurrentPositionInMillimeters());
         else if (strcmp(unit, "revs") == 0)
-          Serial.printf("%i:%f revs\n", stepperid, this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInRevolutions());
+          Serial.printf("%i:%f revs\n", stepperid, stepper->getFlexyStepper()->getCurrentPositionInRevolutions());
         else
-          Serial.printf("%i:%ld steps\n", stepperid, this->serverRef->getConfiguredStepper((byte)stepperid)->getFlexyStepper()->getCurrentPositionInSteps());
+          Serial.printf("%i:%ld steps\n", stepperid, stepper->getFlexyStepper()->getCurrentPositionInSteps());
       }
     }
   }
@@ -494,7 +496,7 @@ int ESPStepperMotorServer_CLI::getValidStepperIdFromArg(char *arg)
   {
     int id = (String(arg)).toInt();
     ESPStepperMotorServer_Logger::logDebugf("extracted stepper id %i from argument string %s\n", id, arg);
-    if (id > ESPServerMaxSteppers || !this->serverRef->getConfiguredStepper((byte)id))
+    if (id > ESPServerMaxSteppers || !this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration((byte)id))
     {
       Serial.println("error: invalid stepper id given");
       return -1;

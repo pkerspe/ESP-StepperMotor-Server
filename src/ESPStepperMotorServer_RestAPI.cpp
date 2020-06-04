@@ -71,7 +71,8 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     if (request->hasParam("id"))
     {
       const byte stepperIndex = request->getParam("id")->value().toInt();
-      if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->_stepperMotorServer->getConfiguredStepper(stepperIndex) == NULL)
+      ESPStepperMotorServer_StepperConfiguration *stepper = this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex);
+      if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || stepper == NULL)
       {
         request->send(404, "application/json", "{\"error\": \"Invalid stepper id\"}");
         return;
@@ -81,7 +82,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
 
       StaticJsonDocument<docSize> doc;
       JsonObject root = doc.to<JsonObject>();
-      ESPStepperMotorServer_StepperConfiguration *stepper = this->_stepperMotorServer->getConfiguredStepper(stepperIndex);
+      
       root["mm"] = stepper->getFlexyStepper()->getCurrentPositionInMillimeters();
       root["revs"] = stepper->getFlexyStepper()->getCurrentPositionInRevolutions();
       root["steps"] = stepper->getFlexyStepper()->getCurrentPositionInSteps();
@@ -111,7 +112,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     if (request->hasParam("id"))
     {
       int stepperIndex = request->getParam("id")->value().toInt();
-      if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->_stepperMotorServer->getConfiguredStepper(stepperIndex) == NULL)
+      if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex) == NULL)
       {
         request->send(404, "application/json", "{\"error\": \"No stepper configuration found for given id\"}");
         return;
@@ -121,7 +122,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
         float speed = request->getParam("speed")->value().toFloat();
         if (speed > 0)
         {
-          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->setSpeedInStepsPerSecond(speed);
+          this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex)->getFlexyStepper()->setSpeedInStepsPerSecond(speed);
         }
       }
       if (request->hasParam("accell"))
@@ -129,7 +130,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
         float accell = request->getParam("accell")->value().toFloat();
         if (accell > 0)
         {
-          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->setAccelerationInStepsPerSecondPerSecond(accell);
+          this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex)->getFlexyStepper()->setAccelerationInStepsPerSecondPerSecond(accell);
         }
       }
 
@@ -139,15 +140,15 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
         float distance = request->getParam("value")->value().toFloat();
         if (unit == "mm")
         {
-          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->setTargetPositionRelativeInMillimeters(distance);
+          this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex)->getFlexyStepper()->setTargetPositionRelativeInMillimeters(distance);
         }
         else if (unit == "revs")
         {
-          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->setTargetPositionRelativeInRevolutions(distance);
+          this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex)->getFlexyStepper()->setTargetPositionRelativeInRevolutions(distance);
         }
         else if (unit == "steps")
         {
-          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->setTargetPositionRelativeInSteps(distance);
+          this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex)->getFlexyStepper()->setTargetPositionRelativeInSteps(distance);
         }
         else
         {
@@ -170,7 +171,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     if (request->hasParam("id", true))
     {
       int stepperIndex = request->getParam("id", true)->value().toInt();
-      if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->_stepperMotorServer->getConfiguredStepper(stepperIndex) == NULL)
+      if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex) == NULL)
       {
         request->send(404);
         return;
@@ -181,15 +182,15 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
         float position = request->getParam("value", true)->value().toFloat();
         if (unit == "mm")
         {
-          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->setTargetPositionInMillimeters(position);
+          this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex)->getFlexyStepper()->setTargetPositionInMillimeters(position);
         }
         else if (unit == "revs")
         {
-          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->setTargetPositionInRevolutions(position);
+          this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex)->getFlexyStepper()->setTargetPositionInRevolutions(position);
         }
         else if (unit == "steps")
         {
-          this->_stepperMotorServer->getConfiguredStepper(stepperIndex)->getFlexyStepper()->setTargetPositionInSteps(position);
+          this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex)->getFlexyStepper()->setTargetPositionInSteps(position);
         }
         else
         {
@@ -212,7 +213,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     if (request->hasParam("id", false))
     {
       int stepperIndex = request->getParam("id", false)->value().toInt();
-      ESPStepperMotorServer_StepperConfiguration *stepper = this->_stepperMotorServer->getConfiguredStepper(stepperIndex);
+      ESPStepperMotorServer_StepperConfiguration *stepper = this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex);
       if (stepper == NULL)
       {
         request->send(404);
@@ -270,7 +271,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       StaticJsonDocument<300> doc;
       JsonObject root = doc.to<JsonObject>();
       JsonObject stepperDetails = root.createNestedObject("stepper");
-      this->populateStepperDetailsToJsonObject(stepperDetails, this->_stepperMotorServer->getConfiguredStepper(stepperIndex), stepperIndex);
+      this->populateStepperDetailsToJsonObject(stepperDetails, this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex), stepperIndex);
       serializeJson(root, output);
     }
     else
@@ -282,7 +283,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       for (int i = 0; i < ESPServerMaxSteppers; i++)
       {
         JsonObject stepperDetails = steppers.createNestedObject();
-        this->populateStepperDetailsToJsonObject(stepperDetails, this->_stepperMotorServer->getConfiguredStepper(i), i);
+        this->populateStepperDetailsToJsonObject(stepperDetails, this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(i), i);
       }
       serializeJson(root, output);
       //Serial.println(doc.memoryUsage());
@@ -321,7 +322,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     if (request->hasParam("id"))
     {
       int switchIndex = request->getParam("id")->value().toInt();
-      if (this->_stepperMotorServer->getConfiguredSwitch(switchIndex) == NULL)
+      if (this->_stepperMotorServer->getCurrentServerConfiguration()->getSwitch(switchIndex) == NULL)
       {
         request->send(404);
         return;
@@ -357,7 +358,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     if (request->hasParam("id"))
     {
       int switchIndex = request->getParam("id")->value().toInt();
-      if (this->_stepperMotorServer->getConfiguredSwitch(switchIndex) == NULL)
+      if (this->_stepperMotorServer->getCurrentServerConfiguration()->getSwitch(switchIndex) == NULL)
       {
         request->send(404, "application/json", "{\"error\": \"No switch found for the given id\"}");
         return;
@@ -365,7 +366,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
 
       StaticJsonDocument<switchObjectSize> doc;
       JsonObject root = doc.to<JsonObject>();
-      this->populateSwitchDetailsToJsonObject(root, this->_stepperMotorServer->getConfiguredSwitch(switchIndex), switchIndex);
+      this->populateSwitchDetailsToJsonObject(root, this->_stepperMotorServer->getCurrentServerConfiguration()->getSwitch(switchIndex), switchIndex);
       serializeJson(root, output);
 
       if (this->logger->getLogLevel() >= ESPServerLogLevel_DEBUG)
@@ -384,10 +385,10 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       //TODO instead of doing a loop, implement function getAllConfiguredSwitches()
       for (int i = 0; i < ESPServerMaxSwitches; i++)
       {
-        if (this->_stepperMotorServer->getConfiguredSwitch(i))
+        if (this->_stepperMotorServer->getCurrentServerConfiguration()->getSwitch(i))
         {
           JsonObject switchDetails = switches.createNestedObject();
-          this->populateSwitchDetailsToJsonObject(switchDetails, this->_stepperMotorServer->getConfiguredSwitch(i), i);
+          this->populateSwitchDetailsToJsonObject(switchDetails, this->_stepperMotorServer->getCurrentServerConfiguration()->getSwitch(i), i);
         }
       }
       serializeJson(root, output);
@@ -436,7 +437,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     if (request->hasParam("id"))
     {
       int rotaryEncoderIndex = request->getParam("id")->value().toInt();
-      if (this->_stepperMotorServer->getConfiguredRotaryEncoder(rotaryEncoderIndex) == NULL)
+      if (this->_stepperMotorServer->getCurrentServerConfiguration()->getRotaryEncoder(rotaryEncoderIndex) == NULL)
       {
         request->send(404);
         return;
@@ -444,7 +445,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
 
       StaticJsonDocument<rotaryEncoderObjectSize> doc;
       JsonObject root = doc.to<JsonObject>();
-      this->populateRotaryEncoderDetailsToJsonObject(root, this->_stepperMotorServer->getConfiguredRotaryEncoder(rotaryEncoderIndex), rotaryEncoderIndex);
+      this->populateRotaryEncoderDetailsToJsonObject(root, this->_stepperMotorServer->getCurrentServerConfiguration()->getRotaryEncoder(rotaryEncoderIndex), rotaryEncoderIndex);
       serializeJson(root, output);
 
       if (this->logger->getLogLevel() >= ESPServerLogLevel_DEBUG)
@@ -461,10 +462,10 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       JsonArray encoders = root.createNestedArray("rotaryEncoders");
       for (int i = 0; i < ESPServerMaxRotaryEncoders; i++)
       {
-        if (this->_stepperMotorServer->getConfiguredRotaryEncoder(i) != NULL)
+        if (this->_stepperMotorServer->getCurrentServerConfiguration()->getRotaryEncoder(i) != NULL)
         {
           JsonObject encoderDetails = encoders.createNestedObject();
-          this->populateRotaryEncoderDetailsToJsonObject(encoderDetails, this->_stepperMotorServer->getConfiguredRotaryEncoder(i), i);
+          this->populateRotaryEncoderDetailsToJsonObject(encoderDetails, this->_stepperMotorServer->getCurrentServerConfiguration()->getRotaryEncoder(i), i);
         }
       }
       serializeJson(root, output);
@@ -682,7 +683,7 @@ int ESPStepperMotorServer_RestAPI::handleDeleteStepperRequest(AsyncWebServerRequ
   if (request->hasParam("id"))
   {
     int stepperIndex = request->getParam(0)->value().toInt();
-    if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->_stepperMotorServer->getConfiguredStepper(stepperIndex) != NULL)
+    if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex) != NULL)
     {
       this->_stepperMotorServer->removeStepper(stepperIndex);
       if (sendReponse)
@@ -776,7 +777,7 @@ int ESPStepperMotorServer_RestAPI::handleDeleteRotaryEncoderRequest(AsyncWebServ
   if (request->hasParam("id"))
   {
     int encoderIndex = request->getParam(0)->value().toInt();
-    if (this->_stepperMotorServer->getConfiguredRotaryEncoder(encoderIndex) != NULL)
+    if (this->_stepperMotorServer->getCurrentServerConfiguration()->getRotaryEncoder(encoderIndex) != NULL)
     {
       this->_stepperMotorServer->removeRotaryEncoder(encoderIndex);
       if (sendReponse)
@@ -798,7 +799,7 @@ int ESPStepperMotorServer_RestAPI::handleDeleteSwitchRequest(AsyncWebServerReque
   if (request->hasParam("id"))
   {
     int switchIndex = request->getParam(0)->value().toInt();
-    if (this->_stepperMotorServer->getConfiguredSwitch(switchIndex))
+    if (this->_stepperMotorServer->getCurrentServerConfiguration()->getSwitch(switchIndex))
     {
       this->_stepperMotorServer->removePositionSwitch(switchIndex);
       if (sendReponse)
@@ -853,7 +854,7 @@ void ESPStepperMotorServer_RestAPI::handlePostSwitchRequest(AsyncWebServerReques
           }
         }
         
-        if (stepperConfigIndex > -1 && this->_stepperMotorServer->getConfiguredStepper(stepperConfigIndex) == NULL)
+        if (stepperConfigIndex > -1 && this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperConfigIndex) == NULL)
         {
           request->send(404, "application/json", "{\"error\": \"The given stepper id is invalid\"}");
           return;

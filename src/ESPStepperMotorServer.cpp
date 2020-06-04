@@ -660,49 +660,6 @@ void ESPStepperMotorServer::getServerStatusAsJsonString(String &statusString)
 // ---------------------------------------------------------------------------------
 //             helper functions for stepper communication
 // ---------------------------------------------------------------------------------
-
-/**
- * check if the stepper confoguration exists for the given id/index and if so, return the pointer to the ESPStepperMotorServer_StepperConfiguration instance.
- * returns NULL if not stepper is configured at the given index or if the index is outside the valid range
- */
-ESPStepperMotorServer_StepperConfiguration *ESPStepperMotorServer::getConfiguredStepper(byte index)
-{
-  if (index < 0 || index >= ESPServerMaxSteppers)
-  {
-    ESPStepperMotorServer_Logger::logWarningf("index %i for requested stepper configuration is outside of the allowed range. It must be between 0 and %i. Null will be returned\n", index, ESPServerMaxSteppers);
-    return NULL;
-  }
-  return this->serverConfiguration->getStepperConfiguration(index);
-}
-
-/**
- * check if the switch exists for the given id/index and if so, return the pointer to the ESPStepperMotorServer_PositionSwitch instance.
- * returns NULL if not switch is configured at the given index or if the index is outside the valid range
- */
-ESPStepperMotorServer_PositionSwitch *ESPStepperMotorServer::getConfiguredSwitch(byte index)
-{
-  if (index < 0 || index >= ESPServerMaxSwitches)
-  {
-    ESPStepperMotorServer_Logger::logWarningf("index %i for requested switch is outside of the allowed range. It must be between 0 and %i. Null will be returned\n", index, ESPServerMaxSwitches);
-    return NULL;
-  }
-  return this->serverConfiguration->getSwitch(index);
-}
-
-/**
- * check if the rotary encoder configuration exists for the given id/index and if so, return the pointer to the ESPStepperMotorServer_RotaryEncoder instance.
- * returns NULL if not encoder is configured at the given index or if the index is outside the valid range
- */
-ESPStepperMotorServer_RotaryEncoder *ESPStepperMotorServer::getConfiguredRotaryEncoder(byte index)
-{
-  if (index < 0 || index >= ESPServerMaxRotaryEncoders)
-  {
-    ESPStepperMotorServer_Logger::logWarningf("index %i for requested encoder is outside of the allowed range, must be between 0 and %i. Null will be returned\n", index, ESPServerMaxRotaryEncoders);
-    return NULL;
-  }
-  return this->serverConfiguration->getRotaryEncoder(index);
-}
-
 bool ESPStepperMotorServer::isIoPinUsed(int pinToCheck)
 {
   //TODO move to server configuration class
