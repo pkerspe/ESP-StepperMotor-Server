@@ -42,7 +42,8 @@ ESPStepperMotorServer_Configuration::ESPStepperMotorServer_Configuration(const c
 {
   this->_configFilePath = configFilePath;
   this->loadConfiguationFromSpiffs();
-  if(ESPStepperMotorServer_Logger::getLogLevel() >= ESPServerLogLevel_DEBUG){
+  if (ESPStepperMotorServer_Logger::getLogLevel() >= ESPServerLogLevel_DEBUG)
+  {
     this->printCurrentConfigurationAsJsonToSerial();
   }
 }
@@ -332,6 +333,7 @@ byte ESPStepperMotorServer_Configuration::addStepperConfiguration(ESPStepperMoto
     {
       stepperConfig->setId(id);
       this->configuredSteppers[id] = stepperConfig;
+      this->updateConfiguredFlexyStepperCache();
       return id;
     }
   }
@@ -384,6 +386,7 @@ void ESPStepperMotorServer_Configuration::setStepperConfiguration(ESPStepperMoto
     stepperConfig->setId(id);
     this->configuredSteppers[id] = stepperConfig;
   }
+  this->updateConfiguredFlexyStepperCache();
 }
 
 void ESPStepperMotorServer_Configuration::setSwitch(ESPStepperMotorServer_PositionSwitch *positionSwitch, byte id)
@@ -420,6 +423,30 @@ ESPStepperMotorServer_StepperConfiguration *ESPStepperMotorServer_Configuration:
     return NULL;
   }
   return this->configuredSteppers[id];
+}
+
+void ESPStepperMotorServer_Configuration::updateConfiguredFlexyStepperCache(){
+  byte flexyStepperCounter = 0;
+  ESPStepperMotorServer_StepperConfiguration *stepper;
+
+  //clear list first
+  for(byte i = 0 ; i < ESPServerMaxSteppers ; i++){
+    this->configuredFlexySteppers[i] = NULL;
+  }
+  
+  for(byte i = 0 ; i < ESPServerMaxSteppers ; i++)
+  {
+    stepper = this->getStepperConfiguration(i);
+    if(stepper){
+      this->configuredFlexySteppers[flexyStepperCounter] = stepper->getFlexyStepper();
+      flexyStepperCounter++;
+    }
+  }
+}
+
+ESP_FlexyStepper **ESPStepperMotorServer_Configuration::getConfiguredFlexySteppers()
+{
+  return this->configuredFlexySteppers;
 }
 
 ESPStepperMotorServer_PositionSwitch *ESPStepperMotorServer_Configuration::getSwitch(byte id)
@@ -466,6 +493,7 @@ void ESPStepperMotorServer_Configuration::removeStepperConfiguration(byte id)
   }
   //finally delete the stepper config itself
   this->configuredSteppers[id] = NULL;
+  this->updateConfiguredFlexyStepperCache();
 }
 
 void ESPStepperMotorServer_Configuration::removeSwitch(byte id)

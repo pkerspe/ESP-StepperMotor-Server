@@ -112,7 +112,8 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     if (request->hasParam("id"))
     {
       int stepperIndex = request->getParam("id")->value().toInt();
-      if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex) == NULL)
+      ESPStepperMotorServer_StepperConfiguration *stepper = this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex);
+      if (stepper == NULL)
       {
         request->send(404, "application/json", "{\"error\": \"No stepper configuration found for given id\"}");
         return;
@@ -122,7 +123,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
         float speed = request->getParam("speed")->value().toFloat();
         if (speed > 0)
         {
-          this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex)->getFlexyStepper()->setSpeedInStepsPerSecond(speed);
+          stepper->getFlexyStepper()->setSpeedInStepsPerSecond(speed);
         }
       }
       if (request->hasParam("accell"))
@@ -130,7 +131,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
         float accell = request->getParam("accell")->value().toFloat();
         if (accell > 0)
         {
-          this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex)->getFlexyStepper()->setAccelerationInStepsPerSecondPerSecond(accell);
+          stepper->getFlexyStepper()->setAccelerationInStepsPerSecondPerSecond(accell);
         }
       }
 
@@ -140,15 +141,15 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
         float distance = request->getParam("value")->value().toFloat();
         if (unit == "mm")
         {
-          this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex)->getFlexyStepper()->setTargetPositionRelativeInMillimeters(distance);
+          stepper->getFlexyStepper()->setTargetPositionRelativeInMillimeters(distance);
         }
         else if (unit == "revs")
         {
-          this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex)->getFlexyStepper()->setTargetPositionRelativeInRevolutions(distance);
+          stepper->getFlexyStepper()->setTargetPositionRelativeInRevolutions(distance);
         }
         else if (unit == "steps")
         {
-          this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex)->getFlexyStepper()->setTargetPositionRelativeInSteps(distance);
+          stepper->getFlexyStepper()->setTargetPositionRelativeInSteps(distance);
         }
         else
         {

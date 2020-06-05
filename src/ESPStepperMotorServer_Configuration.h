@@ -77,6 +77,7 @@ public:
   ESPStepperMotorServer_StepperConfiguration *getStepperConfiguration(byte id);
   ESPStepperMotorServer_PositionSwitch *getSwitch(byte id);
   ESPStepperMotorServer_RotaryEncoder *getRotaryEncoder(byte id);
+  ESP_FlexyStepper **getConfiguredFlexySteppers();
   int serverPort = DEFAULT_SERVER_PORT;
   int wifiMode = 1;
   const char *apName;
@@ -94,6 +95,12 @@ private:
   /**** the follwoing variables represent the in-memory configuration settings *******/
   // an array to hold all configured stepper configurations
   ESPStepperMotorServer_StepperConfiguration *configuredSteppers[ESPServerMaxSteppers] = {NULL};
+
+  // this is a shortcut/cache for all configured flexy stepper instances, yet it will not have the same indexes as the configuredSteppers, 
+  // but solely an array that is filled from the beginnnig without emtpy slots.
+  // it is used to have a quick access to configured flexy steppers in time critical functions
+  void updateConfiguredFlexyStepperCache(void);
+  ESP_FlexyStepper *configuredFlexySteppers[ESPServerMaxSteppers] = {NULL};
   // an array to hold all configured switches
   ESPStepperMotorServer_PositionSwitch *configuredPositionSwitches[ESPServerMaxSwitches] = {NULL};
   // an array to hold all configured rotary encoders

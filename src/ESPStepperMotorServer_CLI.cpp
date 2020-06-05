@@ -318,11 +318,11 @@ void ESPStepperMotorServer_CLI::cmdGetCurrentVelocity(char *cmd, char *args)
       if (stepper)
       {
         if (strcmp(unit, "mm") == 0)
-          Serial.printf("%i:%f mm/s\n", stepperid, config->getStepperConfiguration((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInMillimetersPerSecond());
+          Serial.printf("%i:%f mm/s\n", stepperid, stepper->getFlexyStepper()->getCurrentVelocityInMillimetersPerSecond());
         else if (strcmp(unit, "revs") == 0)
-          Serial.printf("%i:%f revs/s\n", stepperid, config->getStepperConfiguration((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInRevolutionsPerSecond());
+          Serial.printf("%i:%f revs/s\n", stepperid, stepper->getFlexyStepper()->getCurrentVelocityInRevolutionsPerSecond());
         else
-          Serial.printf("%i:%f steps/s\n", stepperid, config->getStepperConfiguration((byte)stepperid)->getFlexyStepper()->getCurrentVelocityInStepsPerSecond());
+          Serial.printf("%i:%f steps/s\n", stepperid, stepper->getFlexyStepper()->getCurrentVelocityInStepsPerSecond());
       }
     }
   }

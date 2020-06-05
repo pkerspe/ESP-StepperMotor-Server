@@ -1005,14 +1005,16 @@ void ESPStepperMotorServer::performEmergencyStop(int stepperId)
   else
   {
     //perform complete stop on all steppers
-    for (byte stepperIndex = 0; stepperIndex < ESPServerMaxSteppers; stepperIndex++)
+    ESP_FlexyStepper **configuredFlexySteppers = this->getCurrentServerConfiguration()->getConfiguredFlexySteppers();
+    for (byte i = 0; i < ESPServerMaxSteppers; i++)
     {
-      ESPStepperMotorServer_StepperConfiguration *stepper = this->serverConfiguration->getStepperConfiguration(stepperIndex);
-      if (stepper)
+      if (configuredFlexySteppers[i])
       {
-        ESP_FlexyStepper *flexyStepper = stepper->getFlexyStepper();
-        if (!flexyStepper->motionComplete())
-        flexyStepper->emergencyStop();
+        configuredFlexySteppers[i]->emergencyStop();
+      }
+      else
+      {
+        break;
       }
     }
   }
