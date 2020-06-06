@@ -82,7 +82,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
 
       StaticJsonDocument<docSize> doc;
       JsonObject root = doc.to<JsonObject>();
-      
+
       root["mm"] = stepper->getFlexyStepper()->getCurrentPositionInMillimeters();
       root["revs"] = stepper->getFlexyStepper()->getCurrentPositionInRevolutions();
       root["steps"] = stepper->getFlexyStepper()->getCurrentPositionInSteps();
@@ -591,17 +591,16 @@ void ESPStepperMotorServer_RestAPI::logDebugRequestUrl(AsyncWebServerRequest *re
 {
   if (this->logger->isDebugEnabled())
   {
-    this->logger->logDebug((String)request->methodToString() + " " + request->url() + ((request->params()) ? " with parameters: " : ""), false, false);
     int params = request->params();
+    this->logger->logDebug((String)request->methodToString() + " called" + request->url() + ((params > 0) ? " with parameters: " : ""), (params == 0), false);
     for (int i = 0; i < params; i++)
     {
       AsyncWebParameter *p = request->getParam(i);
       if (!p->isFile() && !p->isPost())
       {
-        this->logger->logDebug(p->name() + "=" + p->value() + ", ", false, true);
+        this->logger->logDebug(p->name() + "=" + p->value() + ((i < params - 1) ? ", " : ""), (i == params - 1), true);
       }
     }
-    this->logger->logDebug("called", true, true);
   }
 }
 
@@ -829,9 +828,10 @@ void ESPStepperMotorServer_RestAPI::handlePostSwitchRequest(AsyncWebServerReques
       byte switchType = doc["switchType"];
 
       //stepperConfigIndex can be -1 for emergency switch only
-      if(stepperConfigIndex == -1 && !(switchType & (1 << (SWITCHTYPE_EMERGENCY_STOP_SWITCH_BIT - 1)))){
+      if (stepperConfigIndex == -1 && !(switchType & (1 << (SWITCHTYPE_EMERGENCY_STOP_SWITCH_BIT - 1))))
+      {
         request->send(400, "application/json", "{\"error\": \"Invalid Stepper ID. Only emergency stop switches are allowed to have -1 as stepper configuration reference\"}");
-            return;
+        return;
       }
 
       if (ioPinNumber >= 0 && ioPinNumber <= ESPStepperHighestAllowedIoPin) //check valid pin range value
@@ -847,7 +847,7 @@ void ESPStepperMotorServer_RestAPI::handlePostSwitchRequest(AsyncWebServerReques
             return;
           }
         }
-        
+
         if (stepperConfigIndex > -1 && this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperConfigIndex) == NULL)
         {
           request->send(404, "application/json", "{\"error\": \"The given stepper id is invalid\"}");
