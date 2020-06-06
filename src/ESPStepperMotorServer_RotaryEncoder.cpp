@@ -195,7 +195,7 @@ byte ESPStepperMotorServer_RotaryEncoder::getStepperIndex()
     return this->_stepperIndex;
 }
 
-String ESPStepperMotorServer_RotaryEncoder::getDisplayName()
+const String ESPStepperMotorServer_RotaryEncoder::getDisplayName()
 {
     return this->_displayName;
 }

@@ -332,17 +332,10 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
     }
     else
     {
-      byte regStatus[ESPServerSwitchStatusRegisterCount];
-      this->_stepperMotorServer->getButtonStatusRegister(regStatus);
       String output = "{ status: ";
       for (int i = ESPServerSwitchStatusRegisterCount - 1; i >= 0; i--)
       {
-        String binary = String(regStatus[i], BIN);
-        for (int i = 0; i < 8 - binary.length(); i++)
-        {
-          output += "0";
-        }
-        output += binary;
+        this->_stepperMotorServer->getFormattedPositionSwitchStatusRegister(i, output);
       }
       request->send(200, "application/json", output + "}");
     }
@@ -598,17 +591,17 @@ void ESPStepperMotorServer_RestAPI::logDebugRequestUrl(AsyncWebServerRequest *re
 {
   if (this->logger->isDebugEnabled())
   {
-    this->logger->logDebug((String)request->methodToString() + " " + request->url() + ((request->params()) ? "?" : ""), false, false);
+    this->logger->logDebug((String)request->methodToString() + " " + request->url() + ((request->params()) ? " with parameters: " : ""), false, false);
     int params = request->params();
     for (int i = 0; i < params; i++)
     {
       AsyncWebParameter *p = request->getParam(i);
       if (!p->isFile() && !p->isPost())
       {
-        this->logger->logDebug(p->name() + "=" + p->value(), false, true);
+        this->logger->logDebug(p->name() + "=" + p->value() + ", ", false, true);
       }
     }
-    this->logger->logDebug(" called", true, true);
+    this->logger->logDebug("called", true, true);
   }
 }
 

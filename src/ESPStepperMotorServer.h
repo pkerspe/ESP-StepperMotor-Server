@@ -120,7 +120,6 @@ public:
   void start();
   void stop();
   byte getPositionSwitchStatus(int positionSwitchIndex);
-  void getButtonStatusRegister(byte buffer[ESPServerSwitchStatusRegisterCount]);
   void onWebSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
   String getIpAddress();
   ESPStepperMotorServer_Configuration *getCurrentServerConfiguration();
@@ -164,7 +163,11 @@ private:
 
   // ISR handling
   static void staticPositionSwitchISR();
-  void internalPositionSwitchISR();
+  static void staticEmergencySwitchISR();
+  static void staticLimitSwitchISR();
+  void internalSwitchISR(byte switchType);
+  void internalEmergencySwitchISR();
+
   static void staticRotaryEncoderISR();
   void internalRotaryEncoderISR();
 

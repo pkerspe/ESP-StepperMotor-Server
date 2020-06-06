@@ -43,6 +43,7 @@ public:
 
   bool isActiveHigh();
   bool isEmergencySwitch();
+  bool isLimitSwitch();
   bool isTypeBitSet(byte bitToCheck);
 
   long getSwitchPosition(void);

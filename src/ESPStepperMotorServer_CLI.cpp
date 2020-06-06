@@ -67,6 +67,7 @@ void ESPStepperMotorServer_CLI::start()
 void ESPStepperMotorServer_CLI::stop()
 {
   vTaskDelete(this->xHandle);
+  this->xHandle = NULL;
   ESPStepperMotorServer_Logger::logInfo("Command Line Interface stopped");
 }
 
@@ -327,6 +328,7 @@ void ESPStepperMotorServer_CLI::cmdGetCurrentVelocity(char *cmd, char *args)
     }
   }
 }
+
 void ESPStepperMotorServer_CLI::cmdGetPosition(char *cmd, char *args)
 {
   ESPStepperMotorServer_Configuration *config = this->serverRef->getCurrentServerConfiguration();
@@ -540,10 +542,13 @@ void ESPStepperMotorServer_CLI::getParameterValue(const char *args, const char *
       ESPStepperMotorServer_Logger::logDebugf("Found parameter '%s'\n", parameterName);
       if (strcmp(parameterName, parameterNameToGetValueFor) == 0)
       {
-        parameterValue = strtok_r(restKeyValuePair, this->_PARAM_VALUE_SEPRATOR, &restKeyValuePair);
-        ESPStepperMotorServer_Logger::logDebugf("Found matching parameter: %s with value %s\n", parameterName, parameterValue);
-        strcpy(result, parameterValue);
-        return;
+        if (restKeyValuePair && strcmp(restKeyValuePair, "") != 0)
+        {
+          parameterValue = strtok_r(restKeyValuePair, this->_PARAM_VALUE_SEPRATOR, &restKeyValuePair);
+          ESPStepperMotorServer_Logger::logDebugf("Found matching parameter: %s with value %s\n", parameterName, parameterValue);
+          strcpy(result, parameterValue);
+          return;
+        }
       }
       else
       {

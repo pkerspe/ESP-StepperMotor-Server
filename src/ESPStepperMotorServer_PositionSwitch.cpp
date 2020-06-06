@@ -102,6 +102,11 @@ bool ESPStepperMotorServer_PositionSwitch::isEmergencySwitch()
     return this->isTypeBitSet(SWITCHTYPE_EMERGENCY_STOP_SWITCH_BIT);
 }
 
+bool ESPStepperMotorServer_PositionSwitch::isLimitSwitch()
+{
+    return (this->isTypeBitSet(SWITCHTYPE_LIMITSWITCH_POS_BEGIN_BIT) || this->isTypeBitSet(SWITCHTYPE_LIMITSWITCH_POS_END_BIT));
+}
+
 bool ESPStepperMotorServer_PositionSwitch::isTypeBitSet(byte bitToCheck)
 {
     return this->_switchType & (1 << (bitToCheck - 1));

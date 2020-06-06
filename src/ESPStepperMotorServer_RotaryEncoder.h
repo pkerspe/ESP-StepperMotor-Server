@@ -98,7 +98,7 @@ public:
   /**
      * get the configured display name of the rotary encoder    
      */
-  String getDisplayName();
+  const String getDisplayName();
   /**
      * set the stepper motor id that should be linked to this rotary encoder
      */

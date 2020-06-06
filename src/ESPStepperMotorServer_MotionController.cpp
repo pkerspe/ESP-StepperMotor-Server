@@ -64,6 +64,7 @@ void ESPStepperMotorServer_MotionController::processMotionUpdates(void *paramete
   ESPStepperMotorServer_MotionController *ref = (ESPStepperMotorServer_MotionController *)parameter;
   ESPStepperMotorServer_Configuration *configuration = ref->serverRef->getCurrentServerConfiguration();
   ESP_FlexyStepper **configuredFlexySteppers = configuration->getConfiguredFlexySteppers();
+  bool emergencySwitchFlag = false;
   while (true)
   {
     for (byte i = 0; i < ESPServerMaxSteppers; i++)
@@ -76,6 +77,15 @@ void ESPStepperMotorServer_MotionController::processMotionUpdates(void *paramete
       {
         break;
       }
+    }
+    if (ref->serverRef->emergencySwitchIsActive && !emergencySwitchFlag)
+    {
+      emergencySwitchFlag = true;
+      ESPStepperMotorServer_Logger::logInfo("Emergency Switch triggered");
+    }
+    else if (!ref->serverRef->emergencySwitchIsActive && emergencySwitchFlag)
+    {
+      emergencySwitchFlag = false;
     }
   }
 }

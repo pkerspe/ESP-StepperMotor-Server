@@ -347,10 +347,11 @@ byte ESPStepperMotorServer_Configuration::addSwitch(ESPStepperMotorServer_Positi
   byte id = 0;
   for (id = 0; id < ESPServerMaxSwitches; id++)
   {
-    if (this->configuredPositionSwitches[id] == NULL)
+    if (this->allConfiguredSwitches[id] == NULL)
     {
       positionSwitch->setId(id);
-      this->configuredPositionSwitches[id] = positionSwitch;
+      this->allConfiguredSwitches[id] = positionSwitch;
+      this->updateSwitchCaches();
       return id;
     }
   }
@@ -398,7 +399,8 @@ void ESPStepperMotorServer_Configuration::setSwitch(ESPStepperMotorServer_Positi
   else
   {
     positionSwitch->setId(id);
-    this->configuredPositionSwitches[id] = positionSwitch;
+    this->allConfiguredSwitches[id] = positionSwitch;
+    this->updateSwitchCaches();
   }
 }
 
@@ -425,19 +427,24 @@ ESPStepperMotorServer_StepperConfiguration *ESPStepperMotorServer_Configuration:
   return this->configuredSteppers[id];
 }
 
-void ESPStepperMotorServer_Configuration::updateConfiguredFlexyStepperCache(){
+void ESPStepperMotorServer_Configuration::updateConfiguredFlexyStepperCache()
+{
   byte flexyStepperCounter = 0;
   ESPStepperMotorServer_StepperConfiguration *stepper;
 
   //clear list first
-  for(byte i = 0 ; i < ESPServerMaxSteppers ; i++){
+  for (byte i = 0; i < ESPServerMaxSteppers; i++)
+  {
+    //TODO: check if this delete call is appropriate, currently it casues kernel panic
+    //delete (this->configuredFlexySteppers[i]);
     this->configuredFlexySteppers[i] = NULL;
   }
-  
-  for(byte i = 0 ; i < ESPServerMaxSteppers ; i++)
+
+  for (byte i = 0; i < ESPServerMaxSteppers; i++)
   {
     stepper = this->getStepperConfiguration(i);
-    if(stepper){
+    if (stepper)
+    {
       this->configuredFlexySteppers[flexyStepperCounter] = stepper->getFlexyStepper();
       flexyStepperCounter++;
     }
@@ -456,7 +463,7 @@ ESPStepperMotorServer_PositionSwitch *ESPStepperMotorServer_Configuration::getSw
     ESPStepperMotorServer_Logger::logWarningf("Invalid switch config requested with id %i. Will retun NULL\n", id);
     return NULL;
   }
-  return this->configuredPositionSwitches[id];
+  return this->allConfiguredSwitches[id];
 }
 
 ESPStepperMotorServer_RotaryEncoder *ESPStepperMotorServer_Configuration::getRotaryEncoder(byte id)
@@ -492,16 +499,78 @@ void ESPStepperMotorServer_Configuration::removeStepperConfiguration(byte id)
     }
   }
   //finally delete the stepper config itself
+  //TODO: check if this delete call is appropriate, currently it casues kernel panic
+  //delete (this->configuredSteppers[id]);
   this->configuredSteppers[id] = NULL;
   this->updateConfiguredFlexyStepperCache();
 }
 
 void ESPStepperMotorServer_Configuration::removeSwitch(byte id)
 {
-  this->configuredPositionSwitches[id] = NULL;
+  //TODO: check if this delete call is appropriate, currently it casues kernel panic
+  //delete (this->allConfiguredSwitches[id]);
+  this->allConfiguredSwitches[id] = NULL;
+  this->updateSwitchCaches();
+}
+
+void ESPStepperMotorServer_Configuration::updateSwitchCaches()
+{
+  //build emergency switch cache
+  //reset it first
+  for (byte i = 0; i < ESPServerMaxSwitches; i++)
+  {
+    if (this->configuredEmergencySwitches[i] != NULL)
+    {
+      //TODO: check if this is appropriate, currently it casues kernel panic
+      //delete (this->configuredEmergencySwitches[i]);
+      this->configuredEmergencySwitches[i] = NULL;
+    }
+    else
+    {
+      break;
+    }
+  }
+  //now rebuild the emergency switch cache
+  byte cacheIndex = 0;
+  for (byte i = 0; i < ESPServerMaxSwitches; i++)
+  {
+    if (this->allConfiguredSwitches[i] && this->allConfiguredSwitches[i]->isEmergencySwitch())
+    {
+      this->configuredEmergencySwitches[cacheIndex] = this->allConfiguredSwitches[i];
+      cacheIndex++;
+    }
+  }
+
+  //build limit switch cache
+  //reset it first
+  for (byte i = 0; i < ESPServerMaxSwitches; i++)
+  {
+    if (this->configuredLimitSwitches[i])
+    {
+      //TODO: check if this delete call is appropriate, currently it casues kernel panic
+      //delete (this->configuredLimitSwitches[i]);
+      this->configuredLimitSwitches[i] = NULL;
+    }
+    else
+    {
+      break;
+    }
+  }
+  //now rebuild the limit switch cache
+  cacheIndex = 0;
+  for (byte i = 0; i < ESPServerMaxSwitches; i++)
+  {
+    if (this->allConfiguredSwitches[i] && this->allConfiguredSwitches[i]->isLimitSwitch())
+    {
+      this->configuredLimitSwitches[cacheIndex] = this->allConfiguredSwitches[i];
+      cacheIndex++;
+    }
+  }
 }
 
 void ESPStepperMotorServer_Configuration::removeRotaryEncoder(byte id)
 {
+  //TODO: check if this delete call is appropriate, currently it casues kernel panic
+  //delete (this->configuredRotaryEncoders[id]);
   this->configuredRotaryEncoders[id] = NULL;
 }

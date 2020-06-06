@@ -238,7 +238,7 @@ void ESPStepperMotorServer::removeStepper(byte id)
   }
   else
   {
-    ESPStepperMotorServer_Logger::logWarningf("stepper configuration index %i is invalid, no entry present at this configuration index or stepper IDs do not match, removeStepper() canceled", id);
+    ESPStepperMotorServer_Logger::logWarningf("Stepper configuration index %i is invalid, no entry found or stepper IDs do not match, removeStepper() canceled", id);
   }
 }
 
@@ -255,7 +255,7 @@ int ESPStepperMotorServer::addOrUpdatePositionSwitch(ESPStepperMotorServer_Posit
   //Setup IO Pin
   this->setupPositionSwitchIOPin(posSwitchToAdd);
 
-  ESPStepperMotorServer_Logger::logInfof("added position switch %s for IO pin %i at configuration index %i\n", this->serverConfiguration->getSwitch(switchIndex)->getPositionName().c_str(), this->serverConfiguration->getSwitch(switchIndex)->getIoPinNumber(), switchIndex);
+  ESPStepperMotorServer_Logger::logInfof("Added switch '%s' for IO pin %i at configuration index %i\n", this->serverConfiguration->getSwitch(switchIndex)->getPositionName().c_str(), this->serverConfiguration->getSwitch(switchIndex)->getIoPinNumber(), switchIndex);
   return switchIndex;
 }
 
@@ -265,12 +265,12 @@ void ESPStepperMotorServer::removePositionSwitch(int positionSwitchIndex)
   if (posSwitch)
   {
     this->detachInterruptForPositionSwitch(posSwitch);
-    ESPStepperMotorServer_Logger::logDebugf("removing position switch %s (idx: %i) from configured position switches\n", posSwitch->getPositionName().c_str(), positionSwitchIndex);
+    ESPStepperMotorServer_Logger::logDebugf("Removing position switch '%s' (id: %i) from configured switches\n", posSwitch->getPositionName().c_str(), positionSwitchIndex);
     this->serverConfiguration->removeSwitch(positionSwitchIndex);
   }
   else
   {
-    ESPStepperMotorServer_Logger::logWarning("position switch index %i is invalid, no position switch present at this configuration index, removePositionSwitch() canceled\n", positionSwitchIndex);
+    ESPStepperMotorServer_Logger::logWarning("Switch index %i is invalid, no switch configuration present at this index, removePositionSwitch() canceled\n", positionSwitchIndex);
   }
 }
 
@@ -290,18 +290,6 @@ void ESPStepperMotorServer::removeRotaryEncoder(byte id)
 // ---------------------------------------------------------------------------------
 //                                  Status and Service Functions
 // ---------------------------------------------------------------------------------
-
-/**
- * get the status register value for all configured buttons
- * expects an array as buffer that will be filled with the current status registry values
- */
-void ESPStepperMotorServer::getButtonStatusRegister(byte buffer[ESPServerSwitchStatusRegisterCount])
-{
-  for (int i = 0; i < ESPServerSwitchStatusRegisterCount; i++)
-  {
-    buffer[i] = this->buttonStatus[i];
-  }
-}
 
 void ESPStepperMotorServer::getFormattedPositionSwitchStatusRegister(byte registerIndex, String &output)
 {
@@ -388,13 +376,10 @@ void ESPStepperMotorServer::printPositionSwitchStatus()
  */
 byte ESPStepperMotorServer::getPositionSwitchStatus(int positionSwitchIndex)
 {
-  byte buttonRegisterIndex = (byte)(ceil)((positionSwitchIndex + 1) / 8);
   ESPStepperMotorServer_PositionSwitch *posSwitch = this->serverConfiguration->getSwitch(positionSwitchIndex);
   if (posSwitch)
   {
-    byte bitVal = (1 << positionSwitchIndex % 8);
-    byte buttonState = ((this->buttonStatus[buttonRegisterIndex] & bitVal) == bitVal);
-
+    byte buttonState = digitalRead(posSwitch->getIoPinNumber());
     if ((posSwitch->getSwitchType() & ESPServerSwitchType_ActiveHigh) == ESPServerSwitchType_ActiveHigh)
     {
       return (buttonState) ? 1 : 0;
@@ -847,7 +832,7 @@ void ESPStepperMotorServer::setupPositionSwitchIOPin(ESPStepperMotorServer_Posit
   {
     if (posSwitch->getSwitchType() & ESPServerSwitchType_ActiveHigh)
     {
-      ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as input for active high switch %s (%i)\n", posSwitch->getIoPinNumber(), posSwitch->getPositionName(), posSwitch->getId());
+      ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as input for active high switch %s (%i)\n", posSwitch->getIoPinNumber(), posSwitch->getPositionName().c_str(), posSwitch->getId());
       pinMode(posSwitch->getIoPinNumber(), INPUT);
     }
     else
@@ -856,7 +841,7 @@ void ESPStepperMotorServer::setupPositionSwitchIOPin(ESPStepperMotorServer_Posit
       {
         ESPStepperMotorServer_Logger::logWarningf("The configured IO pin %i cannot be used for active low switches unless an external pull up resistor is in place. The ESP does not provide internal pullups on this IO pin. Make sure you have a pull up resistor in place for the switch %s (%i)", posSwitch->getIoPinNumber(), posSwitch->getPositionName(), posSwitch->getId());
       }
-      ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as input with pullup for active low switch %s (%i)\n", posSwitch->getIoPinNumber(), posSwitch->getPositionName(), posSwitch->getId());
+      ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as input with pullup for active low switch '%s' (%i)\n", posSwitch->getIoPinNumber(), posSwitch->getPositionName().c_str(), posSwitch->getId());
       pinMode(posSwitch->getIoPinNumber(), INPUT_PULLUP);
     }
   }
@@ -865,9 +850,9 @@ void ESPStepperMotorServer::setupPositionSwitchIOPin(ESPStepperMotorServer_Posit
 void ESPStepperMotorServer::setupRotaryEncoderIOPin(ESPStepperMotorServer_RotaryEncoder *rotaryEncoder)
 {
   //set Pins for encoder
-  ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as Pin A input for active high rotary encoder %s (%i)\n", rotaryEncoder->getPinAIOPin(), rotaryEncoder->getDisplayName(), rotaryEncoder->getId());
+  ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as Pin A input for active high rotary encoder %s (%i)\n", rotaryEncoder->getPinAIOPin(), rotaryEncoder->getDisplayName().c_str(), rotaryEncoder->getId());
   pinMode(rotaryEncoder->getPinAIOPin(), INPUT);
-  ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as Pin B input for active high rotary encoder %s (%i)\n", rotaryEncoder->getPinBIOPin(), rotaryEncoder->getDisplayName(), rotaryEncoder->getId());
+  ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as Pin B input for active high rotary encoder %s (%i)\n", rotaryEncoder->getPinBIOPin(), rotaryEncoder->getDisplayName().c_str(), rotaryEncoder->getId());
   pinMode(rotaryEncoder->getPinBIOPin(), INPUT);
 }
 
@@ -911,9 +896,28 @@ void ESPStepperMotorServer::attachAllInterrupts()
       {
         ESPStepperMotorServer_Logger::logWarningf("Failed to determine IRQ# for given IO pin %i, thus setting up of interrupt for the position switch '%s' failed\n", posSwitch->getIoPinNumber(), posSwitch->getPositionName().c_str());
       }
-      ESPStepperMotorServer_Logger::logDebugf("Attaching interrupt service routine for position switch '%s' on IO pin %i\n", posSwitch->getPositionName().c_str(), posSwitch->getIoPinNumber());
-      _BV(irqNum); // clear potentially pending interrupts
-      attachInterrupt(irqNum, staticPositionSwitchISR, CHANGE);
+      else
+      {
+        _BV(irqNum); // clear potentially pending interrupts
+        //register emergency stop switches
+        if (posSwitch->isEmergencySwitch())
+        {
+          //ESPStepperMotorServer_Logger::logDebugf("Attaching interrupt service routine for emergency stop switch '%s' on IO pin %i\n", posSwitch->getPositionName().c_str(), posSwitch->getIoPinNumber());
+          attachInterrupt(irqNum, staticEmergencySwitchISR, CHANGE);
+        }
+        //register limit switches
+        else if (posSwitch->isLimitSwitch())
+        {
+          //ESPStepperMotorServer_Logger::logDebugf("Attaching interrupt service routine for limit switch '%s' on IO pin %i\n", posSwitch->getPositionName().c_str(), posSwitch->getIoPinNumber());
+          attachInterrupt(irqNum, staticLimitSwitchISR, CHANGE);
+        }
+        //register general position switches & others
+        else
+        {
+          //ESPStepperMotorServer_Logger::logDebugf("Attaching interrupt service routine for general position switch '%s' on IO pin %i\n", posSwitch->getPositionName().c_str(), posSwitch->getIoPinNumber());
+          attachInterrupt(irqNum, staticPositionSwitchISR, CHANGE);
+        }
+      }
     }
   }
 
@@ -932,7 +936,7 @@ void ESPStepperMotorServer::attachAllInterrupts()
           ESPStepperMotorServer_Logger::logWarningf("Failed to determine IRQ# for given IO pin %i, thus setting up of interrupt for the rotary encoder failed for pin %s\n", pins[i], rotaryEncoder->getDisplayName().c_str());
         }
 
-        ESPStepperMotorServer_Logger::logDebugf("attaching interrupt service routine for rotary encoder '%s' on IO pin %i\n", rotaryEncoder->getDisplayName().c_str(), pins[i]);
+        //ESPStepperMotorServer_Logger::logDebugf("attaching interrupt service routine for rotary encoder '%s' on IO pin %i\n", rotaryEncoder->getDisplayName().c_str(), pins[i]);
         _BV(irqNum); // clear potentially pending interrupts
         attachInterrupt(irqNum, staticRotaryEncoderISR, CHANGE);
       }
@@ -999,13 +1003,15 @@ void ESPStepperMotorServer::performEmergencyStop(int stepperId)
   if (stepperId > -1)
   {
     ESPStepperMotorServer_StepperConfiguration *stepper = this->serverConfiguration->getStepperConfiguration(stepperId);
-    ESP_FlexyStepper *flexyStepper = stepper->getFlexyStepper();
-    flexyStepper->emergencyStop();
+    if (stepper)
+    {
+      stepper->getFlexyStepper()->emergencyStop();
+    }
   }
   else
   {
     //perform complete stop on all steppers
-    ESP_FlexyStepper **configuredFlexySteppers = this->getCurrentServerConfiguration()->getConfiguredFlexySteppers();
+    ESP_FlexyStepper **configuredFlexySteppers = this->serverConfiguration->getConfiguredFlexySteppers();
     for (byte i = 0; i < ESPServerMaxSteppers; i++)
     {
       if (configuredFlexySteppers[i])
@@ -1027,7 +1033,17 @@ void ESPStepperMotorServer::revokeEmergencyStop()
 
 void IRAM_ATTR ESPStepperMotorServer::staticPositionSwitchISR()
 {
-  anchor->internalPositionSwitchISR();
+  anchor->internalSwitchISR(SWITCHTYPE_POSITION_SWITCH_BIT);
+}
+
+void IRAM_ATTR ESPStepperMotorServer::staticEmergencySwitchISR()
+{
+  anchor->internalEmergencySwitchISR();
+}
+
+void IRAM_ATTR ESPStepperMotorServer::staticLimitSwitchISR()
+{
+  anchor->internalSwitchISR(SWITCHTYPE_LIMITSWITCH_POS_BEGIN_BIT);
 }
 
 void IRAM_ATTR ESPStepperMotorServer::staticRotaryEncoderISR()
@@ -1035,7 +1051,31 @@ void IRAM_ATTR ESPStepperMotorServer::staticRotaryEncoderISR()
   anchor->internalRotaryEncoderISR();
 }
 
-void IRAM_ATTR ESPStepperMotorServer::internalPositionSwitchISR()
+void IRAM_ATTR ESPStepperMotorServer::internalEmergencySwitchISR()
+{
+  ESPStepperMotorServer_PositionSwitch *switchConfig;
+  for (byte i = 0; i < ESPServerMaxSwitches; i++)
+  {
+    switchConfig = this->serverConfiguration->configuredEmergencySwitches[i];
+    if (switchConfig != NULL)
+    {
+      byte pinState = digitalRead(switchConfig->getIoPinNumber());
+      bool switchIsActive = ((pinState && switchConfig->isActiveHigh()) || (!pinState && !switchConfig->isActiveHigh()));
+      this->emergencySwitchIsActive = switchIsActive; //this flag will be read in the motion controller task frequently
+      if (switchIsActive)
+        this->performEmergencyStop(switchConfig->getStepperIndex());
+    }
+    else
+      break;
+  }
+}
+
+/**
+ * ISR for general switch interrupts
+ * NOTE: this ISR is not called for emergency switches (since fastest possible processing time is required and we need to avoid all these loops).
+ * Look at internalEmergencySwitchISR() instead for emergency switch handling
+ */
+void IRAM_ATTR ESPStepperMotorServer::internalSwitchISR(byte switchType)
 {
   byte registerIndex = 0;
   byte pinNumber = 0;
@@ -1054,18 +1094,6 @@ void IRAM_ATTR ESPStepperMotorServer::internalPositionSwitchISR()
       {
         //PIN STATE IS HIGH
         bitSet(this->buttonStatus[registerIndex], switchIndex % 8);
-        if (switchConfig->isEmergencySwitch())
-        {
-          if (switchConfig->isActiveHigh())
-          {
-            this->emergencySwitchIsActive = true; //this flag will be read in the motion controller task frequently
-            this->performEmergencyStop();
-          }
-          else
-          {
-            this->emergencySwitchIsActive = false; //clear emergency status
-          }
-        }
       }
       else
       {
@@ -1073,18 +1101,6 @@ void IRAM_ATTR ESPStepperMotorServer::internalPositionSwitchISR()
           ESPStepperMotorServer_Logger::logDebugf("ISR: IO Pin %i has gone low (%s state). Is emergency switch = %i\n", pinNumber, (!switchConfig->isActiveHigh()) ? "triggered" : "released", switchConfig->isEmergencySwitch());
         //PIN STATE IS LOW
         bitClear(this->buttonStatus[registerIndex], switchIndex % 8);
-        if (switchConfig->isEmergencySwitch())
-        {
-          if (!switchConfig->isActiveHigh())
-          {
-            this->emergencySwitchIsActive = true; //this flag will be read in the motion controller task frequently
-            this->performEmergencyStop();
-          }
-          else
-          {
-            this->emergencySwitchIsActive = false; //clear emergency status
-          }
-        }
       }
     }
   }

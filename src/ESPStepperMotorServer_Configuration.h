@@ -57,13 +57,13 @@
 class ESPStepperMotorServer_Configuration
 {
 public:
-  ESPStepperMotorServer_Configuration(const char* configFilePath);
+  ESPStepperMotorServer_Configuration(const char *configFilePath);
   String getCurrentConfigurationAsJSONString(bool prettyPrint = true);
   unsigned int calculateRequiredJsonDocumentSizeForCurrentConfiguration();
   void printCurrentConfigurationAsJsonToSerial();
   bool saveCurrentConfiguationToSpiffs(String filename = "");
   bool loadConfiguationFromSpiffs(String filename = "");
-  void serializeServerConfiguration(JsonDocument& doc);
+  void serializeServerConfiguration(JsonDocument &doc);
 
   byte addStepperConfiguration(ESPStepperMotorServer_StepperConfiguration *stepperConfig);
   byte addSwitch(ESPStepperMotorServer_PositionSwitch *positionSwitch);
@@ -84,25 +84,30 @@ public:
   const char *apPassword;
   const char *wifiSsid;
   const char *wifiPassword;
+  //this "cache" should not be private since we need to use it in the ISRs and any getter to retrieve it would slow down processing
+  ESPStepperMotorServer_PositionSwitch *configuredEmergencySwitches[ESPServerMaxSwitches] = {NULL};
 
 private:
   //
   // private member variables
   //
   boolean isCurrentConfigurationSaved = false;
-  const char* _configFilePath;
+  const char *_configFilePath;
 
   /**** the follwoing variables represent the in-memory configuration settings *******/
   // an array to hold all configured stepper configurations
   ESPStepperMotorServer_StepperConfiguration *configuredSteppers[ESPServerMaxSteppers] = {NULL};
 
-  // this is a shortcut/cache for all configured flexy stepper instances, yet it will not have the same indexes as the configuredSteppers, 
+  // this is a shortcut/cache for all configured flexy stepper instances, yet it will not have the same indexes as the configuredSteppers,
   // but solely an array that is filled from the beginnnig without emtpy slots.
   // it is used to have a quick access to configured flexy steppers in time critical functions
   void updateConfiguredFlexyStepperCache(void);
   ESP_FlexyStepper *configuredFlexySteppers[ESPServerMaxSteppers] = {NULL};
   // an array to hold all configured switches
-  ESPStepperMotorServer_PositionSwitch *configuredPositionSwitches[ESPServerMaxSwitches] = {NULL};
+  ESPStepperMotorServer_PositionSwitch *allConfiguredSwitches[ESPServerMaxSwitches] = {NULL};
+  // update the caches for emergency and limit switches
+  void updateSwitchCaches();
+  ESPStepperMotorServer_PositionSwitch *configuredLimitSwitches[ESPServerMaxSwitches] = {NULL};
   // an array to hold all configured rotary encoders
   ESPStepperMotorServer_RotaryEncoder *configuredRotaryEncoders[ESPServerMaxRotaryEncoders] = {NULL};
 
