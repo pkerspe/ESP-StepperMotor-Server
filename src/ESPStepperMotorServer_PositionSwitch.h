@@ -12,6 +12,7 @@
 #define SWITCHTYPE_LIMITSWITCH_POS_END_BIT 4
 #define SWITCHTYPE_POSITION_SWITCH_BIT 5
 #define SWITCHTYPE_EMERGENCY_STOP_SWITCH_BIT 6
+#define SWITCHTYPE_LIMITSWITCH_COMBINED_BEGIN_END_BIT 7
 
 //size calculated using https://arduinojson.org/v6/assistant/
 #define RESERVED_JSON_SIZE_ESPStepperMotorServer_PositionSwitch 170
