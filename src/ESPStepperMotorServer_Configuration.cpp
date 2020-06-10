@@ -417,9 +417,9 @@ void ESPStepperMotorServer_Configuration::setRotaryEncoder(ESPStepperMotorServer
   }
 }
 
-ESPStepperMotorServer_StepperConfiguration *ESPStepperMotorServer_Configuration::getStepperConfiguration(byte id)
+ESPStepperMotorServer_StepperConfiguration *ESPStepperMotorServer_Configuration::getStepperConfiguration(unsigned char id)
 {
-  if (id < 0 || id > ESPServerMaxSteppers)
+  if (id >= ESPServerMaxSteppers)
   {
     ESPStepperMotorServer_Logger::logWarningf("Invalid stepper config requested with id %i. Will retun NULL\n", id);
     return NULL;
@@ -466,9 +466,9 @@ ESPStepperMotorServer_PositionSwitch *ESPStepperMotorServer_Configuration::getSw
   return this->allConfiguredSwitches[id];
 }
 
-ESPStepperMotorServer_RotaryEncoder *ESPStepperMotorServer_Configuration::getRotaryEncoder(byte id)
+ESPStepperMotorServer_RotaryEncoder *ESPStepperMotorServer_Configuration::getRotaryEncoder(unsigned char id)
 {
-  if (id < 0 || id > ESPServerMaxRotaryEncoders)
+  if (id >= ESPServerMaxRotaryEncoders)
   {
     ESPStepperMotorServer_Logger::logWarningf("Invalid rotary encoder config requested with id %i. Will retun NULL\n", id);
     return NULL;

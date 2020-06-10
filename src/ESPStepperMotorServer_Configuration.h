@@ -56,6 +56,8 @@
 // the ESPStepperMotorServer_Configuration class
 class ESPStepperMotorServer_Configuration
 {
+  friend class ESPStepperMotorServer;
+
 public:
   ESPStepperMotorServer_Configuration(const char *configFilePath);
   String getCurrentConfigurationAsJSONString(bool prettyPrint = true);
@@ -74,9 +76,9 @@ public:
   void removeStepperConfiguration(byte id);
   void removeSwitch(byte id);
   void removeRotaryEncoder(byte id);
-  ESPStepperMotorServer_StepperConfiguration *getStepperConfiguration(byte id);
+  ESPStepperMotorServer_StepperConfiguration *getStepperConfiguration(unsigned char id);
   ESPStepperMotorServer_PositionSwitch *getSwitch(byte id);
-  ESPStepperMotorServer_RotaryEncoder *getRotaryEncoder(byte id);
+  ESPStepperMotorServer_RotaryEncoder *getRotaryEncoder(unsigned char id);
   ESP_FlexyStepper **getConfiguredFlexySteppers();
   // a cache containing all IO pins that are used by switches. The indexes matches the indexes in the configuredSwitches (=switch ID)
   // -1 is used to indicate an emtpy array slot

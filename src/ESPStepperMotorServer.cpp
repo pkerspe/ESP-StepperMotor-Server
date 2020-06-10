@@ -1184,29 +1184,33 @@ void IRAM_ATTR ESPStepperMotorServer::internalSwitchISR(byte switchType)
   }
 }
 
+/**
+ * the ISR to handle rotary encoder related pin interrupts and trigger the stepper position change
+ */
 void IRAM_ATTR ESPStepperMotorServer::internalRotaryEncoderISR()
 {
+  ESPStepperMotorServer_Configuration *configuration = this->serverConfiguration; 
   for (int i = 0; i < ESPServerMaxRotaryEncoders; i++)
   {
-    ESPStepperMotorServer_RotaryEncoder *rotaryEncoder = this->serverConfiguration->getRotaryEncoder(i);
+    ESPStepperMotorServer_RotaryEncoder *rotaryEncoder = configuration->configuredRotaryEncoders[i];
     if (rotaryEncoder != NULL)
     {
       unsigned char result = rotaryEncoder->process();
-      ESPStepperMotorServer_StepperConfiguration *stepperConfig = this->serverConfiguration->getStepperConfiguration(rotaryEncoder->getStepperIndex());
+      ESPStepperMotorServer_StepperConfiguration *stepperConfig = configuration->configuredSteppers[rotaryEncoder->_stepperIndex];
       if (stepperConfig)
       {
         if (result == DIR_CW)
         {
-          stepperConfig->getFlexyStepper()->setTargetPositionRelativeInSteps(1 * rotaryEncoder->getStepMultiplier());
+          stepperConfig->_flexyStepper->setTargetPositionRelativeInSteps(1 * rotaryEncoder->_stepMultiplier);
         }
         else if (result == DIR_CCW)
         {
-          stepperConfig->getFlexyStepper()->setTargetPositionRelativeInSteps(-1 * rotaryEncoder->getStepMultiplier());
+          stepperConfig->_flexyStepper->setTargetPositionRelativeInSteps(-1 * rotaryEncoder->_stepMultiplier);
         }
       }
       else
       {
-        ESPStepperMotorServer_Logger::logWarningf("Invalid (non config found) stepper server id %i in rotary encoder config with id %i.", rotaryEncoder->getStepperIndex(), i);
+        ESPStepperMotorServer_Logger::logWarningf("Invalid (non config found) stepper server id %i in rotary encoder config with id %i.", rotaryEncoder->_stepperIndex, i);
       }
     }
   }

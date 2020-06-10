@@ -138,8 +138,6 @@ public:
   int wifiClientConnectionTimeoutSeconds = 25;
   // a boolean indicating if a position switch that has been configure as emegrency switch, has been triggered
   volatile boolean emergencySwitchIsActive = false;
-  void internalSwitchISR(byte switchType);
-
 
 private:
   void scanWifiNetworks();
@@ -166,12 +164,12 @@ private:
   static void staticPositionSwitchISR();
   static void staticEmergencySwitchISR();
   static void staticLimitSwitchISR();
+  static void staticRotaryEncoderISR();
 
   void internalEmergencySwitchISR();
-
-  static void staticRotaryEncoderISR();
+  void internalSwitchISR(byte switchType);
   void internalRotaryEncoderISR();
-
+  
   //
   // private member variables
   //
