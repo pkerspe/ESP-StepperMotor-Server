@@ -775,12 +775,13 @@ void ESPStepperMotorServer::connectToWifiNetwork()
 
   ESPStepperMotorServer_Logger::logInfof("Trying to connect to WiFi with SSID '%s' ...", this->wifiClientSsid);
   WiFi.begin(this->wifiClientSsid, this->wifiPassword);
-  int timeoutCounter = this->wifiClientConnectionTimeoutSeconds * 2;
+  int retryIntervalMs = 500;
+  int timeoutCounter = this->wifiClientConnectionTimeoutSeconds * (1000 / retryIntervalMs);
   while (WiFi.status() != WL_CONNECTED && timeoutCounter > 0)
   {
-    delay(500); //Do not change this value unless also changing the formula in the declaration of the timeoutCounter integer above
+    delay(retryIntervalMs);
     ESPStepperMotorServer_Logger::logInfo(".", false, true);
-    if (timeoutCounter == (this->wifiClientConnectionTimeoutSeconds + 15))
+    if (timeoutCounter == (this->wifiClientConnectionTimeoutSeconds * 2 - 3))
     {
       WiFi.reconnect();
     }
@@ -830,7 +831,7 @@ void ESPStepperMotorServer::setupPositionSwitchIOPin(ESPStepperMotorServer_Posit
 {
   if (posSwitch)
   {
-    if (posSwitch->getSwitchType() & ESPServerSwitchType_ActiveHigh)
+    if (posSwitch->isActiveHigh())
     {
       ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as input for active high switch '%s' (%i)\n", posSwitch->getIoPinNumber(), posSwitch->getPositionName().c_str(), posSwitch->getId());
       pinMode(posSwitch->getIoPinNumber(), INPUT);
@@ -879,6 +880,8 @@ void ESPStepperMotorServer::setupAllIOPins()
       this->setupRotaryEncoderIOPin(encoderConfig);
     }
   }
+
+  this->updateSwitchStatusRegister();
 }
 
 /**
@@ -902,19 +905,19 @@ void ESPStepperMotorServer::attachAllInterrupts()
         //register emergency stop switches
         if (posSwitch->isEmergencySwitch())
         {
-          //ESPStepperMotorServer_Logger::logDebugf("Attaching interrupt service routine for emergency stop switch '%s' on IO pin %i\n", posSwitch->getPositionName().c_str(), posSwitch->getIoPinNumber());
+          ESPStepperMotorServer_Logger::logDebugf("Attaching interrupt service routine for emergency stop switch '%s' on IO pin %i\n", posSwitch->getPositionName().c_str(), posSwitch->getIoPinNumber());
           attachInterrupt(irqNum, staticEmergencySwitchISR, CHANGE);
         }
         //register limit switches
         else if (posSwitch->isLimitSwitch())
         {
-          //ESPStepperMotorServer_Logger::logDebugf("Attaching interrupt service routine for limit switch '%s' on IO pin %i\n", posSwitch->getPositionName().c_str(), posSwitch->getIoPinNumber());
+          ESPStepperMotorServer_Logger::logDebugf("Attaching interrupt service routine for limit switch '%s' on IO pin %i\n", posSwitch->getPositionName().c_str(), posSwitch->getIoPinNumber());
           attachInterrupt(irqNum, staticLimitSwitchISR, CHANGE);
         }
         //register general position switches & others
         else
         {
-          //ESPStepperMotorServer_Logger::logDebugf("Attaching interrupt service routine for general position switch '%s' on IO pin %i\n", posSwitch->getPositionName().c_str(), posSwitch->getIoPinNumber());
+          ESPStepperMotorServer_Logger::logDebugf("Attaching interrupt service routine for general position switch '%s' on IO pin %i\n", posSwitch->getPositionName().c_str(), posSwitch->getIoPinNumber());
           attachInterrupt(irqNum, staticPositionSwitchISR, CHANGE);
         }
       }
@@ -1031,6 +1034,49 @@ void ESPStepperMotorServer::revokeEmergencyStop()
   this->emergencySwitchIsActive = false;
 }
 
+/**
+ * Update the switch status register by reading all configured IO pins.
+ * Returns the pin Number of the last IO pin where a change has been detected for since last the update of the register
+ */
+signed char ESPStepperMotorServer::updateSwitchStatusRegister()
+{
+  byte registerIndex = 0;
+  signed char changedSwitchIndex = -1;
+  signed char *allSwitchIoPins = this->serverConfiguration->allSwitchIoPins;
+  volatile byte *buttonStatus = this->buttonStatus;
+  //iterate over all configured position switch IO pins and read state and write to status registers
+  for (int switchIndex = 0; switchIndex < ESPServerMaxSwitches; switchIndex++)
+  {
+    byte ioPin = allSwitchIoPins[switchIndex];
+    if (ioPin > -1)
+    {
+      if (switchIndex > 7) //write to next register if needed
+      {
+        registerIndex = (byte)(ceil)((switchIndex + 1) / 8);
+      }
+      byte previousPinState = ((buttonStatus[registerIndex] & (1 << (switchIndex - 1))) > 0);
+      byte currentPinState = digitalRead(ioPin);
+      if (currentPinState == HIGH && previousPinState == LOW)
+      {
+        if (ESPStepperMotorServer_Logger::isDebugEnabled())
+          ESPStepperMotorServer_Logger::logDebugf("Setting bit %i to high in register for switch %i with io pin %i\n", (switchIndex % 8), switchIndex, ioPin);
+
+        bitSet(buttonStatus[registerIndex], switchIndex % 8);
+        changedSwitchIndex = switchIndex;
+      }
+      else if (currentPinState == LOW && previousPinState == HIGH)
+      {
+        if (ESPStepperMotorServer_Logger::isDebugEnabled())
+          ESPStepperMotorServer_Logger::logDebugf("Setting bit %i to low in register for switch %i with io pin %i\n", (switchIndex % 8), switchIndex, ioPin);
+
+        bitClear(buttonStatus[registerIndex], switchIndex % 8);
+        changedSwitchIndex = switchIndex;
+      }
+    }
+  }
+  return changedSwitchIndex;
+}
+
 void IRAM_ATTR ESPStepperMotorServer::staticPositionSwitchISR()
 {
   anchor->internalSwitchISR(SWITCHTYPE_POSITION_SWITCH_BIT);
@@ -1059,11 +1105,25 @@ void IRAM_ATTR ESPStepperMotorServer::internalEmergencySwitchISR()
     switchConfig = this->serverConfiguration->configuredEmergencySwitches[i];
     if (switchConfig != NULL)
     {
+      byte registerIndex = 0;
+      byte switchId = switchConfig->getId();
+      if (switchId > 7) //write to next register if needed
+        registerIndex = (byte)(ceil)((switchId + 1) / 8);
+
       byte pinState = digitalRead(switchConfig->getIoPinNumber());
-      bool switchIsActive = ((pinState && switchConfig->isActiveHigh()) || (!pinState && !switchConfig->isActiveHigh()));
-      this->emergencySwitchIsActive = switchIsActive; //this flag will be read in the motion controller task frequently
+      if (pinState)
+        bitSet(this->buttonStatus[registerIndex], (switchId % 8));
+      else
+        bitClear(this->buttonStatus[registerIndex], (switchId % 8));
+
+      bool isActiveHigh = switchConfig->isActiveHigh();
+      bool switchIsActive = ((pinState && isActiveHigh) || (!pinState && !isActiveHigh));
       if (switchIsActive)
         this->performEmergencyStop(switchConfig->getStepperIndex());
+      else
+        // TODO: this might cause issues with multiple Emergency Switches connected since it will revoke the global flag
+        // so if only the first switch is triggered, the second one will be checked in this loop and revoke the flag
+        this->emergencySwitchIsActive = false;
     }
     else
       break;
@@ -1077,34 +1137,51 @@ void IRAM_ATTR ESPStepperMotorServer::internalEmergencySwitchISR()
  */
 void IRAM_ATTR ESPStepperMotorServer::internalSwitchISR(byte switchType)
 {
-  byte registerIndex = 0;
-  byte pinNumber = 0;
-  //iterate over all configured position switch IO pins and read state and write to status registers
-  for (int switchIndex = 0; switchIndex < ESPServerMaxSwitches; switchIndex++)
+  byte changedStausSwitchId = this->updateSwitchStatusRegister();
+  if (switchType == SWITCHTYPE_LIMITSWITCH_POS_BEGIN_BIT || switchType == SWITCHTYPE_LIMITSWITCH_POS_END_BIT || switchType == SWITCHTYPE_LIMITSWITCH_COMBINED_BEGIN_END_BIT)
   {
-    ESPStepperMotorServer_PositionSwitch *switchConfig = this->serverConfiguration->getSwitch(switchIndex);
+    ESPStepperMotorServer_Configuration *configuration = this->serverConfiguration;
+    ESPStepperMotorServer_PositionSwitch *switchConfig = configuration->getSwitch(changedStausSwitchId);
     if (switchConfig)
     {
-      if (switchIndex > 7) //write to next register if needed
+      bool isActiveHigh = switchConfig->isActiveHigh();
+      bool inputState = digitalRead(switchConfig->getIoPinNumber());
+      ESPStepperMotorServer_StepperConfiguration *stepper = configuration->getStepperConfiguration(switchConfig->getStepperIndex());
+      if ((inputState && isActiveHigh) || (!inputState && !isActiveHigh))
       {
-        registerIndex = (byte)(ceil)((switchIndex + 1) / 8);
-      }
-      pinNumber = switchConfig->getIoPinNumber();
-      if (digitalRead(pinNumber))
-      {
-        //PIN STATE IS HIGH
-        bitSet(this->buttonStatus[registerIndex], switchIndex % 8);
+        if (stepper)
+        {
+          switch (switchType)
+          {
+          case SWITCHTYPE_LIMITSWITCH_POS_BEGIN_BIT:
+            stepper->getFlexyStepper()->setLimitSwitchActive(ESP_FlexyStepper::LIMIT_SWITCH_BEGIN);
+            break;
+          case SWITCHTYPE_LIMITSWITCH_POS_END_BIT:
+            stepper->getFlexyStepper()->setLimitSwitchActive(ESP_FlexyStepper::LIMIT_SWITCH_END);
+            break;
+          case SWITCHTYPE_LIMITSWITCH_COMBINED_BEGIN_END_BIT:
+            stepper->getFlexyStepper()->setLimitSwitchActive(ESP_FlexyStepper::LIMIT_SWITCH_COMBINED_BEGIN_AND_END);
+            break;
+          }
+        }
+        if (ESPStepperMotorServer_Logger::isDebugEnabled())
+          ESPStepperMotorServer_Logger::logDebugf("Limit switch '%s' has been triggered (IO pin status is %i)\n", switchConfig->getPositionName().c_str(), inputState);
       }
       else
       {
+        if (stepper)
+        {
+          stepper->getFlexyStepper()->clearLimitSwitchActive();
+        }
         if (ESPStepperMotorServer_Logger::isDebugEnabled())
-          ESPStepperMotorServer_Logger::logDebugf("ISR: IO Pin %i has gone low (%s state). Is emergency switch = %i\n", pinNumber, (!switchConfig->isActiveHigh()) ? "triggered" : "released", switchConfig->isEmergencySwitch());
-        //PIN STATE IS LOW
-        bitClear(this->buttonStatus[registerIndex], switchIndex % 8);
+          ESPStepperMotorServer_Logger::logDebugf("Limit switch '%s' has been released (IO pin status is %i)\n", switchConfig->getPositionName().c_str(), inputState);
       }
     }
+    else
+    {
+      ESPStepperMotorServer_Logger::logWarningf("A IO Pin change has been detected for switch id %i which is not a limit switch, but the ISR was triggered for a switch of type limit switch. It is possible that a limit switch status change has not been detected properly\n", changedStausSwitchId);
+    }
   }
-  this->positionSwitchUpdateAvailable = true;
 }
 
 void IRAM_ATTR ESPStepperMotorServer::internalRotaryEncoderISR()

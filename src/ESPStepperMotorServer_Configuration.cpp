@@ -515,55 +515,38 @@ void ESPStepperMotorServer_Configuration::removeSwitch(byte id)
 
 void ESPStepperMotorServer_Configuration::updateSwitchCaches()
 {
-  //build emergency switch cache
-  //reset it first
+  //reset all caches first
   for (byte i = 0; i < ESPServerMaxSwitches; i++)
   {
-    if (this->configuredEmergencySwitches[i] != NULL)
-    {
-      //TODO: check if this is appropriate, currently it casues kernel panic
-      //delete (this->configuredEmergencySwitches[i]);
-      this->configuredEmergencySwitches[i] = NULL;
-    }
-    else
-    {
-      break;
-    }
-  }
-  //now rebuild the emergency switch cache
-  byte cacheIndex = 0;
-  for (byte i = 0; i < ESPServerMaxSwitches; i++)
-  {
-    if (this->allConfiguredSwitches[i] && this->allConfiguredSwitches[i]->isEmergencySwitch())
-    {
-      this->configuredEmergencySwitches[cacheIndex] = this->allConfiguredSwitches[i];
-      cacheIndex++;
-    }
+    //TODO: check if this is appropriate, currently it casues kernel panic
+    //delete (this->configuredEmergencySwitches[i]);
+    this->configuredEmergencySwitches[i] = NULL;
+    //TODO: check if this delete call is appropriate, currently it casues kernel panic
+    //delete (this->configuredLimitSwitches[i]);
+    this->configuredLimitSwitches[i] = NULL;
+    this->allSwitchIoPins[i] = (signed char)-1;
   }
 
-  //build limit switch cache
-  //reset it first
+  //now rebuild the caches
+  byte emergencySwitchCacheIndex = 0;
+  byte limitSwitchCacheIndex = 0;
+
   for (byte i = 0; i < ESPServerMaxSwitches; i++)
   {
-    if (this->configuredLimitSwitches[i])
+    if (this->allConfiguredSwitches[i])
     {
-      //TODO: check if this delete call is appropriate, currently it casues kernel panic
-      //delete (this->configuredLimitSwitches[i]);
-      this->configuredLimitSwitches[i] = NULL;
-    }
-    else
-    {
-      break;
-    }
-  }
-  //now rebuild the limit switch cache
-  cacheIndex = 0;
-  for (byte i = 0; i < ESPServerMaxSwitches; i++)
-  {
-    if (this->allConfiguredSwitches[i] && this->allConfiguredSwitches[i]->isLimitSwitch())
-    {
-      this->configuredLimitSwitches[cacheIndex] = this->allConfiguredSwitches[i];
-      cacheIndex++;
+      this->allSwitchIoPins[i] = this->allConfiguredSwitches[i]->getIoPinNumber();
+
+      if (this->allConfiguredSwitches[i]->isEmergencySwitch())
+      {
+        this->configuredEmergencySwitches[emergencySwitchCacheIndex] = this->allConfiguredSwitches[i];
+        emergencySwitchCacheIndex++;
+      }
+      else if (this->allConfiguredSwitches[i]->isLimitSwitch())
+      {
+        this->configuredLimitSwitches[limitSwitchCacheIndex] = this->allConfiguredSwitches[i];
+        limitSwitchCacheIndex++;
+      }
     }
   }
 }

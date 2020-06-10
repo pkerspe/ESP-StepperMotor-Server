@@ -120,6 +120,7 @@ public:
   void start();
   void stop();
   byte getPositionSwitchStatus(int positionSwitchIndex);
+  signed char updateSwitchStatusRegister();
   void onWebSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
   String getIpAddress();
   ESPStepperMotorServer_Configuration *getCurrentServerConfiguration();
@@ -135,10 +136,10 @@ public:
   //
   const char *defaultConfigurationFilename = "/config.json";
   int wifiClientConnectionTimeoutSeconds = 25;
-  //this boolean value indicates wether a state change has occurred on one of the position switches or not
-  volatile boolean positionSwitchUpdateAvailable = false;
   // a boolean indicating if a position switch that has been configure as emegrency switch, has been triggered
   volatile boolean emergencySwitchIsActive = false;
+  void internalSwitchISR(byte switchType);
+
 
 private:
   void scanWifiNetworks();
@@ -165,7 +166,7 @@ private:
   static void staticPositionSwitchISR();
   static void staticEmergencySwitchISR();
   static void staticLimitSwitchISR();
-  void internalSwitchISR(byte switchType);
+
   void internalEmergencySwitchISR();
 
   static void staticRotaryEncoderISR();

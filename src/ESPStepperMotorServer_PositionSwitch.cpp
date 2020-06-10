@@ -54,6 +54,10 @@ void ESPStepperMotorServer_PositionSwitch::setId(byte id)
     this->_switchIndex = id;
 }
 
+/**
+ * the unique ID of this switch 
+ * NOTE: This ID also matches the array index of the configuration in the allConfiguredSwitches array in the Configuration class
+ */
 byte ESPStepperMotorServer_PositionSwitch::getId()
 {
     return this->_switchIndex;
@@ -104,7 +108,7 @@ bool ESPStepperMotorServer_PositionSwitch::isEmergencySwitch()
 
 bool ESPStepperMotorServer_PositionSwitch::isLimitSwitch()
 {
-    return (this->isTypeBitSet(SWITCHTYPE_LIMITSWITCH_POS_BEGIN_BIT) || this->isTypeBitSet(SWITCHTYPE_LIMITSWITCH_POS_END_BIT));
+    return (this->isTypeBitSet(SWITCHTYPE_LIMITSWITCH_POS_BEGIN_BIT) || this->isTypeBitSet(SWITCHTYPE_LIMITSWITCH_POS_END_BIT) || this->isTypeBitSet(SWITCHTYPE_LIMITSWITCH_COMBINED_BEGIN_END_BIT));
 }
 
 bool ESPStepperMotorServer_PositionSwitch::isTypeBitSet(byte bitToCheck)

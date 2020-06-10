@@ -78,6 +78,9 @@ public:
   ESPStepperMotorServer_PositionSwitch *getSwitch(byte id);
   ESPStepperMotorServer_RotaryEncoder *getRotaryEncoder(byte id);
   ESP_FlexyStepper **getConfiguredFlexySteppers();
+  // a cache containing all IO pins that are used by switches. The indexes matches the indexes in the configuredSwitches (=switch ID)
+  // -1 is used to indicate an emtpy array slot
+  signed char allSwitchIoPins[ESPServerMaxSwitches];
   int serverPort = DEFAULT_SERVER_PORT;
   int wifiMode = 1;
   const char *apName;
