@@ -533,7 +533,7 @@ void ESPStepperMotorServer::onWebSocketEvent(AsyncWebSocket *server, AsyncWebSoc
       }
       else
       {
-        char buff[3];
+        char buff[10];
         for (size_t i = 0; i < info->len; i++)
         {
           sprintf(buff, "%02x ", (uint8_t)data[i]);
