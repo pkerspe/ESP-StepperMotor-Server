@@ -7,34 +7,20 @@ Connect one ore more stepper controllers with step and direction input, and opti
 
 ## Table of contents
 
-*   [Introduction](#introduction)
-
+* [Introduction](#introduction)
   * [What this library is NOT](#what-this-library-is-not)
-
   * [Prerequisites and dependencies](#prerequisites-and-dependencies)
-
-*   [Setting up your ESP-StepperMotor-Server](#Setting-up-your-ESP-StepperMotor-Server)
-
+* [Setting up your ESP-StepperMotor-Server](#Setting-up-your-ESP-StepperMotor-Server)
   * [Firmware installation](#Firmware-installation)
-
     * [Using PlatformIO](#using-platformio)
-
   * [Installation of the web user interface](#installation-of-the-web-ui)
-
   * [Connecting the hardware](#connecting-the-hardware)
-
   * [Configuation via the web user interface](#configuation-via-the-web-user-interface)
-
-*   [API Documentation](#api-documentation)
-
+* [API Documentation](#api-documentation)
   * [Library API documentation](#library-api-documentation)
-
   * [REST API documentation](#rest-api-documentation)
-
   * [Serial command line interface (CLI)](#Serial-command-line-interface)
-
 * [Further documentation](#further-documentation)
-
 * [License](#license)
 
 | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/setup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/motor_control_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/rest_api_doc_screen.png" alt="ESP StepperMotor Server REST API documentation screen" height="200"/> |
@@ -43,7 +29,7 @@ Connect one ore more stepper controllers with step and direction input, and opti
 
 ## Introduction
 
-This library started as a fork for the FlexyStepper library ([https://github.com/Stan-Reifel/FlexyStepper]). While the FlexyStepper Library is a general Arduino compatible library this fork has a focus on the ESP32 modules form Espressif. It also became much more than a modfied version of FlexyStepper but turned into a stand alone application to turn a regular ESP32 module into a stepper motor control server.
+This library started as a fork for the [FlexyStepper library](https://github.com/Stan-Reifel/FlexyStepper). While the FlexyStepper Library is a general Arduino compatible library this fork has a focus on the ESP32 modules form Espressif. It also became much more than a modfied version of FlexyStepper but turned into a stand alone application to turn a regular ESP32 module into a stepper motor control server.
 Since these modules contain a WiFi module they are perfectly suited for web controlled stepper server and since they have enough memory and processing power they are ideal as low cost, low energy consumption standalone server component, that allows configuration and controlling of one to many stepper motor drivers with limit-switches and outputs (e.g. for Relays and LEDs).
 
 Once the ESP Stepper Motor Server has been uploaded to the ESP module, all further configuration and controlling can be done vie the web UI without the need to code another line in the Arduino or PlatformIO IDE.
@@ -76,18 +62,13 @@ If you use PlatformIO you can simply setup your project with the provided paltfo
 
 In order to get started you need the following elements:
 * A *ESP32* board of your choice (boards with USB-Serial Chips are recommended for the ease of programming them, ohter boards just work as well, yet you have to figure out how to flash the firmware yourself, since this proces will not be covered in this manual)
-
 * A configured, Arduino compatible IDE ([Arduino](https://www.arduino.cc/en/Main/Software) or [PlatformIO](http://platformio.org))
-
 * A *stepper motor*
-
 * A *power supply* that fits to your stepper motors and drivers specs
-
 * A *stepper driver* board that fits to your stepper motors specs
 
 Optional:
 * Switches for limit/homing, position and emegency stop functionality
-
 * Rotary encoders to control the motors directly using physical controls
 
 ### Firmware installation
@@ -184,13 +165,13 @@ After you installed everything on the hardware side, you can open the web UI to 
 In the navigation on the left side click on "SETUP" to open the configuration page.
 
 The following devices can be configured:
-*   Stepper Motors (or to be more precise "connected stepper drivers")
-*   Switches (input signals in general): multiple types of functions are supported for the switches
-  *   [Limit](https://en.wikipedia.org/wiki/Limit_switch)/Homing Switches
-  *   Position Switches
-  *   emergency stop / [kill switches](https://en.wikipedia.org/wiki/Kill_switch)
-  *   in future versions also switches to trigger movement macros will be supported
-*   [Incremental rotary encoders](https://en.wikipedia.org/wiki/Incremental_encoder) as control inputs to control the configured steppers via physical controls (you can always use the web interface or serial control commands directly to control the stepper motor position, speed etc.)
+* Stepper Motors (or to be more precise "connected stepper drivers")
+* Switches (input signals in general): multiple types of functions are supported for the switches
+  * [Limit](https://en.wikipedia.org/wiki/Limit_switch)/Homing Switches
+  * Position Switches
+  * emergency stop / [kill switches](https://en.wikipedia.org/wiki/Kill_switch)
+  * in future versions also switches to trigger movement macros will be supported
+* [Incremental rotary encoders](https://en.wikipedia.org/wiki/Incremental_encoder) as control inputs to control the configured steppers via physical controls (you can always use the web interface or serial control commands directly to control the stepper motor position, speed etc.)
 
 ![startup screen][add_stepper_dialog]
 ![startup screen][add_switch_dialog]
