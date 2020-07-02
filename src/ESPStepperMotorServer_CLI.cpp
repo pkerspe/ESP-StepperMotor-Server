@@ -91,14 +91,15 @@ void ESPStepperMotorServer_CLI::executeCommand(String cmd)
 
 void ESPStepperMotorServer_CLI::processSerialInput(void *parameter)
 {
-  ESPStepperMotorServer_CLI *ref = (ESPStepperMotorServer_CLI *)parameter;
+  ESPStepperMotorServer_CLI *ref = static_cast<ESPStepperMotorServer_CLI *>(parameter);
   char commandLine[COMMAND_BUFFER_LENGTH + 1];
   uint8_t charsRead = 0;
+  char c;
   while (true)
   {
     while (Serial.available())
     {
-      char c = (char) Serial.read();
+      c = (char) Serial.read();
       switch (c)
       {
       case CR: //likely have full command in buffer now, commands are terminated by CR and/or LS
