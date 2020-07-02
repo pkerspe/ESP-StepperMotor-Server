@@ -43,9 +43,9 @@ ESPStepperMotorServer *_stepperMotorServer;
 //
 ESPStepperMotorServer_RestAPI::ESPStepperMotorServer_RestAPI(ESPStepperMotorServer *stepperMotorServer)
 {
+  this->initialized = false;
   this->_stepperMotorServer = stepperMotorServer;
-  this->logger = new ESPStepperMotorServer_Logger("ESPStepperMotorServer_RestAPI");
-  this->logger->logDebug("ESPStepperMotorServer_RestAPI instance created");
+  ESPStepperMotorServer_Logger::logDebug("ESPStepperMotorServer_RestAPI instance created");
 }
 
 /**
@@ -90,10 +90,9 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       AsyncWebServerResponse *response = request->beginResponse(200, "application/json", output);
       request->send(response);
 
-      if (this->logger->getLogLevel() >= ESPServerLogLevel_DEBUG)
+      if (ESPStepperMotorServer_Logger::isDebugEnabled())
       {
-        sprintf(this->logger->logString, "ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), docSize);
-        ESPStepperMotorServer_Logger::logDebug(this->logger->logString);
+        ESPStepperMotorServer_Logger::logDebugf("ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), docSize);
       }
     }
     else
@@ -363,10 +362,9 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       this->populateSwitchDetailsToJsonObject(root, this->_stepperMotorServer->getCurrentServerConfiguration()->getSwitch(switchIndex), switchIndex);
       serializeJson(root, output);
 
-      if (this->logger->getLogLevel() >= ESPServerLogLevel_DEBUG)
+      if (ESPStepperMotorServer_Logger::isDebugEnabled())
       {
-        sprintf(this->logger->logString, "ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), switchObjectSize);
-        ESPStepperMotorServer_Logger::logDebug(this->logger->logString);
+        ESPStepperMotorServer_Logger::logDebugf("ArduinoJSON document size uses %i bytes from alocated %i bytes\n", doc.memoryUsage(), switchObjectSize);
       }
     }
     else
@@ -387,10 +385,9 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       }
       serializeJson(root, output);
 
-      if (this->logger->getLogLevel() >= ESPServerLogLevel_DEBUG)
+      if (ESPStepperMotorServer_Logger::isDebugEnabled())
       {
-        sprintf(this->logger->logString, "ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), docSize);
-        ESPStepperMotorServer_Logger::logDebug(this->logger->logString);
+        ESPStepperMotorServer_Logger::logDebugf("ArduinoJSON document size uses %i bytes from alocated %i bytes\n", doc.memoryUsage(), docSize);
       }
     }
 
@@ -442,10 +439,9 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       this->populateRotaryEncoderDetailsToJsonObject(root, this->_stepperMotorServer->getCurrentServerConfiguration()->getRotaryEncoder(rotaryEncoderIndex), rotaryEncoderIndex);
       serializeJson(root, output);
 
-      if (this->logger->getLogLevel() >= ESPServerLogLevel_DEBUG)
+      if (ESPStepperMotorServer_Logger::isDebugEnabled())
       {
-        sprintf(this->logger->logString, "ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), rotaryEncoderObjectSize);
-        ESPStepperMotorServer_Logger::logDebug(this->logger->logString);
+        ESPStepperMotorServer_Logger::logDebugf("ArduinoJSON document size uses %i bytes from alocated %i bytes\n", doc.memoryUsage(), rotaryEncoderObjectSize);
       }
     }
     else
@@ -464,10 +460,9 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       }
       serializeJson(root, output);
 
-      if (this->logger->getLogLevel() >= ESPServerLogLevel_DEBUG)
+      if (ESPStepperMotorServer_Logger::isDebugEnabled())
       {
-        sprintf(this->logger->logString, "ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), docSize);
-        ESPStepperMotorServer_Logger::logDebug(this->logger->logString);
+        ESPStepperMotorServer_Logger::logDebugf("ArduinoJSON document size uses %i bytes from alocated %i bytes\n", doc.memoryUsage(), docSize);
       }
     }
 
@@ -589,16 +584,16 @@ void ESPStepperMotorServer_RestAPI::populateStepperDetailsToJsonObject(JsonObjec
 
 void ESPStepperMotorServer_RestAPI::logDebugRequestUrl(AsyncWebServerRequest *request)
 {
-  if (this->logger->isDebugEnabled())
+  if (ESPStepperMotorServer_Logger::isDebugEnabled())
   {
     int params = request->params();
-    this->logger->logDebug((String)request->methodToString() + " called" + request->url() + ((params > 0) ? " with parameters: " : ""), (params == 0), false);
+    ESPStepperMotorServer_Logger::logDebug((String)request->methodToString() + " called" + request->url() + ((params > 0) ? " with parameters: " : ""), (params == 0));
     for (int i = 0; i < params; i++)
     {
       AsyncWebParameter *p = request->getParam(i);
       if (!p->isFile() && !p->isPost())
       {
-        this->logger->logDebug(p->name() + "=" + p->value() + ((i < params - 1) ? ", " : ""), (i == params - 1), true);
+        ESPStepperMotorServer_Logger::logDebug(p->name() + "=" + p->value() + ((i < params - 1) ? ", " : ""), (i == params - 1), true);
       }
     }
   }
@@ -654,9 +649,10 @@ void ESPStepperMotorServer_RestAPI::handlePostStepperRequest(AsyncWebServerReque
             newId = stepperIndex;
             this->_stepperMotorServer->addOrUpdateStepper(stepperToAdd, stepperIndex);
           }
-
-          sprintf(this->logger->logString, "{\"id\": %i}", newId);
-          request->send(200, "application/json", this->logger->logString);
+          AsyncResponseStream *response = request->beginResponseStream("application/json");
+          response->setCode(200);
+          response->printf("{\"id\": %i}", newId);
+          request->send(response);
         }
       }
       else
@@ -721,8 +717,10 @@ void ESPStepperMotorServer_RestAPI::handlePostRotaryEncoderRequest(AsyncWebServe
           //check if it pin NOT used by same encoder to update
           if (encoderToUpdate == NULL || encoderToUpdate->getPinAIOPin() != pinA)
           {
-            sprintf(this->logger->logString, "{\"error\": \"The given Pin-A IO pin %i is already used by another stepper, encoder or switch configuration\"}", pinA);
-            request->send(400, "application/json", this->logger->logString);
+            AsyncResponseStream *response = request->beginResponseStream("application/json");
+            response->setCode(400);
+            response->printf("{\"error\": \"The given Pin-A IO pin %i is already used by another stepper, encoder or switch configuration\"}", pinA);
+            request->send(response);
             return;
           }
         }
@@ -731,8 +729,10 @@ void ESPStepperMotorServer_RestAPI::handlePostRotaryEncoderRequest(AsyncWebServe
           //check if it pin NOT used by same encoder to update
           if (encoderToUpdate == NULL || encoderToUpdate->getPinBIOPin() != pinB)
           {
-            sprintf(this->logger->logString, "{\"error\": \"The given Pin-B IO pin %i is already used by another stepper, encoder or switch configuration\"}", pinB);
-            request->send(400, "application/json", this->logger->logString);
+            AsyncResponseStream *response = request->beginResponseStream("application/json");
+            response->setCode(400);
+            response->printf("{\"error\": \"The given Pin-B IO pin %i is already used by another stepper, encoder or switch configuration\"}", pinB);
+            request->send(response);
             return;
           }
         }
@@ -747,8 +747,10 @@ void ESPStepperMotorServer_RestAPI::handlePostRotaryEncoderRequest(AsyncWebServe
           //"update" existing stepper config which basically means we store it at a specific index
           encoderIndex = this->_stepperMotorServer->addOrUpdateRotaryEncoder(encoderToAdd, encoderIndex);
         }
-        sprintf(this->logger->logString, "{\"id\": %i}", encoderIndex);
-        request->send(200, "application/json", this->logger->logString);
+        AsyncResponseStream *response = request->beginResponseStream("application/json");
+        response->setCode(200);
+        response->printf("{\"id\": %i}", encoderIndex);
+        request->send(response);
         return;
       }
       else
@@ -856,8 +858,10 @@ void ESPStepperMotorServer_RestAPI::handlePostSwitchRequest(AsyncWebServerReques
 
         ESPStepperMotorServer_PositionSwitch *posSwitchToAdd = new ESPStepperMotorServer_PositionSwitch(ioPinNumber, stepperConfigIndex, switchType, name, switchPosition);
         switchIndex = this->_stepperMotorServer->addOrUpdatePositionSwitch(posSwitchToAdd, switchIndex);
-        sprintf(this->logger->logString, "{\"id\": %i}", switchIndex);
-        request->send(200, "application/json", this->logger->logString);
+        AsyncResponseStream *response = request->beginResponseStream("application/json");
+        response->setCode(200);
+        response->printf("{\"id\": %i}", switchIndex);
+        request->send(response);
       }
       else
       {
