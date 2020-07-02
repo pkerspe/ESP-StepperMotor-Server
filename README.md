@@ -9,7 +9,7 @@ Connect one ore more stepper controllers with step and direction input, and opti
 
 *   [Introduction](#introduction)
 
-  *   [What this library is NOT](#what-this-library-is-not)
+  * [What this library is NOT](#what-this-library-is-not)
 
   *   [Prerequisites and dependencies](#prerequisites-and-dependencies)
 
