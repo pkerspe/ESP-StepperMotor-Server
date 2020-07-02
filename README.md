@@ -25,7 +25,7 @@ Connect one ore more stepper controllers with step and direction input, and opti
 
 | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/setup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/motor_control_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/rest_api_doc_screen.png" alt="ESP StepperMotor Server REST API documentation screen" height="200"/> |
 | --- | --- | --- | --- |
-| home screen|configuration screen| control screen | REST API doucmentation|
+| home screen | configuration screen | control screen | REST API doucmentation|
 
 ## Introduction
 
@@ -117,8 +117,7 @@ This is the absolute minimum example how to start the server. For further exampl
 
 6. [Build/compile and upload the project](http://docs.platformio.org/en/latest/tutorials/espressif32/arduino_debugging_unit_testing.html#compiling-and-uploading-the-firmware) to your connected ESP32 module and open the console Monitor in PlatformIO (or connect to the board using your prefered serial terminal console) to see the output of the ESP-StepperMotor-Server starting up.
 In the output on the serial monitor you should see that some output similar to this:
-```
-[INFO] Loading configuration file /config.json from SPIFFS
+```[INFO] Loading configuration file /config.json from SPIFFS
 [INFO] 2 stepper configuration entries loaded from config file
 [INFO] 2 switch configuration entries loaded from config file
 [INFO] 2 rotary encoder configuration entries loaded from config file
@@ -132,8 +131,7 @@ In the output on the serial monitor you should see that some output similar to t
 ```
 During Startup the ESP32 will check if the User Interface is installed on the ESP32s SPI Flash File System (SPIFFS). If it cannot find one ore more required files it will attemtp to download the files via WiFi from the git hub repository (if the SPIFFS has ben initialized at leas once before). In case your WiFi does not provide an open internet connection, you need to upload the files manually using he "Upload File System image" Task from PlatformIO. More Details can be found in the section [Insallation of the Web UI](#insallation-of-the-web-ui)
 If the UI is installed on the SPIFFS you should see the following (or a similar) output in the serial console after the Wifi Connection has been established:
-```
-[INFO] Listing files in root folder of SPIFFS:
+```[INFO] Listing files in root folder of SPIFFS:
 [INFO] File: /index.html (615) -1
 [INFO] File: /js/app.js.gz (266875) -1
 [INFO] File: /img/rotaryEncoderWheel.svg (13750) -1
@@ -165,6 +163,7 @@ After you installed everything on the hardware side, you can open the web UI to 
 In the navigation on the left side click on "SETUP" to open the configuration page.
 
 The following devices can be configured:
+
 * Stepper Motors (or to be more precise "connected stepper drivers")
 * Switches (input signals in general): multiple types of functions are supported for the switches
   * [Limit](https://en.wikipedia.org/wiki/Limit_switch)/Homing Switches
@@ -239,8 +238,7 @@ Once the server is started (and the CLI has not been disabled in the constructor
 Now you can input commands via the serial port.
 To get a list of all available commands type `help` in the serial console and press enter.
 The output should look like this (depending on the version and how up2date this manual is, you might see some more commands):
-````
--------- ESP-StepperMotor-Server-CLI Help -----------
+````-------- ESP-StepperMotor-Server-CLI Help -----------
 The following commands are available:
 
 <command> [<shortcut>]: <description>
@@ -281,14 +279,12 @@ If you want to move the configured stepper motor with the id 0 by 10 revolutions
 ### Further documentation
 for further details have a look at 
 - the provided example files / projects in the examples folder of this repository
-- the wiki on the github page: https://github.com/pkerspe/ESP-StepperMotor-Server/wiki
+- the wiki on the [github page](https://github.com/pkerspe/ESP-StepperMotor-Server/wiki)
 
 ## License
 Copyright (c) 2019 Paul Kerspe - Licensed under the MIT license.
 
 [startup_screen]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png "ESP StepperMotor Server startup screen"
-[setup_screen]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/setup_screen.png "The setup/configuration editor screen"
-[control_screen]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/motor_control_screen.png "The motor controls screen"
 [add_stepper_dialog]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/add_stepper_config_dialog.png "The dialog to add a new stepper motor configuration"
 [add_switch_dialog]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/add_switch_dialog.png "The dialog to add a new switch (input signal) configuration"
 [add_rotary_encoder_dialog]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/add_rotary_encoder_dialog.png "The dialog to add a new rotary encoder to control a stepper"
