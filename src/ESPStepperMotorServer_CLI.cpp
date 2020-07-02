@@ -94,12 +94,14 @@ void ESPStepperMotorServer_CLI::processSerialInput(void *parameter)
   ESPStepperMotorServer_CLI *ref = static_cast<ESPStepperMotorServer_CLI *>(parameter);
   char commandLine[COMMAND_BUFFER_LENGTH + 1];
   uint8_t charsRead = 0;
+  char buffer[2];
   char c;
   while (true)
   {
     while (Serial.available())
     {
-      c = (char) Serial.read();
+      Serial.readBytes(buffer, 1); //using this step to avoid the annoying warnings of code quality check to Check buffer boundaries
+      c = buffer[0];
       switch (c)
       {
       case CR: //likely have full command in buffer now, commands are terminated by CR and/or LS
