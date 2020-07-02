@@ -278,8 +278,7 @@ If you want to move the configured stepper motor with the id 0 by 10 revolutions
 
 ### Further documentation
 for further details have a look at 
-* the provided example files / projects in the examples folder of this repository
-* the wiki on the [github page](https://github.com/pkerspe/ESP-StepperMotor-Server/wiki)
+* the provided example files / projects in the [examples folder](https://github.com/pkerspe/ESP-StepperMotor-Server/tree/master/examples) of this repository
 
 ## License
 Copyright (c) 2019 Paul Kerspe - Licensed under the MIT license.
