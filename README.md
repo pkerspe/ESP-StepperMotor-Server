@@ -39,11 +39,11 @@ Connect one ore more stepper controllers with step and direction input, and opti
 
 | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/setup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/motor_control_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/rest_api_doc_screen.png" alt="ESP StepperMotor Server REST API documentation screen" height="200"/> |
 | --- | --- | --- | --- |
-| home screen|configuration screen|control screen| REST API doucmentation|
+| home screen|configuration screen| control screen | REST API doucmentation|
 
 ## Introduction
 
-This library started as a fork for the FlexyStepper library (https://github.com/Stan-Reifel/FlexyStepper). While the FlexyStepper Library is a general Arduino compatible library this fork has a focus on the ESP32 modules form Espressif. It also became much more than a modfied version of FlexyStepper but turned into a stand alone application to turn a regular ESP32 module into a stepper motor control server.
+This library started as a fork for the FlexyStepper library ([https://github.com/Stan-Reifel/FlexyStepper]). While the FlexyStepper Library is a general Arduino compatible library this fork has a focus on the ESP32 modules form Espressif. It also became much more than a modfied version of FlexyStepper but turned into a stand alone application to turn a regular ESP32 module into a stepper motor control server.
 Since these modules contain a WiFi module they are perfectly suited for web controlled stepper server and since they have enough memory and processing power they are ideal as low cost, low energy consumption standalone server component, that allows configuration and controlling of one to many stepper motor drivers with limit-switches and outputs (e.g. for Relays and LEDs).
 
 Once the ESP Stepper Motor Server has been uploaded to the ESP module, all further configuration and controlling can be done vie the web UI without the need to code another line in the Arduino or PlatformIO IDE.
@@ -56,12 +56,12 @@ If you need such a solution you might want to look into the [Grbl_Esp32](https:/
 ### Prerequisites and dependencies
 
 In order to compile your project with the ESP-StepperMotor-Server Library, the following 3rd party extensions need to be installed on your system (if you use PlatformIO all needed dependencies will be installed for you when you follow the instructions in the [Using PlatformIO](#using-platformio) section above):
-- [ESPAsyncWebserver](https://github.com/me-no-dev/ESPAsyncWebServer)
-- [AsyncTCP](https://github.com/me-no-dev/AsyncTCP)
-- [ArduinoJSON (NOTE: must version 6.x, version 5 will not work)](https://arduinojson.org)
-- [FlexyStepper](https://github.com/Stan-Reifel/FlexyStepper)
-- FS file system wrapper: should be installed with the ESP32 libraries already if you setup your IDE for these modules
-- WiFi: should be installed with the ESP32 libraries already when you setup your IDE for these modules
+*   [ESPAsyncWebserver](https://github.com/me-no-dev/ESPAsyncWebServer)
+*   [AsyncTCP](https://github.com/me-no-dev/AsyncTCP)
+*   [ArduinoJSON (NOTE: must version 6.x, version 5 will not work)](https://arduinojson.org)
+*   [FlexyStepper](https://github.com/Stan-Reifel/FlexyStepper)
+*   FS file system wrapper: should be installed with the ESP32 libraries already if you setup your IDE for these modules
+*   WiFi: should be installed with the ESP32 libraries already when you setup your IDE for these modules
 
 When using PlatformIO add these dependencies to you platfromio.ini project file and let PlatfromIO install the required dependencies for you:
 ```ini
