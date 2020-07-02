@@ -1,0 +1,30 @@
+udo: false
+
+language: python
+
+os:
+  - linux
+
+git:
+  depth: false
+
+stages:
+  - build
+
+jobs:
+  include:
+
+    - name: "Build Arduino ESP32"
+      if: tag IS blank AND (type = pull_request OR (type = push AND branch = master))
+      stage: build
+      script: bash $TRAVIS_BUILD_DIR/.github/scripts/on-push.sh esp32
+
+    - name: "Build Platformio ESP32"
+      if: tag IS blank AND (type = pull_request OR (type = push AND branch = master))
+      stage: build
+      script: bash $TRAVIS_BUILD_DIR/.github/scripts/on-push.sh esp32 1 1
+
+notifications:
+  email:
+    on_success: change
+    on_failure: change
