@@ -25,7 +25,7 @@ Connect one ore more stepper controllers with step and direction input, and opti
 
 | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/setup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/motor_control_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/rest_api_doc_screen.png" alt="ESP StepperMotor Server REST API documentation screen" height="200"/> |
 | --- | --- | --- | --- |
-| home screen | configuration screen | control screen | REST API doucmentation|
+| home screen | configuration screen | control screen | REST API doucmentation |
 
 ## Introduction
 
@@ -278,8 +278,8 @@ If you want to move the configured stepper motor with the id 0 by 10 revolutions
 
 ### Further documentation
 for further details have a look at 
-- the provided example files / projects in the examples folder of this repository
-- the wiki on the [github page](https://github.com/pkerspe/ESP-StepperMotor-Server/wiki)
+* the provided example files / projects in the examples folder of this repository
+* the wiki on the [github page](https://github.com/pkerspe/ESP-StepperMotor-Server/wiki)
 
 ## License
 Copyright (c) 2019 Paul Kerspe - Licensed under the MIT license.
