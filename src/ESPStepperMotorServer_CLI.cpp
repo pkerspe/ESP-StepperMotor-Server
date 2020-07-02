@@ -293,12 +293,7 @@ void ESPStepperMotorServer_CLI::cmdGetCurrentVelocity(char *cmd, char *args)
   ESPStepperMotorServer_Configuration *config = this->serverRef->getCurrentServerConfiguration();
   int stepperid = this->getValidStepperIdFromArg(args);
   char unit[10];
-  this->getParameterValue(args, "u", unit);
-  if (unit[0] == NULLCHAR)
-  {
-    ESPStepperMotorServer_Logger::logDebug("no unit provided, will use 'steps' as default");
-    strcpy(unit, "steps");
-  }
+  this->getUnitWithFallback(args, unit);
 
   if (stepperid > -1)
   {
@@ -333,12 +328,7 @@ void ESPStepperMotorServer_CLI::cmdGetPosition(char *cmd, char *args)
   ESPStepperMotorServer_Configuration *config = this->serverRef->getCurrentServerConfiguration();
   int stepperid = this->getValidStepperIdFromArg(args);
   char unit[10];
-  this->getParameterValue(args, "u", unit);
-  if (unit[0] == NULLCHAR)
-  {
-    ESPStepperMotorServer_Logger::logDebug("no unit provided, will use 'steps' as default");
-    strcpy(unit, "steps");
-  }
+  this->getUnitWithFallback(args, unit);
 
   if (stepperid > -1)
   {
@@ -559,4 +549,16 @@ void ESPStepperMotorServer_CLI::getParameterValue(const char *args, const char *
   ESPStepperMotorServer_Logger::logDebug("No match found");
   strcpy(result, "");
 }
+
+////// internal helpers to prevent code duplication
+void ESPStepperMotorServer_CLI::getUnitWithFallback(char *args, char *unit){
+    this->getParameterValue(args, "u", unit);
+  if (unit[0] == NULLCHAR)
+  {
+    ESPStepperMotorServer_Logger::logDebug("no unit provided, will use 'steps' as default");
+    strcpy(unit, "steps");
+  }
+}
+
+
 // -------------------------------------- End --------------------------------------

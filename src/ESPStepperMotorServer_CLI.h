@@ -78,6 +78,8 @@ private:
   const char* _CMD_PARAM_SEPRATOR = "=";
   const char* _PARAM_PARAM_SEPRATOR = "&";
   const char* _PARAM_VALUE_SEPRATOR = ":";
+
+  void getUnitWithFallback(char *args, char *unit);
 };
 
 #endif
