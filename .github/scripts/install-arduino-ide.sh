@@ -4,7 +4,7 @@
 #OSTYPE: 'msys', ARCH: 'x86_64' => win32
 #OSTYPE: 'darwin18', ARCH: 'i386' => macos
 
-OSBITS=`arch`
+OSBITS="arch"
 if [[ "$OSTYPE" == "linux"* ]]; then
 	export OS_IS_LINUX="1"
 	ARCHIVE_FORMAT="tar.xz"
@@ -88,13 +88,13 @@ function build_sketch(){ # build_sketch <fqbn> <path-to-ino> <build-flags> [extr
     local xtra_opts="$4"
 	local win_opts=""
 	if [ "$OS_IS_WINDOWS" == "1" ]; then
-		local ctags_version=`ls "$ARDUINO_IDE_PATH/tools-builder/ctags/"`
-		local preprocessor_version=`ls "$ARDUINO_IDE_PATH/tools-builder/arduino-preprocessor/"`
+		local ctags_version="ls \"$ARDUINO_IDE_PATH/tools-builder/ctags/\""
+		local preprocessor_version="ls \"$ARDUINO_IDE_PATH/tools-builder/arduino-preprocessor/\""
 		win_opts="-prefs=runtime.tools.ctags.path=$ARDUINO_IDE_PATH/tools-builder/ctags/$ctags_version -prefs=runtime.tools.arduino-preprocessor.path=$ARDUINO_IDE_PATH/tools-builder/arduino-preprocessor/$preprocessor_version"
 	fi
 
 	echo ""
-	echo "Compiling '"$(basename "$sketch")"' ..."
+	echo "Compiling '\"$(basename "$sketch")\"' ..."
 	mkdir -p "$ARDUINO_BUILD_DIR"
 	mkdir -p "$ARDUINO_CACHE_DIR"
 	$ARDUINO_IDE_PATH/arduino-builder -compile -logger=human -core-api-version=10810 \
@@ -133,7 +133,7 @@ function count_sketches() # count_sketches <examples-path>
             continue
         fi
         echo $sketch >> sketches.txt
-        sketchnum=$(($sketchnum + 1))
+        sketchnum=($sketchnum + 1)
     done
     return $sketchnum
 }
@@ -174,24 +174,24 @@ function build_sketches() # build_sketches <fqbn> <examples-path> <chunk> <total
     local sketches=$(cat sketches.txt)
     rm -rf sketches.txt
 
-    local chunk_size=$(( $sketchcount / $chunks_num ))
-    local all_chunks=$(( $chunks_num * $chunk_size ))
+    local chunk_size=( $sketchcount / $chunks_num )
+    local all_chunks=( $chunks_num * $chunk_size )
     if [ "$all_chunks" -lt "$sketchcount" ]; then
-    	chunk_size=$(( $chunk_size + 1 ))
+    	chunk_size=( $chunk_size + 1 )
     fi
 
-    local start_index=$(( $chunk_idex * $chunk_size ))
+    local start_index=( $chunk_idex * $chunk_size )
     if [ "$sketchcount" -le "$start_index" ]; then
     	echo "Skipping job"
     	return 0
     fi
 
-    local end_index=$(( $(( $chunk_idex + 1 )) * $chunk_size ))
+    local end_index=( ( $chunk_idex + 1 ) * $chunk_size )
     if [ "$end_index" -gt "$sketchcount" ]; then
     	end_index=$sketchcount
     fi
 
-    local start_num=$(( $start_index + 1 ))
+    local start_num=( $start_index + 1 )
     echo "Found $sketchcount Sketches";
     echo "Chunk Count : $chunks_num"
     echo "Chunk Size  : $chunk_size"
