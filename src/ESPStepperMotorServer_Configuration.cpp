@@ -363,7 +363,7 @@ byte ESPStepperMotorServer_Configuration::addRotaryEncoder(ESPStepperMotorServer
 {
   //find first index that is not NULL and use as id
   byte id = 0;
-  for (id = 0; id < ESPServerMaxSwitches; id++)
+  for (id = 0; id < ESPServerMaxRotaryEncoders; id++)
   {
     if (this->configuredRotaryEncoders[id] == NULL)
     {
@@ -458,7 +458,7 @@ ESP_FlexyStepper **ESPStepperMotorServer_Configuration::getConfiguredFlexySteppe
 
 ESPStepperMotorServer_PositionSwitch *ESPStepperMotorServer_Configuration::getSwitch(byte id)
 {
-  if (id < 0 || id > ESPServerMaxSwitches)
+  if (id < 0 || id > ESPServerMaxSwitches-1)
   {
     ESPStepperMotorServer_Logger::logWarningf("Invalid switch config requested with id %i. Will retun NULL\n", id);
     return NULL;
