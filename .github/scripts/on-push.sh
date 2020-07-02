@@ -38,6 +38,8 @@ if [ "$BUILD_PIO" -eq 0 ]; then
 	echo "Installing ArduinoJson ..."
 	git clone https://github.com/bblanchon/ArduinoJson "$ARDUINO_USR_PATH/libraries/ArduinoJson" > /dev/null 2>&1
 
+	echo "test"
+
 	echo "Installing ESPAsyncWebserver ..."
 	git clone https://github.com/me-no-dev/ESPAsyncWebServer "$ARDUINO_USR_PATH/libraries/ESPAsyncWebServer"
 	echo "done"
