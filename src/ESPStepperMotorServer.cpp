@@ -472,7 +472,7 @@ void ESPStepperMotorServer::onWebSocketEvent(AsyncWebSocket *server, AsyncWebSoc
   }
   else if (type == WS_EVT_PONG)
   {
-    sprintf(this->logString, "ws[%s][%i] pong[%u]: %s\n", server->url(), client->id(), len, (len) ? (char *)data : "");
+    sprintf(this->logString, "ws[%s][%i] pong[%i]: %s\n", server->url(), client->id(), (int) len, (len) ? (char *)data : "");
     ESPStepperMotorServer_Logger::logInfo(this->logString);
   }
   else if (type == WS_EVT_DATA)
@@ -498,7 +498,7 @@ void ESPStepperMotorServer::onWebSocketEvent(AsyncWebSocket *server, AsyncWebSoc
       }
       else
       {
-        char buff[3];
+        char buff[10];
         for (size_t i = 0; i < info->len; i++)
         {
           sprintf(buff, "%02x ", (uint8_t)data[i]);
