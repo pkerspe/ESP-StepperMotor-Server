@@ -30,8 +30,13 @@ if [ "$BUILD_PIO" -eq 0 ]; then
 	# ArduinoIDE Test
 	source ./.github/scripts/install-arduino-ide.sh
 
-	echo "Installing ESPAsyncWebServer ..."
+	echo "Installing ESP-StepperMotor-Server ..."
 	cp -rf "$GITHUB_WORKSPACE" "$ARDUINO_USR_PATH/libraries/ESPAsyncWebServer"
+	
+	echo "Installing ESP-FlexyStepper ..."
+	git clone https://github.com/pkerspe/ESP-FlexyStepper "$ARDUINO_USR_PATH/libraries/ESP-FlexyStepper" > /dev/null 2>&1
+	echo "Installing ESPAsyncWebserver ..."
+	git clone https://github.com/me-no-dev/ESPAsyncWebServer "$ARDUINO_USR_PATH/libraries/ESPAsyncWebServer" > /dev/null 2>&1
 	echo "Installing ArduinoJson ..."
 	git clone https://github.com/bblanchon/ArduinoJson "$ARDUINO_USR_PATH/libraries/ArduinoJson" > /dev/null 2>&1
 
@@ -54,6 +59,12 @@ else
 	source ./.github/scripts/install-platformio.sh
 
 	python -m platformio lib --storage-dir "$GITHUB_WORKSPACE" install
+	
+	echo "Installing ESP-FlexyStepper ..."
+	python -m platformio lib -g install https://github.com/pkerspe/ESP-FlexyStepper.git > /dev/null 2>&1
+	echo "Installing ESPAsyncWebserver ..."
+	python -m platformio lib -g install https://github.com/me-no-dev/ESPAsyncWebServer.git > /dev/null 2>&1
+
 	echo "Installing ArduinoJson ..."
 	python -m platformio lib -g install https://github.com/bblanchon/ArduinoJson.git > /dev/null 2>&1
 	if [[ "$TARGET_PLATFORM" == "esp32" ]]; then
