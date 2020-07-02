@@ -42,7 +42,6 @@ ESPStepperMotorServer *_stepperMotorServer;
 //
 ESPStepperMotorServer_RestAPI::ESPStepperMotorServer_RestAPI(ESPStepperMotorServer *stepperMotorServer)
 {
-  this->initialized = false;
   this->_stepperMotorServer = stepperMotorServer;
   ESPStepperMotorServer_Logger::logDebug("ESPStepperMotorServer_RestAPI instance created");
 }

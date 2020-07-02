@@ -64,7 +64,6 @@ class ESPStepperMotorServer_Logger
     static byte _logLevel;
     static bool _isDebugLevelSet;
     String _loggerName;
-    bool initialized;
 };
 
 #endif

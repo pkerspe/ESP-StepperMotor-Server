@@ -52,7 +52,6 @@ public:
   void registerRestEndpoints(AsyncWebServer *server);
 
 private:
-  bool initialized;
   String version;
   ESPStepperMotorServer_Logger *logger;
   ESPStepperMotorServer *_stepperMotorServer;
