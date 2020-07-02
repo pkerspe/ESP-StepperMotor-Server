@@ -7,21 +7,21 @@ Connect one ore more stepper controllers with step and direction input, and opti
 
 ## Table of contents
 
-* [Introduction](#introduction)
+*   [Introduction](#introduction)
   * [What this library is NOT](#what-this-library-is-not)
   * [Prerequisites and dependencies](#prerequisites-and-dependencies)
-* [Setting up your ESP-StepperMotor-Server](#Setting-up-your-ESP-StepperMotor-Server)
+*   [Setting up your ESP-StepperMotor-Server](#Setting-up-your-ESP-StepperMotor-Server)
   * [Firmware installation](#Firmware-installation)
     * [Using PlatformIO](#using-platformio)
   * [Installation of the web user interface](#installation-of-the-web-ui)
   * [Connecting the hardware](#connecting-the-hardware)
   * [Configuation via the web user interface](#configuation-via-the-web-user-interface)
-* [API Documentation](#api-documentation)
+*   [API Documentation](#api-documentation)
   * [Library API documentation](#library-api-documentation)
   * [REST API documentation](#rest-api-documentation)
   * [Serial command line interface (CLI)](#Serial-command-line-interface)
-* [Further documentation](#further-documentation)
-* [License](#license)
+*   [Further documentation](#further-documentation)
+*   [License](#license)
 
 | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/setup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/motor_control_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/rest_api_doc_screen.png" alt="ESP StepperMotor Server REST API documentation screen" height="200"/> |
 |---|---|---|---|
@@ -73,7 +73,7 @@ Optional:
 
 ### Firmware installation
 
-##### Using PlatformIO
+#### Using PlatformIO
 
 [PlatformIO](http://platformio.org) is an open source ecosystem for IoT development with cross platform build system, library manager and full support for Espressif ESP32 development. It is based on the free Visual Studio Code from Microsoft, but still works on most popular host OS: Mac OS X, Windows, Linux 32/64, Linux ARM (like Raspberry Pi, BeagleBone, CubieBoard).
 
