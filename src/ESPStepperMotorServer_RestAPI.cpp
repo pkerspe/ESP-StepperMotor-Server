@@ -31,7 +31,6 @@
 
 #include "ESPStepperMotorServer_RestAPI.h"
 
-bool initialized = false;
 ESPStepperMotorServer_Logger *logger;
 ESPStepperMotorServer *_stepperMotorServer;
 // ---------------------------------------------------------------------------------
