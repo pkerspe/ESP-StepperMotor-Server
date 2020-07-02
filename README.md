@@ -75,15 +75,20 @@ If you use PlatformIO you can simply setup your project with the provided paltfo
 ## Setting up your ESP-StepperMotor-Server
 
 In order to get started you need the following elements:
-- A *ESP32* board of your choice (boards with USB-Serial Chips are recommended for the ease of programming them, ohter boards just work as well, yet you have to figure out how to flash the firmware yourself, since this proces will not be covered in this manual)
-- A configured, Arduino compatible IDE ([Arduino](https://www.arduino.cc/en/Main/Software) or [PlatformIO](http://platformio.org))
-- A *stepper motor*
-- A *power supply* that fits to your stepper motors and drivers specs
-- A *stepper driver* board that fits to your stepper motors specs
+* A *ESP32* board of your choice (boards with USB-Serial Chips are recommended for the ease of programming them, ohter boards just work as well, yet you have to figure out how to flash the firmware yourself, since this proces will not be covered in this manual)
+
+* A configured, Arduino compatible IDE ([Arduino](https://www.arduino.cc/en/Main/Software) or [PlatformIO](http://platformio.org))
+
+* A *stepper motor*
+
+* A *power supply* that fits to your stepper motors and drivers specs
+
+* A *stepper driver* board that fits to your stepper motors specs
 
 Optional:
-- Switches for limit/homing, position and emegency stop functionality
-- Rotary encoders to control the motors directly using physical controls
+* Switches for limit/homing, position and emegency stop functionality
+
+* Rotary encoders to control the motors directly using physical controls
 
 ### Firmware installation
 
@@ -104,9 +109,8 @@ lib_deps = ESP-StepperMotor-Server
 
 monitor_speed = 115200
 ```
- 5. now you can open the main.cpp file and include the ESP-StepperMotor-Server and create an instance of the server with a minimal configuration that connects to an existing WiFi like this:
-```
-#include <Arduino.h>
+5. now you can open the main.cpp file and include the ESP-StepperMotor-Server and create an instance of the server with a minimal configuration that connects to an existing WiFi like this:
+```#include <Arduino.h>
 #include <ESPStepperMotorServer.h>
 
 ESPStepperMotorServer *stepperMotorServer;
@@ -180,13 +184,13 @@ After you installed everything on the hardware side, you can open the web UI to 
 In the navigation on the left side click on "SETUP" to open the configuration page.
 
 The following devices can be configured:
--   Stepper Motors (or to be more precise "connected stepper drivers")
--   Switches (input signals in general): multiple types of functions are supported for the switches
-  -   [Limit](https://en.wikipedia.org/wiki/Limit_switch)/Homing Switches
-  -   Position Switches
-  -   emergency stop / [kill switches](https://en.wikipedia.org/wiki/Kill_switch)
-  -   in future versions also switches to trigger movement macros will be supported
--   [Incremental rotary encoders](https://en.wikipedia.org/wiki/Incremental_encoder) as control inputs to control the configured steppers via physical controls (you can always use the web interface or serial control commands directly to control the stepper motor position, speed etc.)
+*   Stepper Motors (or to be more precise "connected stepper drivers")
+*   Switches (input signals in general): multiple types of functions are supported for the switches
+  *   [Limit](https://en.wikipedia.org/wiki/Limit_switch)/Homing Switches
+  *   Position Switches
+  *   emergency stop / [kill switches](https://en.wikipedia.org/wiki/Kill_switch)
+  *   in future versions also switches to trigger movement macros will be supported
+*   [Incremental rotary encoders](https://en.wikipedia.org/wiki/Incremental_encoder) as control inputs to control the configured steppers via physical controls (you can always use the web interface or serial control commands directly to control the stepper motor position, speed etc.)
 
 ![startup screen][add_stepper_dialog]
 ![startup screen][add_switch_dialog]
