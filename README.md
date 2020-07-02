@@ -8,7 +8,7 @@ Connect one ore more stepper controllers with step and direction input, and opti
 ## Table of contents
 
 - [Introduction](#introduction)
-  - [What this library is NOT](#what-this-library-is-not)
+    - [What this library is NOT](#what-this-library-is-not)
   - [Prerequisites and dependencies](#prerequisites-and-dependencies)
 - [Setting up your ESP-StepperMotor-Server](#Setting-up-your-ESP-StepperMotor-Server)
   - [Firmware installation](#Firmware-installation)
