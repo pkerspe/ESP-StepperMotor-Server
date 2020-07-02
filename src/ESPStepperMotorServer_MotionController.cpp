@@ -61,7 +61,7 @@ void ESPStepperMotorServer_MotionController::start()
 
 void ESPStepperMotorServer_MotionController::processMotionUpdates(void *parameter)
 {
-  ESPStepperMotorServer_MotionController *ref = (ESPStepperMotorServer_MotionController *)parameter;
+  ESPStepperMotorServer_MotionController *ref = static_cast<ESPStepperMotorServer_MotionController *>(parameter);
   ESPStepperMotorServer_Configuration *configuration = ref->serverRef->getCurrentServerConfiguration();
   ESP_FlexyStepper **configuredFlexySteppers = configuration->getConfiguredFlexySteppers();
   bool emergencySwitchFlag = false;
