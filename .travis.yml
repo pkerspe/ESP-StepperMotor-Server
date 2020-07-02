@@ -1,4 +1,4 @@
-udo: false
+sudo: false
 
 language: python
 
