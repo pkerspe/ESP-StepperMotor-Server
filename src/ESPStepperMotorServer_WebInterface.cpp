@@ -42,6 +42,7 @@ HTTPClient http;
 ESPStepperMotorServer_WebInterface::ESPStepperMotorServer_WebInterface(ESPStepperMotorServer *serverRef)
 {
   this->_serverRef = serverRef;
+  this->_httpServer = NULL;
 }
 
 /**
@@ -68,9 +69,7 @@ void ESPStepperMotorServer_WebInterface::registerWebInterfaceUrls(AsyncWebServer
       request->send(response);
     });
     this->_httpServer->on("/js/app.js", HTTP_GET, [this](AsyncWebServerRequest *request) {
-      AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiJsFile, "text/javascript");
-      response->addHeader("Content-Encoding", "gzip");
-      request->send(response);
+      request->redirect(this->webUiJsFile);
     });
     this->_httpServer->on(this->webUiJsFile, HTTP_GET, [this](AsyncWebServerRequest *request) {
       AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiJsFile, "text/javascript");
