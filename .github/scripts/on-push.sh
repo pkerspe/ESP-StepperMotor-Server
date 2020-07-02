@@ -30,6 +30,9 @@ if [ "$BUILD_PIO" -eq 0 ]; then
 	# ArduinoIDE Test
 	source ./.github/scripts/install-arduino-ide.sh
 
+	echo "Installing ESPAsyncWebserver ..."
+	git clone https://github.com/me-no-dev/ESPAsyncWebServer "$ARDUINO_USR_PATH/libraries/ESPAsyncWebServer"
+
 	echo "Installing ESP-StepperMotor-Server ..."
 	cp -rf "$GITHUB_WORKSPACE" "$ARDUINO_USR_PATH/libraries/ESPAsyncWebServer"
 	
@@ -37,12 +40,6 @@ if [ "$BUILD_PIO" -eq 0 ]; then
 	git clone https://github.com/pkerspe/ESP-FlexyStepper "$ARDUINO_USR_PATH/libraries/ESP-FlexyStepper" > /dev/null 2>&1
 	echo "Installing ArduinoJson ..."
 	git clone https://github.com/bblanchon/ArduinoJson "$ARDUINO_USR_PATH/libraries/ArduinoJson" > /dev/null 2>&1
-
-	echo "test"
-
-	echo "Installing ESPAsyncWebserver ..."
-	git clone https://github.com/me-no-dev/ESPAsyncWebServer "$ARDUINO_USR_PATH/libraries/ESPAsyncWebServer"
-	echo "done"
 
 	if [[ "$TARGET_PLATFORM" == "esp32" ]]; then
 		echo "Installing AsyncTCP ..."
