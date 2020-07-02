@@ -6,22 +6,23 @@ Turn your ESP32 into a standalone stepper motor control server with easy to use 
 Connect one ore more stepper controllers with step and direction input, and optionally some limit-switches to the IO-pins of your ESP module and controll the stepper motor via an easy to use web interface, via REST API or via a serial control interface.
 
 ## Table of contents
-  - [Introduction](#introduction)
+
+- [Introduction](#introduction)
     - [What this library is NOT](#what-this-library-is-not)
     - [Prerequisites and dependencies](#prerequisites-and-dependencies)
-  - [Setting up your ESP-StepperMotor-Server](#Setting-up-your-ESP-StepperMotor-Server)
+- [Setting up your ESP-StepperMotor-Server](#Setting-up-your-ESP-StepperMotor-Server)
     - [Firmware installation](#Firmware-installation)
       - [Using PlatformIO](#using-platformio)
     - [Installation of the web user interface](#installation-of-the-web-ui)
     - [Connecting the hardware](#connecting-the-hardware)
     - [Configuation via the web user interface](#configuation-via-the-web-user-interface)
 
-  - [API Documentation](#api-documentation)
+- [API Documentation](#api-documentation)
     - [Library API documentation](#library-api-documentation)
     - [REST API documentation](#rest-api-documentation)
     - [Serial command line interface (CLI)](#Serial-command-line-interface)
-  - [Further documentation](#further-documentation)
-  - [License](#license)
+- [Further documentation](#further-documentation)
+- [License](#license)
 
 | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/server_startup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/setup_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/motor_control_screen.png" alt="ESP StepperMotor Server start screen" height="200"/> | <img src="https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/rest_api_doc_screen.png" alt="ESP StepperMotor Server REST API documentation screen" height="200"/> |
 |---|---|---|---|
@@ -166,13 +167,13 @@ After you installed everything on the hardware side, you can open the web UI to 
 In the navigation on the left side click on "SETUP" to open the configuration page.
 
 The following devices can be configured:
-  - Stepper Motors (or to be more precise "connected stepper drivers")
-  - Switches (input signals in general): multiple types of functions are supported for the switches
+- Stepper Motors (or to be more precise "connected stepper drivers")
+- Switches (input signals in general): multiple types of functions are supported for the switches
     - [Limit](https://en.wikipedia.org/wiki/Limit_switch)/Homing Switches
     - Position Switches
     - emergency stop / [kill switches](https://en.wikipedia.org/wiki/Kill_switch)
     - in future versions also switches to trigger movement macros will be supported
-  - [Incremental rotary encoders](https://en.wikipedia.org/wiki/Incremental_encoder) as control inputs to control the configured steppers via physical controls (you can always use the web interface or serial control commands directly to control the stepper motor position, speed etc.)
+- [Incremental rotary encoders](https://en.wikipedia.org/wiki/Incremental_encoder) as control inputs to control the configured steppers via physical controls (you can always use the web interface or serial control commands directly to control the stepper motor position, speed etc.)
 
 ![startup screen][add_stepper_dialog]
 ![startup screen][add_switch_dialog]
