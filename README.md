@@ -8,14 +8,14 @@ Connect one ore more stepper controllers with step and direction input, and opti
 ## Table of contents
 
 - [Introduction](#introduction)
-    - [What this library is NOT](#what-this-library-is-not)
-  - [Prerequisites and dependencies](#prerequisites-and-dependencies)
+  -   [What this library is NOT](#what-this-library-is-not)
+  -   [Prerequisites and dependencies](#prerequisites-and-dependencies)
 - [Setting up your ESP-StepperMotor-Server](#Setting-up-your-ESP-StepperMotor-Server)
-  - [Firmware installation](#Firmware-installation)
+  -   [Firmware installation](#Firmware-installation)
     - [Using PlatformIO](#using-platformio)
-  - [Installation of the web user interface](#installation-of-the-web-ui)
-  - [Connecting the hardware](#connecting-the-hardware)
-  - [Configuation via the web user interface](#configuation-via-the-web-user-interface)
+  -   [Installation of the web user interface](#installation-of-the-web-ui)
+  -   [Connecting the hardware](#connecting-the-hardware)
+  -   [Configuation via the web user interface](#configuation-via-the-web-user-interface)
 
 - [API Documentation](#api-documentation)
   - [Library API documentation](#library-api-documentation)
