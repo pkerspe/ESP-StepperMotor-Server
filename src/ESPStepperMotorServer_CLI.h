@@ -68,6 +68,8 @@ private:
   void getParameterValue(const char * args, const char* parameterNameToGetValueFor, char* result);
   void registerCommands();
   void registerNewCommand(const char cmd[], const char shortCut[], bool hasParameters, const char description[], void (ESPStepperMotorServer_CLI::*f)(char *, char*));
+  void getUnitWithFallback(char *args, char *unit);
+
   TaskHandle_t xHandle = NULL;
   ESPStepperMotorServer *serverRef;
   void (ESPStepperMotorServer_CLI::*command_functions[MAX_CLI_CMD_COUNTER + 1])(char *, char *);
@@ -78,7 +80,6 @@ private:
   const char* _PARAM_PARAM_SEPRATOR = "&";
   const char* _PARAM_VALUE_SEPRATOR = ":";
 
-  void getUnitWithFallback(char *args, char *unit);
 };
 
 #endif

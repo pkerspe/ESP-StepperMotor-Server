@@ -364,13 +364,13 @@ void ESPStepperMotorServer_CLI::cmdGetPosition(char *cmd, char *args)
 void ESPStepperMotorServer_CLI::cmdMoveTo(char *cmd, char *args)
 {
   int stepperid = this->getValidStepperIdFromArg(args);
-  char value[20];
-  char unit[10];
   if (stepperid > -1)
   {
+    char value[20];
     this->getParameterValue(args, "v", value);
     if (value[0] != NULLCHAR)
     {
+      char unit[10];
       this->getParameterValue(args, "u", unit);
       if (unit[0] == NULLCHAR || strcmp(unit, "steps") == 0)
       {
@@ -517,7 +517,6 @@ void ESPStepperMotorServer_CLI::getParameterValue(const char *args, const char *
   }
 
   ESPStepperMotorServer_Logger::logDebugf("getParameterValue called with %s and %s\n", args, parameterNameToGetValueFor);
-  char *parameterName;
   char *parameterValue;
   char *save_ptr;
   char workingCopy[strlen(args) + 1];
@@ -528,7 +527,7 @@ void ESPStepperMotorServer_CLI::getParameterValue(const char *args, const char *
   {
     ESPStepperMotorServer_Logger::logDebugf("Found a key value pair: %s\n", keyValuePairString);
     char *restKeyValuePair = keyValuePairString;
-    parameterName = strtok_r(restKeyValuePair, this->_PARAM_VALUE_SEPRATOR, &restKeyValuePair);
+    char *parameterName = strtok_r(restKeyValuePair, this->_PARAM_VALUE_SEPRATOR, &restKeyValuePair);
     if (parameterName != NULL)
     {
       ESPStepperMotorServer_Logger::logDebugf("Found parameter '%s'\n", parameterName);
