@@ -98,7 +98,7 @@ void ESPStepperMotorServer_CLI::processSerialInput(void *parameter)
   {
     while (Serial.available())
     {
-      char c = Serial.read();
+      char c = (char) Serial.read();
       switch (c)
       {
       case CR: //likely have full command in buffer now, commands are terminated by CR and/or LS
@@ -117,11 +117,10 @@ void ESPStepperMotorServer_CLI::processSerialInput(void *parameter)
           }
         }
         break;
-      case BS: // handle backspace in input: put a space in last char
+      case BS: // handle backspace in input: put a blank in last char
         if (charsRead > 0)
         { //and adjust commandLine and charsRead
           commandLine[--charsRead] = NULLCHAR;
-          //Serial << byte(BS) << byte(SPACE) << byte(BS); //no idea how this works, found it on the Internet
         }
         break;
       default:

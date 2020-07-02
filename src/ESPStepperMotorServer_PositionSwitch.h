@@ -19,6 +19,7 @@
 
 class ESPStepperMotorServer_PositionSwitch
 {
+  friend class ESPStepperMotorServer;
 public:
   ESPStepperMotorServer_PositionSwitch();
   ESPStepperMotorServer_PositionSwitch(byte ioPin, int stepperIndex, byte switchType, String name = "", long switchPosition = 0);

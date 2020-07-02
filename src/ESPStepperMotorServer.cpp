@@ -1141,12 +1141,12 @@ void IRAM_ATTR ESPStepperMotorServer::internalSwitchISR(byte switchType)
   if (switchType == SWITCHTYPE_LIMITSWITCH_POS_BEGIN_BIT || switchType == SWITCHTYPE_LIMITSWITCH_POS_END_BIT || switchType == SWITCHTYPE_LIMITSWITCH_COMBINED_BEGIN_END_BIT)
   {
     ESPStepperMotorServer_Configuration *configuration = this->serverConfiguration;
-    ESPStepperMotorServer_PositionSwitch *switchConfig = configuration->getSwitch(changedStausSwitchId);
+    ESPStepperMotorServer_PositionSwitch *switchConfig = configuration->allConfiguredSwitches[changedStausSwitchId];
     if (switchConfig)
     {
-      bool isActiveHigh = switchConfig->isActiveHigh();
-      bool inputState = digitalRead(switchConfig->getIoPinNumber());
-      ESPStepperMotorServer_StepperConfiguration *stepper = configuration->getStepperConfiguration(switchConfig->getStepperIndex());
+      bool isActiveHigh = switchConfig->_switchType & (1 << (SWITCHTYPE_STATE_ACTIVE_HIGH_BIT - 1)); //we do not use the helper function isActiveHigh due to performance reasons
+      bool inputState = digitalRead(switchConfig->_ioPinNumber);
+      ESPStepperMotorServer_StepperConfiguration *stepper = configuration->getStepperConfiguration(switchConfig->_stepperIndex);
       if ((inputState && isActiveHigh) || (!inputState && !isActiveHigh))
       {
         if (stepper)
@@ -1154,13 +1154,13 @@ void IRAM_ATTR ESPStepperMotorServer::internalSwitchISR(byte switchType)
           switch (switchType)
           {
           case SWITCHTYPE_LIMITSWITCH_POS_BEGIN_BIT:
-            stepper->getFlexyStepper()->setLimitSwitchActive(ESP_FlexyStepper::LIMIT_SWITCH_BEGIN);
+            stepper->_flexyStepper->setLimitSwitchActive(ESP_FlexyStepper::LIMIT_SWITCH_BEGIN);
             break;
           case SWITCHTYPE_LIMITSWITCH_POS_END_BIT:
-            stepper->getFlexyStepper()->setLimitSwitchActive(ESP_FlexyStepper::LIMIT_SWITCH_END);
+            stepper->_flexyStepper->setLimitSwitchActive(ESP_FlexyStepper::LIMIT_SWITCH_END);
             break;
           case SWITCHTYPE_LIMITSWITCH_COMBINED_BEGIN_END_BIT:
-            stepper->getFlexyStepper()->setLimitSwitchActive(ESP_FlexyStepper::LIMIT_SWITCH_COMBINED_BEGIN_AND_END);
+            stepper->_flexyStepper->setLimitSwitchActive(ESP_FlexyStepper::LIMIT_SWITCH_COMBINED_BEGIN_AND_END);
             break;
           }
         }
@@ -1171,7 +1171,7 @@ void IRAM_ATTR ESPStepperMotorServer::internalSwitchISR(byte switchType)
       {
         if (stepper)
         {
-          stepper->getFlexyStepper()->clearLimitSwitchActive();
+          stepper->_flexyStepper->clearLimitSwitchActive();
         }
         if (ESPStepperMotorServer_Logger::isDebugEnabled())
           ESPStepperMotorServer_Logger::logDebugf("Limit switch '%s' has been released (IO pin status is %i)\n", switchConfig->getPositionName().c_str(), inputState);
@@ -1189,7 +1189,7 @@ void IRAM_ATTR ESPStepperMotorServer::internalSwitchISR(byte switchType)
  */
 void IRAM_ATTR ESPStepperMotorServer::internalRotaryEncoderISR()
 {
-  ESPStepperMotorServer_Configuration *configuration = this->serverConfiguration; 
+  ESPStepperMotorServer_Configuration *configuration = this->serverConfiguration;
   for (int i = 0; i < ESPServerMaxRotaryEncoders; i++)
   {
     ESPStepperMotorServer_RotaryEncoder *rotaryEncoder = configuration->configuredRotaryEncoders[i];
