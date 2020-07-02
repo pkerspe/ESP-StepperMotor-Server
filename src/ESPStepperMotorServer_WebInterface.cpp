@@ -139,7 +139,7 @@ bool ESPStepperMotorServer_WebInterface::checkIfGuiExistsInSpiffs()
     }
   }
 
-  if (!uiComplete && this->_serverRef->getCurrentServerConfiguration()->wifiMode == ESPServerWifiModeAccessPoint)
+  if (uiComplete == false && this->_serverRef->getCurrentServerConfiguration()->wifiMode == ESPServerWifiModeAccessPoint)
   {
     ESPStepperMotorServer_Logger::logWarning("The UI does not seem to be installed completely on SPIFFS. Automatic download failed since the server is in Access Point mode and not connected to the internet");
     ESPStepperMotorServer_Logger::logWarning("Start the server in wifi client (STA) mode to enable automatic download of the web interface files to SPIFFS");
@@ -148,7 +148,7 @@ bool ESPStepperMotorServer_WebInterface::checkIfGuiExistsInSpiffs()
   {
     ESPStepperMotorServer_Logger::logDebug("Check completed successfully");
   }
-  else if (!uiComplete)
+  else if (uiComplete == false)
   {
     ESPStepperMotorServer_Logger::logDebug("Check failed, one or more UI files are missing and could not be downloaded automatically");
   }
