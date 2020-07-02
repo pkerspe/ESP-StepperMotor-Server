@@ -33,7 +33,7 @@
 byte ESPStepperMotorServer_Logger::_logLevel = ESPServerLogLevel_INFO;
 bool ESPStepperMotorServer_Logger::_isDebugLevelSet = false;
 
-char logString[400];
+char logString[400] = {0};
 const char *LEVEL_STRING_ALL = "ALL";
 const char *LEVEL_STRING_DEBUG = "DEBUG";
 const char *LEVEL_STRING_INFO = "INFO";
@@ -54,7 +54,7 @@ void ESPStepperMotorServer_Logger::printBinaryWithLeadingZeros(char *result, byt
     int charIndex = 0;
     for (byte test = 0x80; test; test >>= 1)
     {
-        result[charIndex] = (var & test ? '1' : '0');
+        result[charIndex] = (var & test) ? '1' : '0';
         charIndex++;
         // Serial.write(var & test ? '1' : '0');
     }
