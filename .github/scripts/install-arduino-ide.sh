@@ -186,7 +186,7 @@ function build_sketches() # build_sketches <fqbn> <examples-path> <chunk> <total
     	return 0
     fi
 
-    local end_index=( ( $chunk_idex + 1 ) * $chunk_size )
+    local end_index=( $chunk_idex + 1 ) * $chunk_size
     if [ "$end_index" -gt "$sketchcount" ]; then
     	end_index=$sketchcount
     fi
