@@ -208,8 +208,8 @@ void ESPStepperMotorServer_CLI::registerCommands()
   commandDetailsStructure setSSIDCommand = {String("setwifissid"), String("sws"), String("set the SSID of the WiFi to connect to (if in client mode)"), true};
   this->registerNewCommand(setSSIDCommand, &ESPStepperMotorServer_CLI::cmdSetSSID);
 
-  commandDetailsStructure setSSIDPwdCommand = {String("setwifipwd"), String("swp"), String("set the password of the Wifi network to connect to"), true};
-  this->registerNewCommand(setSSIDPwdCommand, &ESPStepperMotorServer_CLI::cmdSetSSIDPassword);
+  commandDetailsStructure cmdSetWifiPwdCommand = {String("setwifipwd"), String("swp"), String("set the password of the Wifi network to connect to"), true};
+  this->registerNewCommand(cmdSetWifiPwdCommand, &ESPStepperMotorServer_CLI::cmdSetWifiPassword);
 
   //TODO: implement missing cmd functions
   // this->registerNewCommand("addswitch", "asw", 1, "add a new switch configuration", &ESPStepperMotorServer_CLI::cmdAddSwitch);
@@ -260,38 +260,68 @@ const char *setterMissingParameterTemplate = "No or invalid value given as param
 
 void ESPStepperMotorServer_CLI::cmdSetApName(char *cmd, char *args)
 {
-  this->serverRef->setAccessPointName(args);
-  Serial.printf(setterConfirmationTemplate, "AP name", args);
+  if (args != NULL && strlen(args) > 0)
+  {
+    this->serverRef->setAccessPointName(args);
+    Serial.printf(setterConfirmationTemplate, "AP name", args);
+  }
+  else
+  {
+    Serial.printf(setterMissingParameterTemplate, cmd);
+  }
 }
 
 void ESPStepperMotorServer_CLI::cmdSetApPassword(char *cmd, char *args)
 {
-  this->serverRef->setAccessPointPassword(args);
-  Serial.printf(setterConfirmationTemplate, "AP password", args);
+  if (args != NULL && strlen(args) > 0)
+  {
+    this->serverRef->setAccessPointPassword(args);
+    Serial.printf(setterConfirmationTemplate, "AP password", args);
+  }
+  else
+  {
+    Serial.printf(setterMissingParameterTemplate, cmd);
+  }
 }
 
 void ESPStepperMotorServer_CLI::cmdSetHttpPort(char *cmd, char *args)
 {
-  int port = (int) (String(args)).toInt();
+  int port = (int)(String(args)).toInt();
   if (port >= 80)
   {
     this->serverRef->setHttpPort(port);
     Serial.printf(setterConfirmationTemplate, "HTTP port", args);
-  } else {
+  }
+  else
+  {
     Serial.printf(setterMissingParameterTemplate, cmd);
   }
 }
 
 void ESPStepperMotorServer_CLI::cmdSetSSID(char *cmd, char *args)
 {
-  this->serverRef->setWifiSSID(args);
-  Serial.printf(setterConfirmationTemplate, "WiFi SSID", atoi(args));
+  if (args != NULL && strlen(args) > 0)
+  {
+    this->serverRef->setWifiSSID(args);
+    Serial.printf(setterConfirmationTemplate, "WiFi SSID", args);
+  }
+  else
+  {
+    Serial.printf(setterMissingParameterTemplate, cmd);
+  }
 }
 
-void ESPStepperMotorServer_CLI::cmdSetSSIDPassword(char *cmd, char *args)
+void ESPStepperMotorServer_CLI::cmdSetWifiPassword(char *cmd, char *args)
 {
-  this->serverRef->setWifiPassword(args);
-  Serial.printf(setterConfirmationTemplate, "WiFi password", atoi(args));
+  if (args != NULL && strlen(args) > 0)
+  {
+    this->serverRef->setWifiPassword(args);
+    Serial.printf(setterConfirmationTemplate, "WiFi password", args);
+  }
+  else
+  {
+    Serial.printf(setterMissingParameterTemplate, cmd);
+  }
 }
 
 void ESPStepperMotorServer_CLI::cmdHelp(char *cmd, char *args)

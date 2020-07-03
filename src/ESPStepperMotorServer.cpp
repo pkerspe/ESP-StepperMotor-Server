@@ -462,7 +462,7 @@ void ESPStepperMotorServer::onWebSocketEvent(AsyncWebSocket *server, AsyncWebSoc
   }
   else if (type == WS_EVT_PONG)
   {
-    ESPStepperMotorServer_Logger::logInfof("ws[%s][%i] pong[%i]: %s\n", server->url(), client->id(), (int) len, (len) ? (char *)data : "");
+    ESPStepperMotorServer_Logger::logInfof("ws[%s][%i] pong[%i]: %s\n", server->url(), client->id(), (int)len, (len) ? (char *)data : "");
   }
   else if (type == WS_EVT_DATA)
   {
@@ -712,7 +712,7 @@ void ESPStepperMotorServer::printWifiStatus()
   if (this->serverConfiguration->wifiMode == ESPServerWifiModeClient)
   {
     ESPStepperMotorServer_Logger::logInfo("WiFi status: server acts as wifi client in existing network with DHCP");
-    ESPStepperMotorServer_Logger::logInfof("SSID: %s\n", this->wifiClientSsid);
+    ESPStepperMotorServer_Logger::logInfof("SSID: %s\n", this->getCurrentServerConfiguration()->wifiSsid);
     ESPStepperMotorServer_Logger::logInfof("IP address: %s\n", WiFi.localIP().toString().c_str());
     ESPStepperMotorServer_Logger::logInfof("Strength: %i dBm\n", WiFi.RSSI()); //Received Signal Strength Indicator
   }
@@ -728,18 +728,20 @@ void ESPStepperMotorServer::printWifiStatus()
   }
 }
 
-void ESPStepperMotorServer::setWifiSSID(const char *ssid){
-  this->wifiClientSsid = ssid;
+void ESPStepperMotorServer::setWifiSSID(const char *ssid)
+{
+  this->getCurrentServerConfiguration()->wifiSsid = ssid;
 }
 
-void ESPStepperMotorServer::setWifiPassword(const char *pwd){
-  this->wifiPassword = pwd;
+void ESPStepperMotorServer::setWifiPassword(const char *pwd)
+{
+  this->getCurrentServerConfiguration()->wifiPassword = pwd;
 }
 
 void ESPStepperMotorServer::setWifiCredentials(const char *ssid, const char *pwd)
 {
-  this->wifiClientSsid = ssid;
-  this->wifiPassword = pwd;
+  this->setWifiSSID(ssid);
+  this->setWifiPassword(pwd);
 }
 
 void ESPStepperMotorServer::startAccessPoint()
@@ -756,14 +758,14 @@ void ESPStepperMotorServer::connectToWifiNetwork()
     return;
   }
 
-  if ((this->wifiClientSsid != NULL) && (this->wifiClientSsid[0] == '\0'))
+  if ((this->getCurrentServerConfiguration()->wifiSsid != NULL) && (this->getCurrentServerConfiguration()->wifiSsid[0] == '\0'))
   {
     ESPStepperMotorServer_Logger::logWarning("No SSID has been configured to connect to. Connection to existing WiFi network aborted");
     return;
   }
 
-  ESPStepperMotorServer_Logger::logInfof("Trying to connect to WiFi with SSID '%s' ...", this->wifiClientSsid);
-  WiFi.begin(this->wifiClientSsid, this->wifiPassword);
+  ESPStepperMotorServer_Logger::logInfof("Trying to connect to WiFi with SSID '%s' ...", this->getCurrentServerConfiguration()->wifiSsid);
+  WiFi.begin(this->getCurrentServerConfiguration()->wifiSsid, this->getCurrentServerConfiguration()->wifiPassword);
   int retryIntervalMs = 500;
   int timeoutCounter = this->wifiClientConnectionTimeoutSeconds * (1000 / retryIntervalMs);
   while (WiFi.status() != WL_CONNECTED && timeoutCounter > 0)
@@ -784,7 +786,7 @@ void ESPStepperMotorServer::connectToWifiNetwork()
   }
   else
   {
-    ESPStepperMotorServer_Logger::logWarningf("Connection to WiFi network with SSID '%s' failed with timeout\n", this->wifiClientSsid);
+    ESPStepperMotorServer_Logger::logWarningf("Connection to WiFi network with SSID '%s' failed with timeout\n", this->getCurrentServerConfiguration()->wifiSsid);
     ESPStepperMotorServer_Logger::logDebugf("Connection timeout is set to %i seconds\n", this->wifiClientConnectionTimeoutSeconds);
     ESPStepperMotorServer_Logger::logWarningf("starting server in access point mode with SSID '%s' and password '%s' as fallback\n", this->serverConfiguration->apName, this->serverConfiguration->apPassword);
     this->setWifiMode(ESPServerWifiModeAccessPoint);

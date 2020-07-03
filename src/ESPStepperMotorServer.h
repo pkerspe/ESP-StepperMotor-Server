@@ -178,8 +178,6 @@ private:
   // private member variables
   //
   byte enabledServices;
-  const char *wifiClientSsid = "";
-  const char *wifiPassword;
   const char *version = "0.2.2";
   boolean isWebserverEnabled = false;
   boolean isRestApiEnabled = false;

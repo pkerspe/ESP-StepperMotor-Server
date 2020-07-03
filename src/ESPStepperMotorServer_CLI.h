@@ -78,7 +78,7 @@ private:
   void cmdSetApPassword(char *cmd, char *args);
   void cmdSetHttpPort(char *cmd, char *args);
   void cmdSetSSID(char *cmd, char *args);
-  void cmdSetSSIDPassword(char *cmd, char *args);
+  void cmdSetWifiPassword(char *cmd, char *args);
   int getValidStepperIdFromArg(char *arg);
   void getParameterValue(const char * args, const char* parameterNameToGetValueFor, char* result);
   void registerCommands();
