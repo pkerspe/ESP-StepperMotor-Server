@@ -36,6 +36,9 @@
 #include <ESPStepperMotorServer.h>
 #include <ESPStepperMotorServer_Logger.h>
 
+//need this forward declaration here due to circular dependency (use in constructor)
+class ESPStepperMotorServer;
+
 class ESPStepperMotorServer_WebInterface
 {
 public:

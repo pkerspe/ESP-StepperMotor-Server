@@ -30,7 +30,6 @@
 // SOFTWARE.
 
 #include <ESPStepperMotorServer_MotionController.h>
-//#include "esp_task_wdt.h"
 
 //
 // constructor for the motion controller module

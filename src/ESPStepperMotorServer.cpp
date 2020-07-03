@@ -55,10 +55,6 @@
 
 #include <ESPStepperMotorServer.h>
 
-//due to circular dependency the follwoing two classes must be inlcuded here, rahter than in the header file (for now, maybe fix this bad api design later)
-#include <ESPStepperMotorServer_CLI.h>
-#include <ESPStepperMotorServer_WebInterface.h>
-#include <ESPStepperMotorServer_MotionController.h>
 // ---------------------------------------------------------------------------------
 //                                  Setup functions
 // ---------------------------------------------------------------------------------
@@ -205,8 +201,7 @@ int ESPStepperMotorServer::addOrUpdateStepper(ESPStepperMotorServer_StepperConfi
   if (stepper->getStepIoPin() == ESPStepperMotorServer_StepperConfiguration::ESPServerStepperUnsetIoPinNumber ||
       stepper->getDirectionIoPin() == ESPStepperMotorServer_StepperConfiguration::ESPServerStepperUnsetIoPinNumber)
   {
-    sprintf(this->logString, "Either the step IO pin (%i) or direction IO (%i) pin, or both, are not set correctly. Use a valid IO Pin value between 0 and the highest available IO Pin on your ESP", stepper->getStepIoPin(), stepper->getDirectionIoPin());
-    ESPStepperMotorServer_Logger::logWarning(this->logString);
+    ESPStepperMotorServer_Logger::logWarningf("Either the step IO pin (%i) or direction IO (%i) pin, or both, are not set correctly. Use a valid IO Pin value between 0 and the highest available IO Pin on your ESP\n", stepper->getStepIoPin(), stepper->getDirectionIoPin());
     return -1;
   }
   //set IO Pins for stepper
@@ -238,7 +233,7 @@ void ESPStepperMotorServer::removeStepper(byte id)
   }
   else
   {
-    ESPStepperMotorServer_Logger::logWarningf("Stepper configuration index %i is invalid, no entry found or stepper IDs do not match, removeStepper() canceled", id);
+    ESPStepperMotorServer_Logger::logWarningf("Stepper configuration index %i is invalid, no entry found or stepper IDs do not match, removeStepper() canceled\n", id);
   }
 }
 
@@ -282,8 +277,7 @@ void ESPStepperMotorServer::removeRotaryEncoder(byte id)
   }
   else
   {
-    sprintf(this->logString, "rotary encoder index %i is invalid, no rotary encoder pointer present at this configuration index or rotary encoder IDs do not match, removeRotaryEncoder() canceled", id);
-    ESPStepperMotorServer_Logger::logWarning(this->logString);
+    ESPStepperMotorServer_Logger::logWarningf("rotary encoder index %i is invalid, no rotary encoder pointer present at this configuration index or rotary encoder IDs do not match, removeRotaryEncoder() canceled\n", id);
   }
 }
 
@@ -437,8 +431,7 @@ void ESPStepperMotorServer::printSPIFFSRootFolderContents()
     File file = root.openNextFile();
     while (file)
     {
-      sprintf(this->logString, "File: %s (%i) %ld", file.name(), file.size(), file.getLastWrite());
-      ESPStepperMotorServer_Logger::logInfo(this->logString);
+      ESPStepperMotorServer_Logger::logInfof("File: %s (%i) %ld\n", file.name(), file.size(), file.getLastWrite());
       file = root.openNextFile();
     }
     root.close();
@@ -455,25 +448,21 @@ void ESPStepperMotorServer::onWebSocketEvent(AsyncWebSocket *server, AsyncWebSoc
 {
   if (type == WS_EVT_CONNECT)
   {
-    sprintf(this->logString, "ws[%s][%u] connect\n", server->url(), client->id());
-    ESPStepperMotorServer_Logger::logInfo(this->logString);
+    ESPStepperMotorServer_Logger::logInfof("ws[%s][%u] connect\n", server->url(), client->id());
     client->printf("Hello Client %u :)", client->id());
     client->ping();
   }
   else if (type == WS_EVT_DISCONNECT)
   {
-    sprintf(this->logString, "ws[%s][%i] disconnect: %i\n", server->url(), client->id(), client->id());
-    ESPStepperMotorServer_Logger::logInfo(this->logString);
+    ESPStepperMotorServer_Logger::logInfof("ws[%s][%i] disconnect: %i\n", server->url(), client->id(), client->id());
   }
   else if (type == WS_EVT_ERROR)
   {
-    sprintf(this->logString, "ws[%s][%u] error(%i): %s\n", server->url(), client->id(), *((uint16_t *)arg), (char *)data);
-    ESPStepperMotorServer_Logger::logWarning(this->logString);
+    ESPStepperMotorServer_Logger::logWarningf("ws[%s][%u] error(%i): %s\n", server->url(), client->id(), *((uint16_t *)arg), (char *)data);
   }
   else if (type == WS_EVT_PONG)
   {
-    sprintf(this->logString, "ws[%s][%i] pong[%i]: %s\n", server->url(), client->id(), (int) len, (len) ? (char *)data : "");
-    ESPStepperMotorServer_Logger::logInfo(this->logString);
+    ESPStepperMotorServer_Logger::logInfof("ws[%s][%i] pong[%i]: %s\n", server->url(), client->id(), (int) len, (len) ? (char *)data : "");
   }
   else if (type == WS_EVT_DATA)
   {
@@ -723,28 +712,28 @@ void ESPStepperMotorServer::printWifiStatus()
   if (this->serverConfiguration->wifiMode == ESPServerWifiModeClient)
   {
     ESPStepperMotorServer_Logger::logInfo("WiFi status: server acts as wifi client in existing network with DHCP");
-    sprintf(this->logString, "SSID: %s", this->wifiClientSsid);
-    ESPStepperMotorServer_Logger::logInfo(logString);
-
-    sprintf(this->logString, "IP address: %s", WiFi.localIP().toString().c_str());
-    ESPStepperMotorServer_Logger::logInfo(logString);
-
-    sprintf(this->logString, "Strength: %i dBm", WiFi.RSSI()); //Received Signal Strength Indicator
-    ESPStepperMotorServer_Logger::logInfo(logString);
+    ESPStepperMotorServer_Logger::logInfof("SSID: %s\n", this->wifiClientSsid);
+    ESPStepperMotorServer_Logger::logInfof("IP address: %s\n", WiFi.localIP().toString().c_str());
+    ESPStepperMotorServer_Logger::logInfof("Strength: %i dBm\n", WiFi.RSSI()); //Received Signal Strength Indicator
   }
   else if (this->serverConfiguration->wifiMode == ESPServerWifiModeAccessPoint)
   {
     ESPStepperMotorServer_Logger::logInfo("WiFi status: access point started");
-    sprintf(this->logString, "SSID: %s", this->serverConfiguration->apName);
-    ESPStepperMotorServer_Logger::logInfo(logString);
-
-    sprintf(this->logString, "IP Address: %s", WiFi.softAPIP().toString().c_str());
-    ESPStepperMotorServer_Logger::logInfo(logString);
+    ESPStepperMotorServer_Logger::logInfof("SSID: %s\n", this->serverConfiguration->apName);
+    ESPStepperMotorServer_Logger::logInfof("IP Address: %s\n", WiFi.softAPIP().toString().c_str());
   }
   else
   {
     ESPStepperMotorServer_Logger::logInfo("WiFi is disabled");
   }
+}
+
+void ESPStepperMotorServer::setWifiSSID(const char *ssid){
+  this->wifiClientSsid = ssid;
+}
+
+void ESPStepperMotorServer::setWifiPassword(const char *pwd){
+  this->wifiPassword = pwd;
 }
 
 void ESPStepperMotorServer::setWifiCredentials(const char *ssid, const char *pwd)
@@ -840,7 +829,7 @@ void ESPStepperMotorServer::setupPositionSwitchIOPin(ESPStepperMotorServer_Posit
     {
       if (posSwitch->getIoPinNumber() == 34 || posSwitch->getIoPinNumber() == 35 || posSwitch->getIoPinNumber() == 36 || posSwitch->getIoPinNumber() == 39)
       {
-        ESPStepperMotorServer_Logger::logWarningf("The configured IO pin %i cannot be used for active low switches unless an external pull up resistor is in place. The ESP does not provide internal pullups on this IO pin. Make sure you have a pull up resistor in place for the switch %s (%i)", posSwitch->getIoPinNumber(), posSwitch->getPositionName(), posSwitch->getId());
+        ESPStepperMotorServer_Logger::logWarningf("The configured IO pin %i cannot be used for active low switches unless an external pull up resistor is in place. The ESP does not provide internal pullups on this IO pin. Make sure you have a pull up resistor in place for the switch %s (%i)\n", posSwitch->getIoPinNumber(), posSwitch->getPositionName(), posSwitch->getId());
       }
       ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as input with pullup for active low switch '%s' (%i)\n", posSwitch->getIoPinNumber(), posSwitch->getPositionName().c_str(), posSwitch->getId());
       pinMode(posSwitch->getIoPinNumber(), INPUT_PULLUP);
@@ -1210,7 +1199,7 @@ void IRAM_ATTR ESPStepperMotorServer::internalRotaryEncoderISR()
       }
       else
       {
-        ESPStepperMotorServer_Logger::logWarningf("Invalid (non config found) stepper server id %i in rotary encoder config with id %i.", rotaryEncoder->_stepperIndex, i);
+        ESPStepperMotorServer_Logger::logWarningf("Invalid (non config found) stepper server id %i in rotary encoder config with id %i\n", rotaryEncoder->_stepperIndex, i);
       }
     }
   }

@@ -57,12 +57,14 @@
 
 #define ESPStepperMotorServer_SwitchDisplayName_MaxLength 20
 
-#include <Arduino.h>
 #include <ESP_FlexyStepper.h>
 #include <SPIFFS.h>
 #include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
+#include <ESPStepperMotorServer_WebInterface.h>
+#include <ESPStepperMotorServer_CLI.h>
 #include <ESPStepperMotorServer_Configuration.h>
+#include <ESPStepperMotorServer_MotionController.h>
 #include <ESPStepperMotorServer_PositionSwitch.h>
 #include <ESPStepperMotorServer_StepperConfiguration.h>
 #include <ESPStepperMotorServer_RotaryEncoder.h>
@@ -87,7 +89,7 @@
 
 #define ESPStepperHighestAllowedIoPin 50
 
-//just declare class here for compiler, since we have a circular dependency (due to bad api design :-))
+//just forward declare class here for compiler, since we have a circular dependency (due to bad api design :-))
 class ESPStepperMotorServer_CLI;
 class ESPStepperMotorServer_RestAPI;
 class ESPStepperMotorServer_Configuration;
@@ -105,6 +107,8 @@ public:
   void setAccessPointName(const char *accessPointSSID);
   void setAccessPointPassword(const char *accessPointPassword);
   void setWifiCredentials(const char *ssid, const char *pwd);
+  void setWifiSSID(const char *ssid);
+  void setWifiPassword(const char *pwd);
   void setWifiMode(byte wifiMode);
   void printWifiStatus();
   int addOrUpdateStepper(ESPStepperMotorServer_StepperConfiguration *stepper, int stepperIndex = -1);
@@ -169,7 +173,7 @@ private:
   void internalEmergencySwitchISR();
   void internalSwitchISR(byte switchType);
   void internalRotaryEncoderISR();
-  
+
   //
   // private member variables
   //
@@ -181,7 +185,6 @@ private:
   boolean isRestApiEnabled = false;
   boolean isCLIEnabled = false;
   boolean isServerStarted = false;
-  char logString[1000];
 
   ESPStepperMotorServer_Configuration *serverConfiguration;
   ESPStepperMotorServer_WebInterface *webInterfaceHandler;

@@ -259,6 +259,11 @@ stop [st]:              stop the stepper server (also stops the CLI!)
 loglevel [ll]*:         set or get the current log level for serial output. valid values to set are: 1 (Warning) - 4 (ALL). E.g. to set to log level DEBUG use sll=3 to get the current loglevel call without parameter
 serverstatus [ss]:      print status details of the server as JSON formated string
 switchstatus [pss]:     print the status of all input switches as JSON formated string
+setapname [san]*:       set the name of the access point to be opened up by the esp (if in AP mode)
+setappwd [sap]*:        set the password for the access point to be opened by the esp
+sethttpport [shp]*:     set the http port to listen for for the web interface
+setwifissid [sws]*:     set the SSID of the WiFi to connect to (if in client mode)
+setwifipwd [swp]*:      set the password of the Wifi network to connect to")
 
 commmands marked with a * require input parameters.
 Parameters are provided with the command separarted by a = for the primary parameter.
