@@ -33,7 +33,6 @@
 byte ESPStepperMotorServer_Logger::_logLevel = ESPServerLogLevel_INFO;
 bool ESPStepperMotorServer_Logger::_isDebugLevelSet = false;
 
-char logString[400] = {0};
 const char *LEVEL_STRING_ALL = "ALL";
 const char *LEVEL_STRING_DEBUG = "DEBUG";
 const char *LEVEL_STRING_INFO = "INFO";

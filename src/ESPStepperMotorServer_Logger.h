@@ -55,7 +55,6 @@ class ESPStepperMotorServer_Logger
     static void logWarning(const char *msg, boolean newLine = true, boolean ommitLogLevel = false);
     static void logWarningf(const char *format, ...);
     static bool isDebugEnabled();
-    char logString[400];
 
   private:
     static void log(const char *level, const char *msg, boolean newLine, boolean ommitLogLevel);
