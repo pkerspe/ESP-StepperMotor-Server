@@ -77,6 +77,8 @@ void ESPStepperMotorServer_CLI::executeCommand(String cmd)
   strcpy(cmdCharArray, cmd.c_str());
   char *pureCommand = strtok(cmdCharArray, _CMD_PARAM_SEPRATOR);
   char *arguments = strtok(NULL, "=");
+  int arrgumentsStringLength = strlen(arguments);
+  Serial.println(arrgumentsStringLength);
 
   for (int i = 0; i < this->commandCounter; i++)
   {
