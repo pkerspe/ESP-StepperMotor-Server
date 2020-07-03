@@ -1,3 +1,4 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/d9bf5e50c7334b71a9dfba7367b3b18e)](https://app.codacy.com/manual/pkerspe/ESP-StepperMotor-Server?utm_source=github.com&utm_medium=referral&utm_content=pkerspe/ESP-StepperMotor-Server&utm_campaign=Badge_Grade_Dashboard)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/3e1bf8a4b56d43fc99f1020d64f71894)](https://app.codacy.com/manual/pkerspe/ESP-StepperMotor-Server?utm_source=github.com&utm_medium=referral&utm_content=pkerspe/ESP-StepperMotor-Server&utm_campaign=Badge_Grade_Dashboard)
 
 # ESP-StepperMotor-Server - A stepper motor control server running on ESP32 modules
