@@ -55,7 +55,7 @@ ESPStepperMotorServer_StepperConfiguration::ESPStepperMotorServer_StepperConfigu
 
     //we store the value in flexistepper and locally, since flexystepper does not provider getters
     this->_flexyStepper->setStepsPerMillimeter(stepsPerMM * this->_microsteppingDivisor);
-    this->_stepsPerMM = _stepsPerMM;
+    this->_stepsPerMM = stepsPerMM;
 
     //we store the value in flexistepper and locally, since flexystepper does not provider getters
     this->_flexyStepper->setStepsPerRevolution(stepsPerRev * this->_microsteppingDivisor);
@@ -156,7 +156,7 @@ void ESPStepperMotorServer_StepperConfiguration::setRpmLimit(unsigned int rpmLim
     if (rpmLimit > ESPSMS_MAX_UPPER_RPM_LMIT)
     {
         char logString[170];
-        sprintf(logString, "ESPStepperMotorServer_StepperConfiguration::setRpmLimit: The given rpm limit value %i exceeds the allowed maximum rpm limit of %i, will set to %i", rpmLimit, ESPSMS_MAX_UPPER_RPM_LMIT, ESPSMS_MAX_UPPER_RPM_LMIT);
+        sprintf(logString, "ESPStepperMotorServer_StepperConfiguration::setRpmLimit: The given rpm limit value %u exceeds the allowed maximum rpm limit of %i, will set to %i", rpmLimit, ESPSMS_MAX_UPPER_RPM_LMIT, ESPSMS_MAX_UPPER_RPM_LMIT);
         ESPStepperMotorServer_Logger::logWarning(logString);
         this->_rpmLimit = ESPSMS_MAX_UPPER_RPM_LMIT;
     }
