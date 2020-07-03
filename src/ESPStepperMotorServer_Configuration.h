@@ -60,12 +60,12 @@ class ESPStepperMotorServer_Configuration
 
 public:
   ESPStepperMotorServer_Configuration(const char *configFilePath);
-  String getCurrentConfigurationAsJSONString(bool prettyPrint = true);
+  String getCurrentConfigurationAsJSONString(bool prettyPrint = true, bool includePasswords = false);
   unsigned int calculateRequiredJsonDocumentSizeForCurrentConfiguration();
   void printCurrentConfigurationAsJsonToSerial();
   bool saveCurrentConfiguationToSpiffs(String filename = "");
   bool loadConfiguationFromSpiffs(String filename = "");
-  void serializeServerConfiguration(JsonDocument &doc);
+  void serializeServerConfiguration(JsonDocument &doc, bool includePasswords = false);
 
   byte addStepperConfiguration(ESPStepperMotorServer_StepperConfiguration *stepperConfig);
   byte addSwitch(ESPStepperMotorServer_PositionSwitch *positionSwitch);
@@ -85,8 +85,8 @@ public:
   signed char allSwitchIoPins[ESPServerMaxSwitches];
   int serverPort = DEFAULT_SERVER_PORT;
   int wifiMode = 1;
-  const char *apName;
-  const char *apPassword;
+  const char *apName = "ESPStepperMotorServer";
+  const char *apPassword = "Aa123456";
   const char *wifiSsid;
   const char *wifiPassword;
   //this "cache" should not be private since we need to use it in the ISRs and any getter to retrieve it would slow down processing

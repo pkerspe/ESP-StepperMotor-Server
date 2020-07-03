@@ -64,10 +64,15 @@ void ESPStepperMotorServer_WebInterface::registerWebInterfaceUrls(AsyncWebServer
       //response->addHeader("Content-Encoding", "gzip");
       request->send(response);
     });
+    /* REMOVED FOR NOW DUE TO SECURITY ISSUES. CAN STILL USE /api/config endpoint to download config (in memory config though!)
     this->_httpServer->on(this->_serverRef->defaultConfigurationFilename, HTTP_GET, [this](AsyncWebServerRequest *request) {
+      //FIME: currently this streams the json config including the WiFi Credentials, which might be a security risk.
+      //TODO: replace wifi passwords in config with placeholder (maybe add config flag to API to allowed disabling the security feature in the future)
       AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->_serverRef->defaultConfigurationFilename, "application/json", true);
       request->send(response);
     });
+    */
+    
     this->_httpServer->on("/js/app.js", HTTP_GET, [this](AsyncWebServerRequest *request) {
       request->redirect(this->webUiJsFile);
     });

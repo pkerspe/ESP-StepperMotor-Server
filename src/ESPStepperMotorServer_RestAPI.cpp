@@ -515,11 +515,11 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
   });
 
   // GET /api/config
-  // endpoint to list the current IN MEMORY configuration with all settings
+  // endpoint to list the current IN MEMORY configuration with all settings (passwords will be hidden though)
   httpServer->on("/api/config", HTTP_GET, [this](AsyncWebServerRequest *request) {
     this->logDebugRequestUrl(request);
     ESPStepperMotorServer_Configuration *config = this->_stepperMotorServer->getCurrentServerConfiguration();
-    request->send(200, "application/json", config->getCurrentConfigurationAsJSONString());
+    request->send(200, "application/json", config->getCurrentConfigurationAsJSONString(true, false));
   });
 
   // GET /api/outputs

@@ -61,15 +61,15 @@ unsigned int ESPStepperMotorServer_Configuration::calculateRequiredJsonDocumentS
 void ESPStepperMotorServer_Configuration::printCurrentConfigurationAsJsonToSerial()
 {
   DynamicJsonDocument doc(this->calculateRequiredJsonDocumentSizeForCurrentConfiguration());
-  this->serializeServerConfiguration(doc);
+  this->serializeServerConfiguration(doc, false);
   serializeJsonPretty(doc, Serial);
   Serial.println();
 }
 
-String ESPStepperMotorServer_Configuration::getCurrentConfigurationAsJSONString(bool prettyPrint)
+String ESPStepperMotorServer_Configuration::getCurrentConfigurationAsJSONString(bool prettyPrint, bool includePasswords)
 {
   DynamicJsonDocument doc(this->calculateRequiredJsonDocumentSizeForCurrentConfiguration());
-  this->serializeServerConfiguration(doc);
+  this->serializeServerConfiguration(doc, includePasswords);
   String output;
   if (prettyPrint)
   {
@@ -82,15 +82,15 @@ String ESPStepperMotorServer_Configuration::getCurrentConfigurationAsJSONString(
   return output;
 }
 
-void ESPStepperMotorServer_Configuration::serializeServerConfiguration(JsonDocument &doc)
+void ESPStepperMotorServer_Configuration::serializeServerConfiguration(JsonDocument &doc, bool includePasswords)
 {
   // Set the values in the document
   doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_PORT_NUMBER] = this->serverPort;
   doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_MODE] = this->wifiMode;
   doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_SSID] = this->wifiSsid;
-  doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_PASSWORD] = this->wifiPassword;
+  doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_PASSWORD] = (includePasswords) ? this->wifiPassword : "*****";
   doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_AP_NAME] = this->apName;
-  doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_AP_PASSWORD] = this->apPassword;
+  doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_AP_PASSWORD] =(includePasswords) ? this->apPassword : "*****";
   // add all stepper configs
   JsonArray stepperConfigArray = doc.createNestedArray(JSON_SECTION_NAME_STEPPER_CONFIGURATIONS);
   for (byte stepperConfigIndex = 0; stepperConfigIndex < ESPServerMaxSteppers; stepperConfigIndex++)
@@ -154,7 +154,7 @@ bool ESPStepperMotorServer_Configuration::saveCurrentConfiguationToSpiffs(String
   // assemble the json object first, to check if all goes well
   // Allocate a temporary JsonDocument
   DynamicJsonDocument doc(this->calculateRequiredJsonDocumentSizeForCurrentConfiguration());
-  this->serializeServerConfiguration(doc);
+  this->serializeServerConfiguration(doc, true);
 
   // Delete existing file, otherwise the configuration is appended to the file
   SPIFFS.remove(filename);
