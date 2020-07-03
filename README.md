@@ -28,15 +28,17 @@ Connect one ore more stepper controllers with step and direction input, and opti
 
 ## Introduction
 
-This library started as a fork for the [FlexyStepper library](https://github.com/Stan-Reifel/FlexyStepper). While the FlexyStepper Library is a general Arduino compatible library this fork has a focus on the ESP32 modules form Espressif. It also became much more than a modfied version of FlexyStepper but turned into a stand alone application to turn a regular ESP32 module into a stepper motor control server.
-Since these modules contain a WiFi module they are perfectly suited for web controlled stepper server and since they have enough memory and processing power they are ideal as low cost, low energy consumption standalone server component, that allows configuration and controlling of one to many stepper motor drivers with limit-switches and outputs (e.g. for Relays and LEDs).
+This library started as a fork for the [FlexyStepper library](https://github.com/Stan-Reifel/FlexyStepper). While the FlexyStepper Library is a general Arduino compatible library this fork had a focus on the ESP32 modules from Espressif. Soon this library became much more than a modfied version of FlexyStepper but turned into a stand alone application to turn a regular ESP32 module into a stepper motor control server.
+The core part that controls the stepper motor drivers is now based on a modified version of FlexyStepper, called [ESP-FlexyStepper](https://github.com/pkerspe/ESP-FlexyStepper).
+Since the ESP-32 modules contain a WiFi module they are perfectly suited for web controlled stepper server and since they have enough memory and processing power they are ideal as low cost, low energy consumption standalone server component, that allows configuration and controlling of one to many stepper motor drivers with limit-switches and outputs (e.g. for Relays and LEDs).
 
 Once the ESP Stepper Motor Server has been uploaded to the ESP module, all further configuration and controlling can be done vie the web UI without the need to code another line in the Arduino or PlatformIO IDE.
 
 ### What this library is NOT
 
-This library is not ideal if you are looking for a solution to control your CNC Router. It does not support Gerber commands (GRBL) in general or parallel, synchronized multi axis movements.
-If you need such a solution you might want to look into the [Grbl_Esp32](https://github.com/bdring/Grbl_Esp32) (for ESP32 specifically) or [grbl](https://github.com/gnea/grbl) (for Arduino in general) Libraries. If you are looking for an easy way to setup and control one or more stepper motors independly and ading limit switches and rotary encoders to conrol them, this project here might be just what you are looking for. 
+This library is not ideal if you are looking for a solution to control your CNC Router. It does not support Gerber commands (GRBL) in general or fully synchronized multi axis movements (it can move multiple axis at the same time though since it generates all step signals for all connected stepper drivers asynchronous).
+If you need a solution for you CNC project, you might want to look into the [Grbl_Esp32](https://github.com/bdring/Grbl_Esp32) (for ESP32 specifically) or [grbl](https://github.com/gnea/grbl) (for Arduino in general) Libraries. 
+But if you are looking for an easy way to setup and control one or more stepper motors independly and adding limit switches and rotary encoders to conrol them, then this project here might be just what you are looking for.
 
 ### Prerequisites and dependencies
 
@@ -44,7 +46,7 @@ In order to compile your project with the ESP-StepperMotor-Server Library, the f
 *   [ESPAsyncWebserver](https://github.com/me-no-dev/ESPAsyncWebServer)
 *   [AsyncTCP](https://github.com/me-no-dev/AsyncTCP)
 *   [ArduinoJSON (NOTE: must version 6.x, version 5 will not work)](https://arduinojson.org)
-*   [FlexyStepper](https://github.com/Stan-Reifel/FlexyStepper)
+*   [ESP-FlexyStepper](https://github.com/pkerspe/ESP-FlexyStepper)
 *   FS file system wrapper: should be installed with the ESP32 libraries already if you setup your IDE for these modules
 *   WiFi: should be installed with the ESP32 libraries already when you setup your IDE for these modules
 

@@ -40,7 +40,6 @@
 // ---------------------------------------------------------------------------------
 //                                  Setup functions
 // ---------------------------------------------------------------------------------
-
 //
 // constructor for the command line interface module
 // creates a freeRTOS Task that runs in the background and polls the serial interface for input to parse
@@ -218,12 +217,8 @@ void ESPStepperMotorServer_CLI::registerCommands()
   // this->registerNewCommand("liststeppers", "ls", 0, "list all configured steppers", &ESPStepperMotorServer_CLI::cmdListSteppers);
   // this->registerNewCommand("listswitches", "lsw", 0, "list all configured input switches", &ESPStepperMotorServer_CLI::cmdListSwitches);
   // this->registerNewCommand("returnhome", "rh", 1, "Return to the home position (only possible if a homing switch is connected). Requires the ID of the stepper to get the position for as parameter. E.g.: rh=0", &ESPStepperMotorServer_CLI::cmdReturnHome);
-  // set wifi ssid
-  // set wifi pwd
-  // set wifi mode
-  // set http port
-  // set ap name
-  // set ap password
+  // create set wifi mode function
+
 }
 
 void ESPStepperMotorServer_CLI::registerNewCommand(commandDetailsStructure commandDetails, void (ESPStepperMotorServer_CLI::*cmdFunction)(char *, char *))
