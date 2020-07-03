@@ -77,8 +77,6 @@ void ESPStepperMotorServer_CLI::executeCommand(String cmd)
   strcpy(cmdCharArray, cmd.c_str());
   char *pureCommand = strtok(cmdCharArray, _CMD_PARAM_SEPRATOR);
   char *arguments = strtok(NULL, "=");
-  int arrgumentsStringLength = strlen(arguments);
-  Serial.println(arrgumentsStringLength);
 
   for (int i = 0; i < this->commandCounter; i++)
   {
@@ -642,7 +640,8 @@ void ESPStepperMotorServer_CLI::getParameterValue(const char *args, const char *
   ESPStepperMotorServer_Logger::logDebugf("getParameterValue called with %s and %s\n", args, parameterNameToGetValueFor);
   char *parameterValue;
   char *save_ptr;
-  char workingCopy[strlen(args) + 1];
+  String argumentString = String(args);
+  char workingCopy[argumentString.length() + 1];
   strcpy(workingCopy, args);
 
   char *keyValuePairString = strtok_r(workingCopy, this->_PARAM_PARAM_SEPRATOR, &save_ptr);
