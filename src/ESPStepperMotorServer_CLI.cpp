@@ -260,7 +260,7 @@ const char *setterMissingParameterTemplate = "No or invalid value given as param
 
 void ESPStepperMotorServer_CLI::cmdSetApName(char *cmd, char *args)
 {
-  if (args != NULL && strlen(args) > 0)
+  if (args != NULL)
   {
     this->serverRef->setAccessPointName(args);
     Serial.printf(setterConfirmationTemplate, "AP name", args);
@@ -273,7 +273,7 @@ void ESPStepperMotorServer_CLI::cmdSetApName(char *cmd, char *args)
 
 void ESPStepperMotorServer_CLI::cmdSetApPassword(char *cmd, char *args)
 {
-  if (args != NULL && strlen(args) > 0)
+  if (args != NULL)
   {
     this->serverRef->setAccessPointPassword(args);
     Serial.printf(setterConfirmationTemplate, "AP password", args);
@@ -300,7 +300,7 @@ void ESPStepperMotorServer_CLI::cmdSetHttpPort(char *cmd, char *args)
 
 void ESPStepperMotorServer_CLI::cmdSetSSID(char *cmd, char *args)
 {
-  if (args != NULL && strlen(args) > 0)
+  if (args != NULL)
   {
     this->serverRef->setWifiSSID(args);
     Serial.printf(setterConfirmationTemplate, "WiFi SSID", args);
@@ -313,7 +313,7 @@ void ESPStepperMotorServer_CLI::cmdSetSSID(char *cmd, char *args)
 
 void ESPStepperMotorServer_CLI::cmdSetWifiPassword(char *cmd, char *args)
 {
-  if (args != NULL && strlen(args) > 0)
+  if (args != NULL)
   {
     this->serverRef->setWifiPassword(args);
     Serial.printf(setterConfirmationTemplate, "WiFi password", args);
