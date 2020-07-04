@@ -90,7 +90,7 @@ void ESPStepperMotorServer_Configuration::serializeServerConfiguration(JsonDocum
   doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_SSID] = this->wifiSsid;
   doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_PASSWORD] = (includePasswords) ? this->wifiPassword : "*****";
   doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_AP_NAME] = this->apName;
-  doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_AP_PASSWORD] =(includePasswords) ? this->apPassword : "*****";
+  doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_AP_PASSWORD] = (includePasswords) ? this->apPassword : "*****";
   // add all stepper configs
   JsonArray stepperConfigArray = doc.createNestedArray(JSON_SECTION_NAME_STEPPER_CONFIGURATIONS);
   for (byte stepperConfigIndex = 0; stepperConfigIndex < ESPServerMaxSteppers; stepperConfigIndex++)
@@ -385,6 +385,10 @@ void ESPStepperMotorServer_Configuration::setStepperConfiguration(ESPStepperMoto
   else
   {
     stepperConfig->setId(id);
+    if (this->configuredSteppers[id])
+    {
+      delete this->configuredSteppers[id]; //free memory from previous stepper config
+    }
     this->configuredSteppers[id] = stepperConfig;
   }
   this->updateConfiguredFlexyStepperCache();
@@ -399,6 +403,10 @@ void ESPStepperMotorServer_Configuration::setSwitch(ESPStepperMotorServer_Positi
   else
   {
     positionSwitch->setId(id);
+    if (this->allConfiguredSwitches[id])
+    {
+      delete this->allConfiguredSwitches[id]; //free memory from previous stepper config
+    }
     this->allConfiguredSwitches[id] = positionSwitch;
     this->updateSwitchCaches();
   }
@@ -413,6 +421,10 @@ void ESPStepperMotorServer_Configuration::setRotaryEncoder(ESPStepperMotorServer
   else
   {
     encoder->setId(id);
+    if (this->configuredRotaryEncoders[id])
+    {
+      delete this->configuredRotaryEncoders[id];
+    }
     this->configuredRotaryEncoders[id] = encoder;
   }
 }
@@ -458,7 +470,7 @@ ESP_FlexyStepper **ESPStepperMotorServer_Configuration::getConfiguredFlexySteppe
 
 ESPStepperMotorServer_PositionSwitch *ESPStepperMotorServer_Configuration::getSwitch(byte id)
 {
-  if (id < 0 || id > ESPServerMaxSwitches-1)
+  if (id < 0 || id > ESPServerMaxSwitches - 1)
   {
     ESPStepperMotorServer_Logger::logWarningf("Invalid switch config requested with id %i. Will retun NULL\n", id);
     return NULL;
@@ -499,8 +511,9 @@ void ESPStepperMotorServer_Configuration::removeStepperConfiguration(byte id)
     }
   }
   //finally delete the stepper config itself
-  //TODO: check if this delete call is appropriate, currently it casues kernel panic
-  //delete (this->configuredSteppers[id]);
+  if(this->configuredSteppers[id]){
+    delete this->configuredSteppers[id];
+  }
   this->configuredSteppers[id] = NULL;
   this->updateConfiguredFlexyStepperCache();
 }
