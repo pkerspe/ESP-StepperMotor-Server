@@ -1196,7 +1196,8 @@ void IRAM_ATTR ESPStepperMotorServer::internalRotaryEncoderISR()
         }
         else if (result == DIR_CCW)
         {
-          stepperConfig->_flexyStepper->setTargetPositionRelativeInSteps(-1 * rotaryEncoder->_stepMultiplier);
+          signed long newPosition = -1L * rotaryEncoder->_stepMultiplier;
+          stepperConfig->_flexyStepper->setTargetPositionRelativeInSteps(newPosition);
         }
       }
       else
