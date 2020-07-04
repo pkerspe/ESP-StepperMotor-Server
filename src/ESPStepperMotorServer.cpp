@@ -64,35 +64,36 @@ ESPStepperMotorServer *ESPStepperMotorServer::anchor = NULL;
 ESPStepperMotorServer::ESPStepperMotorServer(const ESPStepperMotorServer &espStepperMotorServer)
 {
   this->serverConfiguration = new ESPStepperMotorServer_Configuration(espStepperMotorServer.serverConfiguration->_configFilePath);
-  this->serverConfiguration = espStepperMotorServer.serverConfiguration;
+  *this->serverConfiguration = *espStepperMotorServer.serverConfiguration;
 
   if (espStepperMotorServer.webInterfaceHandler)
   {
     this->webInterfaceHandler = new ESPStepperMotorServer_WebInterface(this);
-    this->webInterfaceHandler = espStepperMotorServer.webInterfaceHandler;
+    *this->webInterfaceHandler = *espStepperMotorServer.webInterfaceHandler;
   }
 
   if (espStepperMotorServer.restApiHandler)
   {
     this->restApiHandler = new ESPStepperMotorServer_RestAPI(this);
-    this->restApiHandler = espStepperMotorServer.restApiHandler;
+    *this->restApiHandler = *espStepperMotorServer.restApiHandler;
   }
 
   if (espStepperMotorServer.cliHandler)
   {
     this->cliHandler = new ESPStepperMotorServer_CLI(this);
-    this->cliHandler = espStepperMotorServer.cliHandler;
+    *this->cliHandler = *espStepperMotorServer.cliHandler;
   }
 
   if (espStepperMotorServer.motionControllerHandler)
   {
     this->motionControllerHandler = new ESPStepperMotorServer_MotionController(this);
-    this->motionControllerHandler = espStepperMotorServer.motionControllerHandler;
+    *this->motionControllerHandler = *espStepperMotorServer.motionControllerHandler;
   }
 
-  if(espStepperMotorServer.httpServer){
+  if (espStepperMotorServer.httpServer)
+  {
     this->httpServer = new AsyncWebServer(this->serverConfiguration->serverPort);
-    this->httpServer = espStepperMotorServer.httpServer;
+    *this->httpServer = *espStepperMotorServer.httpServer;
   }
 }
 
