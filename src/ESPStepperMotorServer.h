@@ -103,6 +103,8 @@ class ESPStepperMotorServer
 {
 public:
   ESPStepperMotorServer(byte serverMode, byte logLevel = ESPServerLogLevel_INFO);
+  ESPStepperMotorServer(const ESPStepperMotorServer &espStepperMotorServer);
+  ~ESPStepperMotorServer();
   void setHttpPort(int portNumber);
   void setAccessPointName(const char *accessPointSSID);
   void setAccessPointPassword(const char *accessPointPassword);

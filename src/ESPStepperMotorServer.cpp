@@ -61,6 +61,22 @@
 
 ESPStepperMotorServer *ESPStepperMotorServer::anchor = NULL;
 
+ESPStepperMotorServer::ESPStepperMotorServer(const ESPStepperMotorServer &espStepperMotorServer) {
+  this->serverConfiguration = espStepperMotorServer.serverConfiguration;
+  this->webInterfaceHandler = espStepperMotorServer.webInterfaceHandler;
+  this->restApiHandler = espStepperMotorServer.restApiHandler;
+  this->cliHandler = espStepperMotorServer.cliHandler;
+  this->motionControllerHandler = espStepperMotorServer.motionControllerHandler;
+}
+
+ESPStepperMotorServer::~ESPStepperMotorServer() {
+  delete this->serverConfiguration;
+  delete this->webInterfaceHandler;
+  delete this->restApiHandler;
+  delete this->cliHandler;
+  delete this->motionControllerHandler;
+}
+
 //
 // constructor for the stepper server class
 //

@@ -51,6 +51,7 @@ class ESPStepperMotorServer_CLI
 {
 public:
   ESPStepperMotorServer_CLI(ESPStepperMotorServer *serverRef);
+  ~ESPStepperMotorServer_CLI();
   static void processSerialInput(void *parameter);
   void executeCommand(String cmd);
   void start();

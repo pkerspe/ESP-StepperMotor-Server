@@ -49,6 +49,12 @@ ESPStepperMotorServer_CLI::ESPStepperMotorServer_CLI(ESPStepperMotorServer *serv
   this->serverRef = serverRef;
 }
 
+ESPStepperMotorServer_CLI::~ESPStepperMotorServer_CLI(){
+  if(this->xHandle != NULL){
+    this->stop();
+  }
+}
+
 void ESPStepperMotorServer_CLI::start()
 {
   xTaskCreate(
