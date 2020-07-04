@@ -95,6 +95,12 @@ ESPStepperMotorServer::ESPStepperMotorServer(const ESPStepperMotorServer &espSte
     this->httpServer = new AsyncWebServer(this->serverConfiguration->serverPort);
     *this->httpServer = *espStepperMotorServer.httpServer;
   }
+
+  if (espStepperMotorServer.webSockerServer)
+  {
+    this->webSockerServer = new AsyncWebSocket("/ws");
+    *this->webSockerServer = *espStepperMotorServer.webSockerServer;
+  }
 }
 
 ESPStepperMotorServer::~ESPStepperMotorServer()
