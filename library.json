@@ -18,18 +18,22 @@
     ],
     "dependencies": [{
             "name": "ESP Async WebServer",
+            "version": "1.2.3",
             "platforms": "espressif32"
         },
         {
             "name": "ESP-FlexyStepper",
+            "version": "1.1",
             "platforms": "arduino"
         },
         {
             "name": "ArduinoJSON",
+            "version": "6.15.2",
             "platforms": "arduino"
         },
         {
             "name": "SPIFFS",
+            "version": "1.0",
             "platforms": "arduino"
         }
     ],
