@@ -31,6 +31,27 @@
 
 #include "ESPStepperMotorServer_StepperConfiguration.h"
 
+ESPStepperMotorServer_StepperConfiguration::ESPStepperMotorServer_StepperConfiguration(const ESPStepperMotorServer_StepperConfiguration &espStepperConfiguration)
+{
+    this->_flexyStepper = new ESP_FlexyStepper;
+    *this->_flexyStepper = *espStepperConfiguration._flexyStepper;
+
+    this->_stepIoPin = espStepperConfiguration._stepIoPin;
+    this->_directionIoPin = espStepperConfiguration._directionIoPin;
+    this->_stepsPerMM = espStepperConfiguration._stepsPerMM;
+    this->_stepsPerRev = espStepperConfiguration._stepsPerRev;
+    this->_microsteppingDivisor = espStepperConfiguration._microsteppingDivisor;
+    this->_displayName = espStepperConfiguration._displayName;
+    this->_rpmLimit = espStepperConfiguration._rpmLimit;
+
+    this->_flexyStepper->connectToPins(this->_stepIoPin, this->_directionIoPin);
+}
+
+ESPStepperMotorServer_StepperConfiguration::~ESPStepperMotorServer_StepperConfiguration()
+{
+    delete this->_flexyStepper;
+}
+
 //
 // constructor for the stepper wrapper class
 //

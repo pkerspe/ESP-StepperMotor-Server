@@ -53,7 +53,10 @@
 class ESPStepperMotorServer_StepperConfiguration
 {
   friend class ESPStepperMotorServer;
+
 public:
+  ESPStepperMotorServer_StepperConfiguration(const ESPStepperMotorServer_StepperConfiguration &espStepperConfiguration);
+  ~ESPStepperMotorServer_StepperConfiguration();
   ESPStepperMotorServer_StepperConfiguration(byte stepIoPin, byte directionIoPin);
   ESPStepperMotorServer_StepperConfiguration(byte stepIoPin, byte directionIoPin, String displayName, unsigned int stepsPerRev, unsigned int stepsPerMM, unsigned int microsteppingDivisor, unsigned int rpmLimit);
 
