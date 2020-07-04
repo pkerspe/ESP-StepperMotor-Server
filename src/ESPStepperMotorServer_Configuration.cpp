@@ -385,10 +385,6 @@ void ESPStepperMotorServer_Configuration::setStepperConfiguration(ESPStepperMoto
   else
   {
     stepperConfig->setId(id);
-    if (this->configuredSteppers[id])
-    {
-      delete this->configuredSteppers[id]; //free memory from previous stepper config
-    }
     this->configuredSteppers[id] = stepperConfig;
   }
   this->updateConfiguredFlexyStepperCache();
@@ -403,10 +399,6 @@ void ESPStepperMotorServer_Configuration::setSwitch(ESPStepperMotorServer_Positi
   else
   {
     positionSwitch->setId(id);
-    if (this->allConfiguredSwitches[id])
-    {
-      delete this->allConfiguredSwitches[id]; //free memory from previous stepper config
-    }
     this->allConfiguredSwitches[id] = positionSwitch;
     this->updateSwitchCaches();
   }
@@ -421,10 +413,6 @@ void ESPStepperMotorServer_Configuration::setRotaryEncoder(ESPStepperMotorServer
   else
   {
     encoder->setId(id);
-    if (this->configuredRotaryEncoders[id])
-    {
-      delete this->configuredRotaryEncoders[id];
-    }
     this->configuredRotaryEncoders[id] = encoder;
   }
 }
@@ -511,9 +499,8 @@ void ESPStepperMotorServer_Configuration::removeStepperConfiguration(byte id)
     }
   }
   //finally delete the stepper config itself
-  if(this->configuredSteppers[id]){
-    delete this->configuredSteppers[id];
-  }
+  //TODO: check if this delete call is appropriate, currently it casues kernel panic
+  //delete (this->configuredSteppers[id]);
   this->configuredSteppers[id] = NULL;
   this->updateConfiguredFlexyStepperCache();
 }
