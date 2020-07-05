@@ -99,16 +99,16 @@ function build_sketch(){ # build_sketch <fqbn> <path-to-ino> <build-flags> [extr
 	mkdir -p "$ARDUINO_CACHE_DIR"
 	"$ARDUINO_IDE_PATH/arduino-builder -compile -logger=human -core-api-version=10810 \
 		-fqbn=$fqbn \
-		-warnings="all" \
-		-tools "$ARDUINO_IDE_PATH/tools-builder" \
-		-tools "$ARDUINO_IDE_PATH/tools" \
-		-built-in-libraries "$ARDUINO_IDE_PATH/libraries" \
-		-hardware "$ARDUINO_IDE_PATH/hardware" \
-		-hardware "$ARDUINO_USR_PATH/hardware" \
-		-libraries "$ARDUINO_USR_PATH/libraries" \
-		-build-cache "$ARDUINO_CACHE_DIR" \
-		-build-path "$ARDUINO_BUILD_DIR" \
-        -prefs=compiler.cpp.extra_flags="$build_flags" \
+		-warnings=\"all\" \
+		-tools \"$ARDUINO_IDE_PATH/tools-builder\" \
+		-tools \"$ARDUINO_IDE_PATH/tools\" \
+		-built-in-libraries \"$ARDUINO_IDE_PATH/libraries\" \
+		-hardware \"$ARDUINO_IDE_PATH/hardware\" \
+		-hardware \"$ARDUINO_USR_PATH/hardware\" \
+		-libraries \"$ARDUINO_USR_PATH/libraries\" \
+		-build-cache \"$ARDUINO_CACHE_DIR\" \
+		-build-path \"$ARDUINO_BUILD_DIR\" \
+        -prefs=compiler.cpp.extra_flags=\"$build_flags\" \
 		$win_opts $xtra_opts \"$sketch\""
 }
 
@@ -123,9 +123,9 @@ function count_sketches() # count_sketches <examples-path>
     local sketches=$(find $examples -name *.ino)
     local sketchnum=0
     for sketch in $sketches; do
-        local sketchdir=$(dirname $sketch)
-        local sketchdirname=$(basename $sketchdir)
-        local sketchname=$(basename $sketch)
+        local sketchdir="$(dirname $sketch)"
+        local sketchdirname="$(basename $sketchdir)"
+        local sketchname="$(basename $sketch)"
         if [[ "${sketchdirname}.ino" != "$sketchname" ]]; then
             continue
         fi;
