@@ -123,9 +123,10 @@ function count_sketches() # count_sketches <examples-path>
     local sketches=$(find $examples -name *.ino)
     local sketchnum=0
     for sketch in $sketches; do
-        local sketchdir="$(dirname $sketch)"
-        local sketchdirname="$(basename $sketchdir)"
-        local sketchname="$(basename $sketch)"
+		echo "found $sketch"
+        local sketchdir=$(dirname $sketch)
+        local sketchdirname=$(basename $sketchdir)
+        local sketchname=$(basename $sketch)
         if [[ "${sketchdirname}.ino" != "$sketchname" ]]; then
             continue
         fi;
