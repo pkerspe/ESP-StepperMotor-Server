@@ -97,7 +97,7 @@ function build_sketch(){ # build_sketch <fqbn> <path-to-ino> <build-flags> [extr
 	echo "Compiling '\"$(basename "$sketch")\"' ..."
 	mkdir -p "$ARDUINO_BUILD_DIR"
 	mkdir -p "$ARDUINO_CACHE_DIR"
-	$ARDUINO_IDE_PATH/arduino-builder -compile -logger=human -core-api-version=10810 \
+	"$ARDUINO_IDE_PATH/arduino-builder -compile -logger=human -core-api-version=10810 \
 		-fqbn=$fqbn \
 		-warnings="all" \
 		-tools "$ARDUINO_IDE_PATH/tools-builder" \
@@ -109,7 +109,7 @@ function build_sketch(){ # build_sketch <fqbn> <path-to-ino> <build-flags> [extr
 		-build-cache "$ARDUINO_CACHE_DIR" \
 		-build-path "$ARDUINO_BUILD_DIR" \
         -prefs=compiler.cpp.extra_flags="$build_flags" \
-		$win_opts $xtra_opts "$sketch"
+		$win_opts $xtra_opts \"$sketch\""
 }
 
 function count_sketches() # count_sketches <examples-path>
