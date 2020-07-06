@@ -1,7 +1,7 @@
 {
     "name": "ESP-StepperMotor-Server",
     "description": "A stepper motor control server for ESP32 modules that provides a Web UI, a REST API and a serial control interface. Support for limit switches and rotary encoders.",
-    "keywords": "stepper,motor,http,websocket,webserver,rest,api,serial,controller,server",
+    "keywords": "stepper,motor,http,websocket,webserver,rest,api,serial,controller,server,device-control,esp32",
     "authors": {
         "name": "Paul Kerspe",
         "maintainer": true
