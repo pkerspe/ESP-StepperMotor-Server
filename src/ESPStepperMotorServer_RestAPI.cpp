@@ -562,6 +562,12 @@ void ESPStepperMotorServer_RestAPI::populateStepperDetailsToJsonObject(JsonObjec
     stepperDetails["name"] = stepper->getDisplayName();
     stepperDetails["stepPin"] = stepper->getStepIoPin();
     stepperDetails["dirPin"] = stepper->getDirectionIoPin();
+
+    stepperDetails["brakePin"] = stepper->getBrakeIoPin();
+    stepperDetails["brakePinActiveState"] = stepper->getBrakePinActiveState();
+    stepperDetails["brakeEngageDelayMs"] = stepper->getBrakeEngageDelayMs();
+    stepperDetails["brakeReleaseDelayMs"] = stepper->getBrakeReleaseDelayMs();
+
     stepperDetails["stepsPerMM"] = stepper->getStepsPerMM();
     stepperDetails["stepsPerRev"] = stepper->getStepsPerRev();
     stepperDetails["microsteppingDivisor"] = stepper->getMicrostepsPerStep();
@@ -616,6 +622,12 @@ void ESPStepperMotorServer_RestAPI::handlePostStepperRequest(AsyncWebServerReque
       int stepsPerMM = doc["stepsPerMM"];
       int stepsPerRev = doc["stepsPerRev"];
       int microsteppingDivisor = doc["microsteppingDivisor"];
+
+      int brakePin = doc["brakePin"];
+      int brakePinActiveState = doc["brakePinActiveState"];
+      int brakeEngageDelayMs = doc["brakeEngageDelayMs"];
+      int brakeReleaseDelayMs = doc["brakeReleaseDelayMs"];
+
       if (stepPin >= 0 && stepPin <= ESPStepperHighestAllowedIoPin && dirPin >= 0 && dirPin <= ESPStepperHighestAllowedIoPin && dirPin != stepPin)
       {
         ESPStepperMotorServer_StepperConfiguration *stepper = this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex);
@@ -628,6 +640,10 @@ void ESPStepperMotorServer_RestAPI::handlePostStepperRequest(AsyncWebServerReque
         {
           request->send(400, "application/json", "{\"error\": \"The given DIRECTION IO pin is already used by another stepper or a switch configuration\"}");
         }
+        else if (brakePin >= 0 && brakePin != ESPStepperMotorServer_StepperConfiguration::ESPServerStepperUnsetIoPinNumber && this->_stepperMotorServer->isIoPinUsed(brakePin) && (stepper == NULL || stepper->getBrakeIoPin() != brakePin))
+        {
+          request->send(400, "application/json", "{\"error\": \"The given BRAKE IO pin is already used by another stepper or a switch configuration\"}");
+        }
         else
         {
           int newId = -1;
@@ -636,6 +652,12 @@ void ESPStepperMotorServer_RestAPI::handlePostStepperRequest(AsyncWebServerReque
           stepperToAdd->setStepsPerMM(stepsPerMM);
           stepperToAdd->setStepsPerRev(stepsPerRev);
           stepperToAdd->setMicrostepsPerStep(microsteppingDivisor);
+          if (brakePin != ESPStepperMotorServer_StepperConfiguration::ESPServerStepperUnsetIoPinNumber)
+          {
+            stepperToAdd->setBrakeIoPin(brakePin, brakePinActiveState);
+          }
+          stepperToAdd->setBrakeEngageDelayMs(brakeEngageDelayMs);
+          stepperToAdd->setBrakeReleaseDelayMs(brakeReleaseDelayMs);
 
           if (stepperIndex == -1)
           {

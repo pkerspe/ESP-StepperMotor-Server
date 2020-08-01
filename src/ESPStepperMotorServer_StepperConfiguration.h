@@ -87,9 +87,36 @@ public:
   byte getStepIoPin();
 
   /**
-   * Get the currently configured IO pin that is used to send the direction signale to the stepper driver
+   * Get the currently configured IO pin that is used to send the direction signal to the stepper driver
    */
   byte getDirectionIoPin();
+
+  /**
+   * Get the currently configured IO pin that is used to engage an optional engine/motor brake.
+   * Returns ESPServerStepperUnsetIoPinNumber (255) if none is defined
+   */
+  byte getBrakeIoPin();
+
+  /**
+   * Get the currently configured active state of the IO pin used to enabel the engine/motor brake.
+   * Returns 1 for active high (pin goes high to activate the brake), 2 for active low (pin goes low to activate the brake)
+   */
+  byte getBrakePinActiveState();
+
+  /**
+   * Get the currently configured delay in ms between the motor comes to a stop and the engine brake is being engaged. Default is 0ms.
+   */
+  long getBrakeEngageDelayMs();
+
+  /**
+   * Get the currently confgured timeout of inactivity of the motor, before the motor brake is released.
+   * Default is -1, meaning that the brake is never released as long as the engine is stopped.
+   */
+  long getBrakeReleaseDelayMs();
+
+  void setBrakeIoPin(byte, byte);
+  void setBrakeEngageDelayMs(long);
+  void setBrakeReleaseDelayMs(long);
 
   /**
    * Set the number of full steps the stepper motor itself needs to perform for a full revolution.
@@ -159,6 +186,10 @@ private:
   byte _stepperIndex = 0;
   byte _stepIoPin = ESPServerStepperUnsetIoPinNumber;
   byte _directionIoPin = ESPServerStepperUnsetIoPinNumber;
+  byte _brakeIoPin = ESPServerStepperUnsetIoPinNumber;
+  byte _brakePinActiveState = 1; // 1 = active high, 2 = active low
+  long _brakeEngageDelayMs = 0;
+  long _brakeReleaseDelayMs = -1;
   unsigned int _stepsPerRev = 200;
   unsigned int _stepsPerMM = 100;
   unsigned int _microsteppingDivisor = ESPSMS_MICROSTEPS_OFF;

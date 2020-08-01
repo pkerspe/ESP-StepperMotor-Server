@@ -692,7 +692,7 @@ bool ESPStepperMotorServer::isIoPinUsed(int pinToCheck)
   for (int i = 0; i < ESPServerMaxSteppers; i++)
   {
     ESPStepperMotorServer_StepperConfiguration *stepperConfig = this->serverConfiguration->getStepperConfiguration(i);
-    if (stepperConfig && (stepperConfig->getDirectionIoPin() == pinToCheck || stepperConfig->getStepIoPin() == pinToCheck))
+    if (stepperConfig && (stepperConfig->getDirectionIoPin() == pinToCheck || stepperConfig->getStepIoPin() == pinToCheck || stepperConfig->getBrakeIoPin() == pinToCheck ))
     {
       return true;
     }

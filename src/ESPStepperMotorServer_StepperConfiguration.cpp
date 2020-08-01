@@ -124,11 +124,52 @@ byte ESPStepperMotorServer_StepperConfiguration::getStepIoPin()
 {
     return this->_stepIoPin;
 }
+
 byte ESPStepperMotorServer_StepperConfiguration::getDirectionIoPin()
 {
     return this->_directionIoPin;
 }
 
+// brake control settings
+
+byte ESPStepperMotorServer_StepperConfiguration::getBrakeIoPin()
+{
+    return this->_brakeIoPin;
+}
+
+long ESPStepperMotorServer_StepperConfiguration::getBrakeEngageDelayMs()
+{
+    return this->_brakeEngageDelayMs;
+}
+
+long ESPStepperMotorServer_StepperConfiguration::getBrakeReleaseDelayMs()
+{
+    return this->_brakeReleaseDelayMs;
+}
+
+byte ESPStepperMotorServer_StepperConfiguration::getBrakePinActiveState()
+{
+    return this->_brakePinActiveState;
+}
+
+void ESPStepperMotorServer_StepperConfiguration::setBrakeIoPin(byte brakeIoPin, byte brakePinActiveState)
+{
+    this->_brakeIoPin = brakeIoPin;
+    this->_brakePinActiveState = brakePinActiveState;
+    this->_flexyStepper->setBrakePin(brakeIoPin, brakePinActiveState);
+}
+
+void ESPStepperMotorServer_StepperConfiguration::setBrakeEngageDelayMs(long delay)
+{
+    this->_brakeEngageDelayMs = delay;
+}
+
+void ESPStepperMotorServer_StepperConfiguration::setBrakeReleaseDelayMs(long delay)
+{
+    this->_brakeReleaseDelayMs = delay;
+}
+
+// motion configurateion settings
 void ESPStepperMotorServer_StepperConfiguration::setStepsPerRev(unsigned int stepsPerRev)
 {
     this->_flexyStepper->setStepsPerRevolution(stepsPerRev * this->_microsteppingDivisor);
