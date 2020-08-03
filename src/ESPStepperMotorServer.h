@@ -180,7 +180,7 @@ private:
   // private member variables
   //
   byte enabledServices;
-  const char *version = "0.2.5";
+  const char *version = "0.3.0";
   boolean isWebserverEnabled = false;
   boolean isRestApiEnabled = false;
   boolean isCLIEnabled = false;
