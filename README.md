@@ -215,8 +215,8 @@ The following is an excerpt of the endpoints being provided:
 | METHOD | PATH | DESCRIPTION |
 |---|---|---|
 |GET |`/api/status`|get the current stepper server status report including the following information: version string of the server, wifi information (wifi mode, IP address), spiffs information (total space and free space)|
-|POST|`/api/steppers/moveby`|endpoint to set a new RELATIVE target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value|
-|POST |`/api/steppers/position`|endpoint to set a new absolute target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value|
+|POST|`/api/steppers/moveby`|endpoint to set a new RELATIVE target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value. Optional post parameters: speed, acel, decel|
+|POST |`/api/steppers/position`|endpoint to set a new absolute target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value. Optional post parameters: speed, acel, decel|
 | GET |`/api/steppers` or `/api/steppers?id=<id>`|endpoint to list all configured steppers or a specific one if "id" query parameter is given
 |DELETE|`/api/steppers?id=<id>`|delete an existing stepper configuration entry|
 |POST |`/api/steppers`|add a new stepper configuration entry|
