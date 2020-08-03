@@ -64,8 +64,10 @@ void ESPStepperMotorServer_MotionController::processMotionUpdates(void *paramete
   ESPStepperMotorServer_Configuration *configuration = ref->serverRef->getCurrentServerConfiguration();
   ESP_FlexyStepper **configuredFlexySteppers = configuration->getConfiguredFlexySteppers();
   bool emergencySwitchFlag = false;
+  int updateCounter = 0;
   while (true)
   {
+    //update positions of all steppers / trigger stepping if needed
     for (byte i = 0; i < ESPServerMaxSteppers; i++)
     {
       if (configuredFlexySteppers[i])
@@ -77,6 +79,8 @@ void ESPStepperMotorServer_MotionController::processMotionUpdates(void *paramete
         break;
       }
     }
+
+    //check for emergency switch
     if (ref->serverRef->emergencySwitchIsActive && !emergencySwitchFlag)
     {
       emergencySwitchFlag = true;
@@ -85,6 +89,33 @@ void ESPStepperMotorServer_MotionController::processMotionUpdates(void *paramete
     else if (!ref->serverRef->emergencySwitchIsActive && emergencySwitchFlag)
     {
       emergencySwitchFlag = false;
+    }
+
+    //check if we should send updated position information via websocket
+    updateCounter++;
+    if (updateCounter % 200000 == 0 && ref->serverRef->webSockerServer->count() > 0)
+    {
+      String positionsString = String("{");
+      char segmentBuffer[500];
+      bool isFirstSegment = true;
+      for (byte n = 0; n < ESPServerMaxSteppers; n++)
+      {
+        if (configuredFlexySteppers[n])
+        {
+          if (!isFirstSegment)
+          {
+            positionsString += ",";
+          }
+          sprintf(segmentBuffer, "\"s%ipos\":%ld, \"s%ivel\":%.2f", n, configuredFlexySteppers[n]->getCurrentPositionInSteps(), n, configuredFlexySteppers[n]->getCurrentVelocityInStepsPerSecond());
+          //maybe register as friendly class and access property directly and save some processing time
+          positionsString += segmentBuffer;
+          isFirstSegment = false;
+        }
+      }
+      positionsString += "}";
+
+      ref->serverRef->sendSocketMessageToAllClients(positionsString.c_str(), positionsString.length());
+      updateCounter = 0;
     }
   }
 }

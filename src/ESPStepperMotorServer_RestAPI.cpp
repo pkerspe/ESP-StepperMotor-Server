@@ -103,6 +103,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
   // POST /api/steppers/moveby
   // endpoint to set a new RELATIVE target position for the stepper motor in either mm, revs or steps
   // post parameters: id, unit, value
+  // optional parameters: speed, accel, decel
   httpServer->on("/api/steppers/moveby", HTTP_POST, [this](AsyncWebServerRequest *request) {
     this->logDebugRequestUrl(request);
 
@@ -123,12 +124,22 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
           stepper->getFlexyStepper()->setSpeedInStepsPerSecond(speed);
         }
       }
-      if (request->hasParam("accell"))
+      if (request->hasParam("accel"))
       {
-        float accell = request->getParam("accell")->value().toFloat();
-        if (accell > 0)
+        float accel = request->getParam("accel")->value().toFloat();
+        if (accel > 0)
         {
-          stepper->getFlexyStepper()->setAccelerationInStepsPerSecondPerSecond(accell);
+          stepper->getFlexyStepper()->setAccelerationInStepsPerSecondPerSecond(accel);
+          //in case deceleration is not explicitly given, we just use the same value
+          stepper->getFlexyStepper()->setDecelerationInStepsPerSecondPerSecond(accel);
+        }
+      }
+      if (request->hasParam("decel"))
+      {
+        float decel = request->getParam("decel")->value().toFloat();
+        if (decel > 0)
+        {
+          stepper->getFlexyStepper()->setDecelerationInStepsPerSecondPerSecond(decel);
         }
       }
 
@@ -163,32 +174,62 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
   // POST /api/steppers/position
   // endpoint to set a new absolute target position for the stepper motor in either mm, revs or steps
   // post parameters: id, unit, value
+  // optional parameters: speed, accel, decel
   httpServer->on("/api/steppers/position", HTTP_POST, [this](AsyncWebServerRequest *request) {
     this->logDebugRequestUrl(request);
 
     if (request->hasParam("id", true))
     {
       int stepperIndex = request->getParam("id", true)->value().toInt();
-      if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex) == NULL)
+      ESPStepperMotorServer_StepperConfiguration *stepper = this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex);
+      if (stepper == NULL)
       {
-        request->send(404);
+        request->send(404, "application/json", "{\"error\": \"No stepper configuration found for given id\"}");
         return;
       }
+
+      if (request->hasParam("speed"))
+      {
+        float speed = request->getParam("speed")->value().toFloat();
+        if (speed > 0)
+        {
+          stepper->getFlexyStepper()->setSpeedInStepsPerSecond(speed);
+        }
+      }
+      if (request->hasParam("accel"))
+      {
+        float accel = request->getParam("accel")->value().toFloat();
+        if (accel > 0)
+        {
+          stepper->getFlexyStepper()->setAccelerationInStepsPerSecondPerSecond(accel);
+          //in case deceleration is not explicitly given, we just use the same value
+          stepper->getFlexyStepper()->setDecelerationInStepsPerSecondPerSecond(accel);
+        }
+      }
+      if (request->hasParam("decel"))
+      {
+        float decel = request->getParam("decel")->value().toFloat();
+        if (decel > 0)
+        {
+          stepper->getFlexyStepper()->setDecelerationInStepsPerSecondPerSecond(decel);
+        }
+      }
+
       if (request->hasParam("value", true) && request->hasParam("unit", true))
       {
         String unit = request->getParam("unit", true)->value();
         float position = request->getParam("value", true)->value().toFloat();
         if (unit == "mm")
         {
-          this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex)->getFlexyStepper()->setTargetPositionInMillimeters(position);
+          stepper->getFlexyStepper()->setTargetPositionInMillimeters(position);
         }
         else if (unit == "revs")
         {
-          this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex)->getFlexyStepper()->setTargetPositionInRevolutions(position);
+          stepper->getFlexyStepper()->setTargetPositionInRevolutions(position);
         }
         else if (unit == "steps")
         {
-          this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex)->getFlexyStepper()->setTargetPositionInSteps(position);
+          stepper->getFlexyStepper()->setTargetPositionInSteps(position);
         }
         else
         {

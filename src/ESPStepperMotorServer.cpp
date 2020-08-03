@@ -98,6 +98,7 @@ ESPStepperMotorServer::ESPStepperMotorServer(const ESPStepperMotorServer &espSte
 
   if (espStepperMotorServer.webSockerServer)
   {
+    //check if needed, since in startWebserver it will be intialized again (~line 611)
     this->webSockerServer = new AsyncWebSocket("/ws");
     *this->webSockerServer = *espStepperMotorServer.webSockerServer;
   }
@@ -637,6 +638,13 @@ void ESPStepperMotorServer::startWebserver()
 
     httpServer->begin();
     ESPStepperMotorServer_Logger::logInfof("Webserver started, you can now open the user interface on http://%s:%i/\n", this->getIpAddress().c_str(), this->serverConfiguration->serverPort);
+  }
+}
+
+void ESPStepperMotorServer::sendSocketMessageToAllClients(const char * message, size_t len){
+  //try sending message if clients are connected at all and if buffer is not already full
+  if(this->webSockerServer->count() > 0 && this->webSockerServer->availableForWriteAll() ){
+    this->webSockerServer->textAll(message, len);
   }
 }
 

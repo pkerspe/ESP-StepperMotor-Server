@@ -101,6 +101,8 @@ class ESPStepperMotorServer_WebInterface;
 // TODO: remove all wifi stuff if not needed using: #if defined(ESPServerWifiModeClient) || defined(ESPServerWifiModeAccessPoint)
 class ESPStepperMotorServer
 {
+  friend class ESPStepperMotorServer_MotionController;
+  
 public:
   ESPStepperMotorServer(byte serverMode, byte logLevel = ESPServerLogLevel_INFO);
   ESPStepperMotorServer(const ESPStepperMotorServer &espStepperMotorServer);
@@ -128,6 +130,7 @@ public:
   byte getPositionSwitchStatus(int positionSwitchIndex);
   signed char updateSwitchStatusRegister();
   void onWebSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
+  void sendSocketMessageToAllClients(const char * message, size_t len);
   String getIpAddress();
   ESPStepperMotorServer_Configuration *getCurrentServerConfiguration();
 
@@ -180,7 +183,7 @@ private:
   // private member variables
   //
   byte enabledServices;
-  const char *version = "0.3.1";
+  const char *version = "0.3.2";
   boolean isWebserverEnabled = false;
   boolean isRestApiEnabled = false;
   boolean isCLIEnabled = false;
