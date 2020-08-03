@@ -162,11 +162,13 @@ void ESPStepperMotorServer_StepperConfiguration::setBrakeIoPin(byte brakeIoPin, 
 void ESPStepperMotorServer_StepperConfiguration::setBrakeEngageDelayMs(long delay)
 {
     this->_brakeEngageDelayMs = delay;
+    this->_flexyStepper->setBrakeEngageDelayMs(delay);
 }
 
 void ESPStepperMotorServer_StepperConfiguration::setBrakeReleaseDelayMs(long delay)
 {
     this->_brakeReleaseDelayMs = delay;
+    this->_flexyStepper->setBrakeReleaseDelayMs(delay);
 }
 
 // motion configurateion settings
