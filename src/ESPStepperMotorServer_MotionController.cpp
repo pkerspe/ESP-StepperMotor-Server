@@ -106,7 +106,7 @@ void ESPStepperMotorServer_MotionController::processMotionUpdates(void *paramete
           {
             positionsString += ",";
           }
-          sprintf(segmentBuffer, "\"s%ipos\":%ld, \"s%ivel\":%.2f", n, configuredFlexySteppers[n]->getCurrentPositionInSteps(), n, configuredFlexySteppers[n]->getCurrentVelocityInStepsPerSecond());
+          sprintf(segmentBuffer, "\"s%ipos\":%ld, \"s%ivel\":%.3f", n, configuredFlexySteppers[n]->getCurrentPositionInSteps(), n, configuredFlexySteppers[n]->getCurrentVelocityInStepsPerSecond());
           //maybe register as friendly class and access property directly and save some processing time
           positionsString += segmentBuffer;
           isFirstSegment = false;
