@@ -92,30 +92,34 @@ void ESPStepperMotorServer_MotionController::processMotionUpdates(void *paramete
     }
 
     //check if we should send updated position information via websocket
-    updateCounter++;
-    if (updateCounter % 200000 == 0 && ref->serverRef->webSockerServer->count() > 0)
+    if (ref->serverRef->isWebserverEnabled)
     {
-      String positionsString = String("{");
-      char segmentBuffer[500];
-      bool isFirstSegment = true;
-      for (byte n = 0; n < ESPServerMaxSteppers; n++)
+      updateCounter++;
+      //we only send sproadically to reduce load and processing times
+      if (updateCounter % 200000 == 0 && ref->serverRef->webSockerServer->count() > 0)
       {
-        if (configuredFlexySteppers[n])
+        String positionsString = String("{");
+        char segmentBuffer[500];
+        bool isFirstSegment = true;
+        for (byte n = 0; n < ESPServerMaxSteppers; n++)
         {
-          if (!isFirstSegment)
+          if (configuredFlexySteppers[n])
           {
-            positionsString += ",";
+            if (!isFirstSegment)
+            {
+              positionsString += ",";
+            }
+            sprintf(segmentBuffer, "\"s%ipos\":%ld, \"s%ivel\":%.3f", n, configuredFlexySteppers[n]->getCurrentPositionInSteps(), n, configuredFlexySteppers[n]->getCurrentVelocityInStepsPerSecond());
+            //maybe register as friendly class and access property directly and save some processing time
+            positionsString += segmentBuffer;
+            isFirstSegment = false;
           }
-          sprintf(segmentBuffer, "\"s%ipos\":%ld, \"s%ivel\":%.3f", n, configuredFlexySteppers[n]->getCurrentPositionInSteps(), n, configuredFlexySteppers[n]->getCurrentVelocityInStepsPerSecond());
-          //maybe register as friendly class and access property directly and save some processing time
-          positionsString += segmentBuffer;
-          isFirstSegment = false;
         }
-      }
-      positionsString += "}";
+        positionsString += "}";
 
-      ref->serverRef->sendSocketMessageToAllClients(positionsString.c_str(), positionsString.length());
-      updateCounter = 0;
+        ref->serverRef->sendSocketMessageToAllClients(positionsString.c_str(), positionsString.length());
+        updateCounter = 0;
+      }
     }
   }
 }
