@@ -13,6 +13,7 @@ Connect one ore more stepper controllers with step and direction input, and opti
   * [Firmware installation](#Firmware-installation)
     * [Using Arduino IDE](#using-arduino-ide)
     * [Using PlatformIO](#using-platformio)
+  * [Reducing code size](#reducing-code-size)  
   * [Installation of the web user interface](#installation-of-the-web-ui)
   * [Connecting the hardware](#connecting-the-hardware)
   * [Configuation via the web user interface](#configuation-via-the-web-user-interface)
@@ -163,6 +164,22 @@ Now that it is started, you can open the UI in a browser on you PC connected to 
 You should now see the start screen of the ESP StepperMotor Server:
 ![startup screen][startup_screen]
 
+### Reducing code size
+When you build the ESP-StepperMotor-Server without any optimizations it takes up a fair amount of the ESP32s flash size (in the standard OTA partition layout).
+If you do not need all modules of the ESP-StepperMotor-Server you can use build flags to reduce the code size significantly.
+The following build flags are supported:
+* ESPStepperMotorServer_COMPILE_NO_WEB: using this flag completely disables the Web Interface, the REST API and the Websocket server. This has the biggest impact on the compiled size, since it also affects the inclusion of the external dependencies of the ESP Async WebServer and AsyncTCP libraries. If you use this flag you will not be able to use the webinterface of the ESP Stepper motor server anymore for configuration and control of the server. You can then only interact with the server using the serial command line interface
+* ESPStepperMotorServer_COMPILE_NO_DEBUG: this flag will remove all debug output and debug functions, leading to a small reduction of the size
+* ESPStepperMotorServer_COMPILE_NO_CLI_HELP: this flag will remove all help texts from the Command lines interfaces help command and by that reducing the size a bit further
+
+The following chart shows the impact on file size when disabling one or more features:
+![compiled size][compiled_size]
+
+To use one or more of these build flags in PlatformIO, simply add the following line to your platformio.ini file of your project (e.g. to disable debug output and the help texts in the Command Line Interface):
+```
+build_flags = -D ESPStepperMotorServer_COMPILE_NO_DEBUG -D ESPStepperMotorServer_COMPILE_NO_CLI_HELP
+```
+
 ### Installation of the Web UI
 Once you uploaded the comiled sketch to your ESP32 (dont forget to enter your SSID and Wifi Password in the sketch!) the ESP will connect to the WiFi and check if the UI files are already installed in the SPI Flash File System (SPIFFS) of the ESP. If not it will try to download it.
 Once all is done you can enter the IP Adress of you ESP32 module in the browser and you will see the UI of the Stepper Motor Server, where you can configure the stepper motors and controls.
@@ -311,3 +328,4 @@ Copyright (c) 2019 Paul Kerspe - Licensed under the MIT license.
 [add_rotary_encoder_dialog]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/add_rotary_encoder_dialog.png "The dialog to add a new rotary encoder to control a stepper"
 [about_screen]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/about_screen.png "The about screen with the link to the REST API documentation"
 [connection_setup_example]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/connection_setup_example.png "Example setup wiring diagram"
+[compiled_size]: https://github.com/pkerspe/ESP-StepperMotor-Server/raw/master/doc/images/compiled_size.png "Compile size comparison of different build options"
