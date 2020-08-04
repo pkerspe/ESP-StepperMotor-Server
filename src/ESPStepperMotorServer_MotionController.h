@@ -36,6 +36,8 @@
 #include <ESPStepperMotorServer_Logger.h>
 #include <ESP_FlexyStepper.h>
 
+class ESPStepperMotorServer;
+
 class ESPStepperMotorServer_MotionController
 {
 public:

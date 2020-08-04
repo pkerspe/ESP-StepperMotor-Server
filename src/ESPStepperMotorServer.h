@@ -60,8 +60,13 @@
 #include <ESP_FlexyStepper.h>
 #include <SPIFFS.h>
 #include <ArduinoJson.h>
+#include <WiFi.h>
+
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
 #include <ESPAsyncWebServer.h>
 #include <ESPStepperMotorServer_WebInterface.h>
+#endif
+
 #include <ESPStepperMotorServer_CLI.h>
 #include <ESPStepperMotorServer_Configuration.h>
 #include <ESPStepperMotorServer_MotionController.h>
@@ -69,7 +74,10 @@
 #include <ESPStepperMotorServer_StepperConfiguration.h>
 #include <ESPStepperMotorServer_RotaryEncoder.h>
 #include <ESPStepperMotorServer_Logger.h>
+
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
 #include <ESPStepperMotorServer_RestAPI.h>
+#endif
 
 #define ESPServerWifiModeDisabled 0
 #define ESPServerWifiModeAccessPoint 1
@@ -94,20 +102,29 @@ class ESPStepperMotorServer_CLI;
 class ESPStepperMotorServer_RestAPI;
 class ESPStepperMotorServer_Configuration;
 class ESPStepperMotorServer_MotionController;
-class ESPStepperMotorServer_WebInterface;
 
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
+class ESPStepperMotorServer_WebInterface;
+class ESPStepperMotorServer_RestAPI;
+#endif
 //
 // the ESPStepperMotorServer class
 // TODO: remove all wifi stuff if not needed using: #if defined(ESPServerWifiModeClient) || defined(ESPServerWifiModeAccessPoint)
 class ESPStepperMotorServer
 {
   friend class ESPStepperMotorServer_MotionController;
-  
+
 public:
   ESPStepperMotorServer(byte serverMode, byte logLevel = ESPServerLogLevel_INFO);
   ESPStepperMotorServer(const ESPStepperMotorServer &espStepperMotorServer);
   ~ESPStepperMotorServer();
+
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
   void setHttpPort(int portNumber);
+  void onWebSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
+  void sendSocketMessageToAllClients(const char *message, size_t len);
+#endif
+
   void setAccessPointName(const char *accessPointSSID);
   void setAccessPointPassword(const char *accessPointPassword);
   void setWifiCredentials(const char *ssid, const char *pwd);
@@ -129,8 +146,6 @@ public:
   void stop();
   byte getPositionSwitchStatus(int positionSwitchIndex);
   signed char updateSwitchStatusRegister();
-  void onWebSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
-  void sendSocketMessageToAllClients(const char * message, size_t len);
   String getIpAddress();
   ESPStepperMotorServer_Configuration *getCurrentServerConfiguration();
 
@@ -152,14 +167,18 @@ private:
   void scanWifiNetworks();
   void connectToWifiNetwork();
   void startAccessPoint();
+
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
   void startWebserver();
   void registerWebInterfaceUrls();
+  bool checkIfGuiExistsInSpiffs();
+  bool downloadFileToSpiffs(const char *url, const char *targetPath);
+#endif
+
   void startSPIFFS();
   void printSPIFFSStats();
   int getSPIFFSFreeSpace();
-  bool checkIfGuiExistsInSpiffs();
   void printSPIFFSRootFolderContents();
-  bool downloadFileToSpiffs(const char *url, const char *targetPath);
   void setupAllIOPins();
   void setupPositionSwitchIOPin(ESPStepperMotorServer_PositionSwitch *posSwitch);
   void setupRotaryEncoderIOPin(ESPStepperMotorServer_RotaryEncoder *rotaryEncoder);
@@ -191,16 +210,19 @@ private:
   boolean isSPIFFSactive = false;
 
   ESPStepperMotorServer_Configuration *serverConfiguration;
+
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
   ESPStepperMotorServer_WebInterface *webInterfaceHandler;
   ESPStepperMotorServer_RestAPI *restApiHandler;
+  AsyncWebServer *httpServer;
+  AsyncWebSocket *webSockerServer;
+#endif
+
   ESPStepperMotorServer_CLI *cliHandler;
   ESPStepperMotorServer_MotionController *motionControllerHandler;
   static ESPStepperMotorServer *anchor; //used for self-reference in ISR
   // the button status register for all configured button switches
   volatile byte buttonStatus[ESPServerSwitchStatusRegisterCount] = {0};
-
-  AsyncWebServer *httpServer;
-  AsyncWebSocket *webSockerServer;
 };
 
 // ------------------------------------ End ---------------------------------

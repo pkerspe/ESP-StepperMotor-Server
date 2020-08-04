@@ -49,8 +49,10 @@ ESPStepperMotorServer_CLI::ESPStepperMotorServer_CLI(ESPStepperMotorServer *serv
   this->serverRef = serverRef;
 }
 
-ESPStepperMotorServer_CLI::~ESPStepperMotorServer_CLI(){
-  if(this->xHandle != NULL){
+ESPStepperMotorServer_CLI::~ESPStepperMotorServer_CLI()
+{
+  if (this->xHandle != NULL)
+  {
     this->stop();
   }
 }
@@ -206,8 +208,10 @@ void ESPStepperMotorServer_CLI::registerCommands()
   commandDetailsStructure setApPwdCommand = {String("setappwd"), String("sap"), String("set the password for the access point to be opened by the esp"), true};
   this->registerNewCommand(setApPwdCommand, &ESPStepperMotorServer_CLI::cmdSetApPassword);
 
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
   commandDetailsStructure setHttpPortCommand = {String("sethttpport"), String("shp"), String("set the http port to listen for for the web interface"), true};
   this->registerNewCommand(setHttpPortCommand, &ESPStepperMotorServer_CLI::cmdSetHttpPort);
+#endif
 
   commandDetailsStructure setSSIDCommand = {String("setwifissid"), String("sws"), String("set the SSID of the WiFi to connect to (if in client mode)"), true};
   this->registerNewCommand(setSSIDCommand, &ESPStepperMotorServer_CLI::cmdSetSSID);
@@ -224,7 +228,6 @@ void ESPStepperMotorServer_CLI::registerCommands()
   // this->registerNewCommand("listswitches", "lsw", 0, "list all configured input switches", &ESPStepperMotorServer_CLI::cmdListSwitches);
   // this->registerNewCommand("returnhome", "rh", 1, "Return to the home position (only possible if a homing switch is connected). Requires the ID of the stepper to get the position for as parameter. E.g.: rh=0", &ESPStepperMotorServer_CLI::cmdReturnHome);
   // create set wifi mode function
-
 }
 
 void ESPStepperMotorServer_CLI::registerNewCommand(commandDetailsStructure commandDetails, void (ESPStepperMotorServer_CLI::*cmdFunction)(char *, char *))
@@ -284,6 +287,7 @@ void ESPStepperMotorServer_CLI::cmdSetApPassword(char *cmd, char *args)
   }
 }
 
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
 void ESPStepperMotorServer_CLI::cmdSetHttpPort(char *cmd, char *args)
 {
   int port = (int)(String(args)).toInt();
@@ -297,6 +301,7 @@ void ESPStepperMotorServer_CLI::cmdSetHttpPort(char *cmd, char *args)
     Serial.printf(setterMissingParameterTemplate, cmd);
   }
 }
+#endif
 
 void ESPStepperMotorServer_CLI::cmdSetSSID(char *cmd, char *args)
 {
@@ -430,7 +435,9 @@ void ESPStepperMotorServer_CLI::cmdGetCurrentVelocity(char *cmd, char *args)
   }
   else
   {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
     ESPStepperMotorServer_Logger::logDebugf("%s called without parameter for stepper index\n", cmd);
+#endif
     for (stepperid = 0; stepperid < ESPServerMaxSteppers; stepperid++)
     {
       ESPStepperMotorServer_StepperConfiguration *stepper = this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid);
@@ -465,7 +472,9 @@ void ESPStepperMotorServer_CLI::cmdGetPosition(char *cmd, char *args)
   }
   else
   {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
     ESPStepperMotorServer_Logger::logDebugf("%s called without parameter for stepper index\n", cmd);
+#endif
     for (stepperid = 0; stepperid < ESPServerMaxSteppers; stepperid++)
     {
       ESPStepperMotorServer_StepperConfiguration *stepper = config->getStepperConfiguration(stepperid);
@@ -526,14 +535,18 @@ void ESPStepperMotorServer_CLI::cmdMoveTo(char *cmd, char *args)
 void ESPStepperMotorServer_CLI::cmdMoveBy(char *cmd, char *args)
 {
   int stepperid = this->getValidStepperIdFromArg(args);
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
   ESPStepperMotorServer_Logger::logDebugf("%s called for stepper id %i\n", cmd, stepperid);
+#endif
   if (stepperid > -1)
   {
     char value[20];
     this->getParameterValue(args, "v", value);
     if (value[0] != NULLCHAR)
     {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
       ESPStepperMotorServer_Logger::logDebugf("cmdMoveBy called with v = %s\n", value);
+#endif
       char unit[10];
       this->getParameterValue(args, "u", unit);
       if (unit[0] == NULLCHAR || strcmp(unit, "steps") == 0)
@@ -543,19 +556,25 @@ void ESPStepperMotorServer_CLI::cmdMoveBy(char *cmd, char *args)
           Serial.println("no unit provided, will use 'steps' as default");
         }
         int targetPosition = (String(value).toInt());
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
         ESPStepperMotorServer_Logger::logDebugf("Setting target position to %i steps\n", targetPosition);
+#endif
         this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid)->getFlexyStepper()->setTargetPositionRelativeInSteps(targetPosition);
       }
       else if (strcmp(unit, "revs") == 0)
       {
         float targetPosition = (String(value).toFloat());
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
         ESPStepperMotorServer_Logger::logDebugf("Setting target position to %f revs\n", targetPosition);
+#endif
         this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid)->getFlexyStepper()->setTargetPositionRelativeInRevolutions(targetPosition);
       }
       else if (strcmp(unit, "mm") == 0)
       {
         float targetPosition = (String(value).toFloat());
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
         ESPStepperMotorServer_Logger::logDebugf("Setting target position to %f mm\n", targetPosition);
+#endif
         this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration(stepperid)->getFlexyStepper()->setTargetPositionRelativeInMillimeters(targetPosition);
       }
       else
@@ -610,7 +629,9 @@ int ESPStepperMotorServer_CLI::getValidStepperIdFromArg(char *arg)
   if (arg && isdigit(arg[0]))
   {
     int id = (String(arg)).toInt();
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
     ESPStepperMotorServer_Logger::logDebugf("extracted stepper id %i from argument string %s\n", id, arg);
+#endif
     if (id > ESPServerMaxSteppers || !this->serverRef->getCurrentServerConfiguration()->getStepperConfiguration((byte)id))
     {
       Serial.println("error: invalid stepper id given");
@@ -618,10 +639,12 @@ int ESPStepperMotorServer_CLI::getValidStepperIdFromArg(char *arg)
     }
     return (byte)id;
   }
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
   else
   {
     ESPStepperMotorServer_Logger::logDebug("no argument string given to extract stepper id from, will return -1");
   }
+#endif
   return -1;
 }
 
@@ -632,12 +655,15 @@ void ESPStepperMotorServer_CLI::getParameterValue(const char *args, const char *
 {
   if (args == NULL)
   {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
     ESPStepperMotorServer_Logger::logDebugf("getParameterValue called with on NULL and %s\n", parameterNameToGetValueFor);
+#endif
     strcpy(result, "");
     return;
   }
-
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
   ESPStepperMotorServer_Logger::logDebugf("getParameterValue called with %s and %s\n", args, parameterNameToGetValueFor);
+#endif
   char *parameterValue;
   char *save_ptr;
   String argumentString = String(args);
@@ -647,30 +673,40 @@ void ESPStepperMotorServer_CLI::getParameterValue(const char *args, const char *
   char *keyValuePairString = strtok_r(workingCopy, this->_PARAM_PARAM_SEPRATOR, &save_ptr);
   while (keyValuePairString != NULL)
   {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
     ESPStepperMotorServer_Logger::logDebugf("Found a key value pair: %s\n", keyValuePairString);
+#endif
     char *restKeyValuePair = keyValuePairString;
     char *parameterName = strtok_r(restKeyValuePair, this->_PARAM_VALUE_SEPRATOR, &restKeyValuePair);
     if (parameterName != NULL)
     {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
       ESPStepperMotorServer_Logger::logDebugf("Found parameter '%s'\n", parameterName);
+#endif
       if (strcmp(parameterName, parameterNameToGetValueFor) == 0)
       {
         if (restKeyValuePair && strcmp(restKeyValuePair, "") != 0)
         {
           parameterValue = strtok_r(restKeyValuePair, this->_PARAM_VALUE_SEPRATOR, &restKeyValuePair);
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
           ESPStepperMotorServer_Logger::logDebugf("Found matching parameter: %s with value %s\n", parameterName, parameterValue);
+#endif
           strcpy(result, parameterValue);
           return;
         }
       }
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
       else
       {
         ESPStepperMotorServer_Logger::logDebug("parameter did not match requested parameter");
       }
+#endif
     }
     keyValuePairString = strtok_r(NULL, this->_PARAM_PARAM_SEPRATOR, &save_ptr);
   }
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
   ESPStepperMotorServer_Logger::logDebug("No match found");
+#endif
   strcpy(result, "");
 }
 
@@ -680,7 +716,9 @@ void ESPStepperMotorServer_CLI::getUnitWithFallback(char *args, char *unit)
   this->getParameterValue(args, "u", unit);
   if (unit[0] == NULLCHAR)
   {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
     ESPStepperMotorServer_Logger::logDebug("no unit provided, will use 'steps' as default");
+#endif
     strcpy(unit, "steps");
   }
 }

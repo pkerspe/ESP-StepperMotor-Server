@@ -43,7 +43,9 @@ ESPStepperMotorServer *_stepperMotorServer;
 ESPStepperMotorServer_RestAPI::ESPStepperMotorServer_RestAPI(ESPStepperMotorServer *stepperMotorServer)
 {
   this->_stepperMotorServer = stepperMotorServer;
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
   ESPStepperMotorServer_Logger::logDebug("ESPStepperMotorServer_RestAPI instance created");
+#endif
 }
 
 /**
@@ -87,11 +89,12 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       serializeJson(root, output);
       AsyncWebServerResponse *response = request->beginResponse(200, "application/json", output);
       request->send(response);
-
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
       if (ESPStepperMotorServer_Logger::isDebugEnabled())
       {
         ESPStepperMotorServer_Logger::logDebugf("ArduinoJSON document size uses %i bytes from alocated %i bytes", doc.memoryUsage(), docSize);
       }
+#endif
     }
     else
     {
@@ -400,11 +403,12 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       JsonObject root = doc.to<JsonObject>();
       this->populateSwitchDetailsToJsonObject(root, this->_stepperMotorServer->getCurrentServerConfiguration()->getSwitch(switchIndex), switchIndex);
       serializeJson(root, output);
-
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
       if (ESPStepperMotorServer_Logger::isDebugEnabled())
       {
         ESPStepperMotorServer_Logger::logDebugf("ArduinoJSON document size uses %i bytes from alocated %i bytes\n", doc.memoryUsage(), switchObjectSize);
       }
+#endif
     }
     else
     {
@@ -423,11 +427,12 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
         }
       }
       serializeJson(root, output);
-
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
       if (ESPStepperMotorServer_Logger::isDebugEnabled())
       {
         ESPStepperMotorServer_Logger::logDebugf("ArduinoJSON document size uses %i bytes from alocated %i bytes\n", doc.memoryUsage(), docSize);
       }
+#endif
     }
 
     AsyncWebServerResponse *response = request->beginResponse(200, "application/json", output);
@@ -477,11 +482,12 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
       JsonObject root = doc.to<JsonObject>();
       this->populateRotaryEncoderDetailsToJsonObject(root, this->_stepperMotorServer->getCurrentServerConfiguration()->getRotaryEncoder(rotaryEncoderIndex), rotaryEncoderIndex);
       serializeJson(root, output);
-
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
       if (ESPStepperMotorServer_Logger::isDebugEnabled())
       {
         ESPStepperMotorServer_Logger::logDebugf("ArduinoJSON document size uses %i bytes from alocated %i bytes\n", doc.memoryUsage(), rotaryEncoderObjectSize);
       }
+#endif
     }
     else
     {
@@ -498,11 +504,12 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
         }
       }
       serializeJson(root, output);
-
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
       if (ESPStepperMotorServer_Logger::isDebugEnabled())
       {
         ESPStepperMotorServer_Logger::logDebugf("ArduinoJSON document size uses %i bytes from alocated %i bytes\n", doc.memoryUsage(), docSize);
       }
+#endif
     }
 
     AsyncWebServerResponse *response = request->beginResponse(200, "application/json", output);

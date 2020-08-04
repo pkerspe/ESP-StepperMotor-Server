@@ -72,7 +72,7 @@ void ESPStepperMotorServer_WebInterface::registerWebInterfaceUrls(AsyncWebServer
       request->send(response);
     });
     */
-    
+
     this->_httpServer->on("/js/app.js", HTTP_GET, [this](AsyncWebServerRequest *request) {
       request->redirect(this->webUiJsFile);
     });
@@ -117,7 +117,9 @@ void ESPStepperMotorServer_WebInterface::registerWebInterfaceUrls(AsyncWebServer
  */
 bool ESPStepperMotorServer_WebInterface::checkIfGuiExistsInSpiffs()
 {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
   ESPStepperMotorServer_Logger::logDebug("Checking if web UI is installed in SPIFFS");
+#endif
   bool uiComplete = true;
   const char *notPresent = "The file %s could not be found on SPIFFS";
   const char *files[] = {this->webUiIndexFile, this->webUiJsFile, this->webUiLogoFile, this->webUiFaviconFile, this->webUiEncoderGraphic, this->webUiEmergencySwitchGraphic, this->webUiStepperGraphic, this->webUiSwitchGraphic};
@@ -149,6 +151,7 @@ bool ESPStepperMotorServer_WebInterface::checkIfGuiExistsInSpiffs()
     ESPStepperMotorServer_Logger::logWarning("The UI does not seem to be installed completely on SPIFFS. Automatic download failed since the server is in Access Point mode and not connected to the internet");
     ESPStepperMotorServer_Logger::logWarning("Start the server in wifi client (STA) mode to enable automatic download of the web interface files to SPIFFS");
   }
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
   else if (ESPStepperMotorServer_Logger::isDebugEnabled())
   {
     if (uiComplete == true)
@@ -160,29 +163,36 @@ bool ESPStepperMotorServer_WebInterface::checkIfGuiExistsInSpiffs()
       ESPStepperMotorServer_Logger::logDebug("Check failed, one or more UI files are missing and could not be downloaded automatically");
     }
   }
+#endif
   return uiComplete;
 }
 
 // Perform an HTTP GET request to a remote page to download a file to SPIFFS
 bool ESPStepperMotorServer_WebInterface::downloadFileToSpiffs(const char *url, const char *targetPath)
 {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
   ESPStepperMotorServer_Logger::logDebugf("downloading %s from %s\n", targetPath, url);
+#endif
 
   if (http.begin(url))
   {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
     int httpCode = http.GET();
     ESPStepperMotorServer_Logger::logDebugf("server responded with %i\n", httpCode);
+#endif
 
     //////////////////
     // get length of document (is -1 when Server sends no Content-Length header)
     int len = http.getSize();
     uint8_t buff[128] = {0};
-
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
     ESPStepperMotorServer_Logger::logDebugf("starting download stream for file size %i\n", len);
+#endif
 
     WiFiClient *stream = &http.getStream();
-
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
     ESPStepperMotorServer_Logger::logDebug("opening file for writing");
+#endif
     File f = SPIFFS.open(targetPath, "w+");
 
     // read all data from server
@@ -190,8 +200,9 @@ bool ESPStepperMotorServer_WebInterface::downloadFileToSpiffs(const char *url, c
     {
       // get available data size
       size_t size = stream->available();
-
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
       ESPStepperMotorServer_Logger::logDebugf("%i bytes available to read from stream\n", size);
+#endif
 
       if (size)
       {

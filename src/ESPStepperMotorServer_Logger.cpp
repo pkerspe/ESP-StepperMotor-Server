@@ -63,7 +63,7 @@ void ESPStepperMotorServer_Logger::printBinaryWithLeadingZeros(char *result, byt
 void ESPStepperMotorServer_Logger::setLogLevel(byte logLevel)
 {
     ESPStepperMotorServer_Logger::_isDebugLevelSet = false;
-    const char* msgTemplate = "Setting log level to %s\n";
+    const char *msgTemplate = "Setting log level to %s\n";
     switch (logLevel)
     {
     case ESPServerLogLevel_ALL:
@@ -121,6 +121,7 @@ bool ESPStepperMotorServer_Logger::isDebugEnabled()
     return ESPStepperMotorServer_Logger::_isDebugLevelSet;
 }
 
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
 void ESPStepperMotorServer_Logger::logDebug(const char *msg, boolean newLine, boolean ommitLogLevel)
 {
     if (ESPStepperMotorServer_Logger::_isDebugLevelSet)
@@ -147,6 +148,7 @@ void ESPStepperMotorServer_Logger::logDebug(String msg, boolean newLine, boolean
         ESPStepperMotorServer_Logger::logDebug(msg.c_str(), newLine, ommitLogLevel);
     }
 }
+#endif
 
 void ESPStepperMotorServer_Logger::logInfo(const char *msg, boolean newLine, boolean ommitLogLevel)
 {

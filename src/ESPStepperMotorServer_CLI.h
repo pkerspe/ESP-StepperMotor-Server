@@ -39,13 +39,13 @@
 //need this forward declaration here due to circular dependency (use in constructor/member variable)
 class ESPStepperMotorServer;
 
-struct commandDetailsStructure {
+struct commandDetailsStructure
+{
   String command;
   String shortCut;
   String description;
   bool hasParameters;
 };
-
 
 class ESPStepperMotorServer_CLI
 {
@@ -77,26 +77,27 @@ private:
   void cmdSaveConfiguration(char *cmd, char *args);
   void cmdSetApName(char *cmd, char *args);
   void cmdSetApPassword(char *cmd, char *args);
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
   void cmdSetHttpPort(char *cmd, char *args);
+#endif
   void cmdSetSSID(char *cmd, char *args);
   void cmdSetWifiPassword(char *cmd, char *args);
   int getValidStepperIdFromArg(char *arg);
-  void getParameterValue(const char * args, const char* parameterNameToGetValueFor, char* result);
+  void getParameterValue(const char *args, const char *parameterNameToGetValueFor, char *result);
   void registerCommands();
-  void registerNewCommand(commandDetailsStructure commandDetails, void (ESPStepperMotorServer_CLI::*f)(char *, char*));
+  void registerNewCommand(commandDetailsStructure commandDetails, void (ESPStepperMotorServer_CLI::*f)(char *, char *));
   void getUnitWithFallback(char *args, char *unit);
 
   TaskHandle_t xHandle = NULL;
   ESPStepperMotorServer *serverRef;
   void (ESPStepperMotorServer_CLI::*command_functions[MAX_CLI_CMD_COUNTER + 1])(char *, char *);
   //const char *command_details[MAX_CLI_CMD_COUNTER +1 ][4];
-  commandDetailsStructure allRegisteredCommands[MAX_CLI_CMD_COUNTER +1];
+  commandDetailsStructure allRegisteredCommands[MAX_CLI_CMD_COUNTER + 1];
   unsigned int commandCounter = 0;
 
-  const char* _CMD_PARAM_SEPRATOR = "=";
-  const char* _PARAM_PARAM_SEPRATOR = "&";
-  const char* _PARAM_VALUE_SEPRATOR = ":";
-
+  const char *_CMD_PARAM_SEPRATOR = "=";
+  const char *_PARAM_PARAM_SEPRATOR = "&";
+  const char *_PARAM_VALUE_SEPRATOR = ":";
 };
 
 #endif

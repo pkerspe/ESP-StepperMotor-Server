@@ -67,6 +67,7 @@ ESPStepperMotorServer::ESPStepperMotorServer(const ESPStepperMotorServer &espSte
   this->serverConfiguration = new ESPStepperMotorServer_Configuration(espStepperMotorServer.serverConfiguration->_configFilePath, this->isSPIFFSactive);
   *this->serverConfiguration = *espStepperMotorServer.serverConfiguration;
 
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
   if (espStepperMotorServer.webInterfaceHandler)
   {
     this->webInterfaceHandler = new ESPStepperMotorServer_WebInterface(this);
@@ -78,6 +79,7 @@ ESPStepperMotorServer::ESPStepperMotorServer(const ESPStepperMotorServer &espSte
     this->restApiHandler = new ESPStepperMotorServer_RestAPI(this);
     *this->restApiHandler = *espStepperMotorServer.restApiHandler;
   }
+#endif
 
   if (espStepperMotorServer.cliHandler)
   {
@@ -91,6 +93,7 @@ ESPStepperMotorServer::ESPStepperMotorServer(const ESPStepperMotorServer &espSte
     *this->motionControllerHandler = *espStepperMotorServer.motionControllerHandler;
   }
 
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
   if (espStepperMotorServer.httpServer)
   {
     this->httpServer = new AsyncWebServer(this->serverConfiguration->serverPort);
@@ -103,13 +106,16 @@ ESPStepperMotorServer::ESPStepperMotorServer(const ESPStepperMotorServer &espSte
     this->webSockerServer = new AsyncWebSocket("/ws");
     *this->webSockerServer = *espStepperMotorServer.webSockerServer;
   }
+#endif
 }
 
 ESPStepperMotorServer::~ESPStepperMotorServer()
 {
   delete this->serverConfiguration;
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
   delete this->webInterfaceHandler;
   delete this->restApiHandler;
+#endif
   delete this->cliHandler;
   delete this->motionControllerHandler;
 }
@@ -125,6 +131,8 @@ ESPStepperMotorServer::ESPStepperMotorServer(byte serverMode, byte logLevel)
   this->serverConfiguration = new ESPStepperMotorServer_Configuration(this->defaultConfigurationFilename, this->isSPIFFSactive);
 
   this->enabledServices = serverMode;
+
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
   if ((this->enabledServices & ESPServerWebserverEnabled) == ESPServerWebserverEnabled)
   {
     this->isWebserverEnabled = true;
@@ -136,6 +144,8 @@ ESPStepperMotorServer::ESPStepperMotorServer(byte serverMode, byte logLevel)
     this->isRestApiEnabled = true;
     this->restApiHandler = new ESPStepperMotorServer_RestAPI(this);
   }
+#endif
+
   if ((this->enabledServices & ESPServerSerialEnabled) == ESPServerSerialEnabled)
   {
     this->isCLIEnabled = true;
@@ -182,7 +192,11 @@ void ESPStepperMotorServer::start()
   {
     ESPStepperMotorServer_Logger::logInfo("WiFi mode is disabled, only serial control interface will be used for controls");
   }
+
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
   this->startWebserver();
+#endif
+
   this->setupAllIOPins();
   this->attachAllInterrupts();
 
@@ -201,11 +215,13 @@ void ESPStepperMotorServer::stop()
   this->detachAllInterrupts();
   ESPStepperMotorServer_Logger::logInfo("detached interrupt handlers");
 
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
   if (isWebserverEnabled || isRestApiEnabled)
   {
     this->httpServer->end();
     ESPStepperMotorServer_Logger::logInfo("stopped web server");
   }
+#endif
 
   if (this->isCLIEnabled)
   {
@@ -219,10 +235,12 @@ void ESPStepperMotorServer::stop()
 //                                  Configuration Functions
 // ---------------------------------------------------------------------------------
 
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
 void ESPStepperMotorServer::setHttpPort(int portNumber)
 {
   this->serverConfiguration->serverPort = portNumber;
 }
+#endif
 
 ESPStepperMotorServer_Configuration *ESPStepperMotorServer::getCurrentServerConfiguration()
 {
@@ -313,7 +331,9 @@ void ESPStepperMotorServer::removePositionSwitch(int positionSwitchIndex)
   if (posSwitch)
   {
     this->detachInterruptForPositionSwitch(posSwitch);
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
     ESPStepperMotorServer_Logger::logDebugf("Removing position switch '%s' (id: %i) from configured switches\n", posSwitch->getPositionName().c_str(), positionSwitchIndex);
+#endif
     this->serverConfiguration->removeSwitch(positionSwitchIndex);
   }
   else
@@ -444,13 +464,17 @@ byte ESPStepperMotorServer::getPositionSwitchStatus(int positionSwitchIndex)
 // ---------------------------------------------------------------------------------
 void ESPStepperMotorServer::startSPIFFS()
 {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
   ESPStepperMotorServer_Logger::logDebug("Checking SPIFFS for existance and free space");
+#endif
   if (SPIFFS.begin())
   {
     this->isSPIFFSactive = true;
     if (ESPStepperMotorServer_Logger::getLogLevel() >= ESPServerLogLevel_DEBUG)
     {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
       ESPStepperMotorServer_Logger::logDebug("SPIFFS started");
+#endif
       printSPIFFSStats();
     }
   }
@@ -498,6 +522,7 @@ int ESPStepperMotorServer::getSPIFFSFreeSpace()
   return ((int)SPIFFS.totalBytes() - (int)SPIFFS.usedBytes());
 }
 
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
 //TODO: test this part and implement sending of status updates
 void ESPStepperMotorServer::onWebSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
 {
@@ -644,12 +669,15 @@ void ESPStepperMotorServer::startWebserver()
   }
 }
 
-void ESPStepperMotorServer::sendSocketMessageToAllClients(const char * message, size_t len){
+void ESPStepperMotorServer::sendSocketMessageToAllClients(const char *message, size_t len)
+{
   //try sending message if clients are connected at all and if buffer is not already full
-  if(this->webSockerServer->count() > 0 && this->webSockerServer->availableForWriteAll() ){
+  if (this->webSockerServer->count() > 0 && this->webSockerServer->availableForWriteAll())
+  {
     this->webSockerServer->textAll(message, len);
   }
 }
+#endif
 
 String ESPStepperMotorServer::getIpAddress()
 {
@@ -703,7 +731,7 @@ bool ESPStepperMotorServer::isIoPinUsed(int pinToCheck)
   for (int i = 0; i < ESPServerMaxSteppers; i++)
   {
     ESPStepperMotorServer_StepperConfiguration *stepperConfig = this->serverConfiguration->getStepperConfiguration(i);
-    if (stepperConfig && (stepperConfig->getDirectionIoPin() == pinToCheck || stepperConfig->getStepIoPin() == pinToCheck || stepperConfig->getBrakeIoPin() == pinToCheck ))
+    if (stepperConfig && (stepperConfig->getDirectionIoPin() == pinToCheck || stepperConfig->getStepIoPin() == pinToCheck || stepperConfig->getBrakeIoPin() == pinToCheck))
     {
       return true;
     }
@@ -849,7 +877,9 @@ void ESPStepperMotorServer::connectToWifiNetwork()
   else
   {
     ESPStepperMotorServer_Logger::logWarningf("Connection to WiFi network with SSID '%s' failed with timeout\n", this->getCurrentServerConfiguration()->wifiSsid);
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
     ESPStepperMotorServer_Logger::logDebugf("Connection timeout is set to %i seconds\n", this->wifiClientConnectionTimeoutSeconds);
+#endif
     ESPStepperMotorServer_Logger::logWarningf("starting server in access point mode with SSID '%s' and password '%s' as fallback\n", this->serverConfiguration->apName, this->serverConfiguration->apPassword);
     this->setWifiMode(ESPServerWifiModeAccessPoint);
     this->startAccessPoint();
@@ -886,7 +916,9 @@ void ESPStepperMotorServer::setupPositionSwitchIOPin(ESPStepperMotorServer_Posit
   {
     if (posSwitch->isActiveHigh())
     {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
       ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as input for active high switch '%s' (%i)\n", posSwitch->getIoPinNumber(), posSwitch->getPositionName().c_str(), posSwitch->getId());
+#endif
       pinMode(posSwitch->getIoPinNumber(), INPUT);
     }
     else
@@ -895,7 +927,9 @@ void ESPStepperMotorServer::setupPositionSwitchIOPin(ESPStepperMotorServer_Posit
       {
         ESPStepperMotorServer_Logger::logWarningf("The configured IO pin %i cannot be used for active low switches unless an external pull up resistor is in place. The ESP does not provide internal pullups on this IO pin. Make sure you have a pull up resistor in place for the switch %s (%i)\n", posSwitch->getIoPinNumber(), posSwitch->getPositionName(), posSwitch->getId());
       }
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
       ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as input with pullup for active low switch '%s' (%i)\n", posSwitch->getIoPinNumber(), posSwitch->getPositionName().c_str(), posSwitch->getId());
+#endif
       pinMode(posSwitch->getIoPinNumber(), INPUT_PULLUP);
     }
   }
@@ -903,10 +937,14 @@ void ESPStepperMotorServer::setupPositionSwitchIOPin(ESPStepperMotorServer_Posit
 
 void ESPStepperMotorServer::setupRotaryEncoderIOPin(ESPStepperMotorServer_RotaryEncoder *rotaryEncoder)
 {
-  //set Pins for encoder
+//set Pins for encoder
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
   ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as Pin A input for active high rotary encoder '%s' (%i)\n", rotaryEncoder->getPinAIOPin(), rotaryEncoder->getDisplayName().c_str(), rotaryEncoder->getId());
+#endif
   pinMode(rotaryEncoder->getPinAIOPin(), INPUT);
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
   ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as Pin B input for active high rotary encoder '%s' (%i)\n", rotaryEncoder->getPinBIOPin(), rotaryEncoder->getDisplayName().c_str(), rotaryEncoder->getId());
+#endif
   pinMode(rotaryEncoder->getPinBIOPin(), INPUT);
 }
 
@@ -958,19 +996,25 @@ void ESPStepperMotorServer::attachAllInterrupts()
         //register emergency stop switches
         if (posSwitch->isEmergencySwitch())
         {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
           ESPStepperMotorServer_Logger::logDebugf("Attaching interrupt service routine for emergency stop switch '%s' on IO pin %i\n", posSwitch->getPositionName().c_str(), posSwitch->getIoPinNumber());
+#endif
           attachInterrupt(irqNum, staticEmergencySwitchISR, CHANGE);
         }
         //register limit switches
         else if (posSwitch->isLimitSwitch())
         {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
           ESPStepperMotorServer_Logger::logDebugf("Attaching interrupt service routine for limit switch '%s' on IO pin %i\n", posSwitch->getPositionName().c_str(), posSwitch->getIoPinNumber());
+#endif
           attachInterrupt(irqNum, staticLimitSwitchISR, CHANGE);
         }
         //register general position switches & others
         else
         {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
           ESPStepperMotorServer_Logger::logDebugf("Attaching interrupt service routine for general position switch '%s' on IO pin %i\n", posSwitch->getPositionName().c_str(), posSwitch->getIoPinNumber());
+#endif
           attachInterrupt(irqNum, staticPositionSwitchISR, CHANGE);
         }
       }
@@ -992,7 +1036,6 @@ void ESPStepperMotorServer::attachAllInterrupts()
           ESPStepperMotorServer_Logger::logWarningf("Failed to determine IRQ# for given IO pin %i, thus setting up of interrupt for the rotary encoder failed for pin %s\n", pins[i], rotaryEncoder->getDisplayName().c_str());
         }
 
-        //ESPStepperMotorServer_Logger::logDebugf("attaching interrupt service routine for rotary encoder '%s' on IO pin %i\n", rotaryEncoder->getDisplayName().c_str(), pins[i]);
         _BV(irqNum); // clear potentially pending interrupts
         attachInterrupt(irqNum, staticRotaryEncoderISR, CHANGE);
       }
@@ -1002,13 +1045,17 @@ void ESPStepperMotorServer::attachAllInterrupts()
 
 void ESPStepperMotorServer::detachInterruptForPositionSwitch(ESPStepperMotorServer_PositionSwitch *posSwitch)
 {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
   ESPStepperMotorServer_Logger::logDebugf("detaching interrupt for position switch %s on IO Pin %i\n", posSwitch->getPositionName().c_str(), posSwitch->getIoPinNumber());
+#endif
   detachInterrupt(digitalPinToInterrupt(posSwitch->getIoPinNumber()));
 }
 
 void ESPStepperMotorServer::detachInterruptForRotaryEncoder(ESPStepperMotorServer_RotaryEncoder *rotaryEncoder)
 {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
   ESPStepperMotorServer_Logger::logDebugf("detaching interrupts for rotary encoder %s on IO Pins %i and %i\n", rotaryEncoder->getDisplayName().c_str(), rotaryEncoder->getPinAIOPin(), rotaryEncoder->getPinBIOPin());
+#endif
   //Pin A of rotary encoder
   if (digitalPinToInterrupt(rotaryEncoder->getPinAIOPin()) != NOT_AN_INTERRUPT)
   {
@@ -1111,16 +1158,20 @@ signed char ESPStepperMotorServer::updateSwitchStatusRegister()
       byte currentPinState = digitalRead(ioPin);
       if (currentPinState == HIGH && previousPinState == LOW)
       {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
         if (ESPStepperMotorServer_Logger::isDebugEnabled())
           ESPStepperMotorServer_Logger::logDebugf("Setting bit %i to high in register for switch %i with io pin %i\n", (switchIndex % 8), switchIndex, ioPin);
+#endif
 
         bitSet(buttonStatus[registerIndex], switchIndex % 8);
         changedSwitchIndex = switchIndex;
       }
       else if (currentPinState == LOW && previousPinState == HIGH)
       {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
         if (ESPStepperMotorServer_Logger::isDebugEnabled())
           ESPStepperMotorServer_Logger::logDebugf("Setting bit %i to low in register for switch %i with io pin %i\n", (switchIndex % 8), switchIndex, ioPin);
+#endif
 
         bitClear(buttonStatus[registerIndex], switchIndex % 8);
         changedSwitchIndex = switchIndex;
@@ -1217,8 +1268,10 @@ void IRAM_ATTR ESPStepperMotorServer::internalSwitchISR(byte switchType)
             break;
           }
         }
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
         if (ESPStepperMotorServer_Logger::isDebugEnabled())
           ESPStepperMotorServer_Logger::logDebugf("Limit switch '%s' has been triggered (IO pin status is %i)\n", switchConfig->getPositionName().c_str(), inputState);
+#endif
       }
       else
       {
@@ -1226,8 +1279,10 @@ void IRAM_ATTR ESPStepperMotorServer::internalSwitchISR(byte switchType)
         {
           stepper->_flexyStepper->clearLimitSwitchActive();
         }
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
         if (ESPStepperMotorServer_Logger::isDebugEnabled())
           ESPStepperMotorServer_Logger::logDebugf("Limit switch '%s' has been released (IO pin status is %i)\n", switchConfig->getPositionName().c_str(), inputState);
+#endif
       }
     }
     else

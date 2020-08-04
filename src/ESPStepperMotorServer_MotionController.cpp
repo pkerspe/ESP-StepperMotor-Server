@@ -38,7 +38,9 @@
 ESPStepperMotorServer_MotionController::ESPStepperMotorServer_MotionController(ESPStepperMotorServer *serverRef)
 {
   this->serverRef = serverRef;
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
   ESPStepperMotorServer_Logger::logDebug("Motor Controller created");
+#endif
 }
 
 void ESPStepperMotorServer_MotionController::start()
@@ -64,7 +66,9 @@ void ESPStepperMotorServer_MotionController::processMotionUpdates(void *paramete
   ESPStepperMotorServer_Configuration *configuration = ref->serverRef->getCurrentServerConfiguration();
   ESP_FlexyStepper **configuredFlexySteppers = configuration->getConfiguredFlexySteppers();
   bool emergencySwitchFlag = false;
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
   int updateCounter = 0;
+#endif
   while (true)
   {
     //update positions of all steppers / trigger stepping if needed
@@ -91,6 +95,7 @@ void ESPStepperMotorServer_MotionController::processMotionUpdates(void *paramete
       emergencySwitchFlag = false;
     }
 
+#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
     //check if we should send updated position information via websocket
     if (ref->serverRef->isWebserverEnabled)
     {
@@ -121,6 +126,7 @@ void ESPStepperMotorServer_MotionController::processMotionUpdates(void *paramete
         updateCounter = 0;
       }
     }
+#endif
   }
 }
 

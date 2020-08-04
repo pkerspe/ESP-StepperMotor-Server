@@ -43,10 +43,12 @@ ESPStepperMotorServer_Configuration::ESPStepperMotorServer_Configuration(const c
   this->_configFilePath = configFilePath;
   this->_isSPIFFSactive = isSPIFFSactive;
   this->loadConfiguationFromSpiffs();
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
   if (ESPStepperMotorServer_Logger::getLogLevel() >= ESPServerLogLevel_DEBUG)
   {
     this->printCurrentConfigurationAsJsonToSerial();
   }
+#endif
 }
 
 unsigned int ESPStepperMotorServer_Configuration::calculateRequiredJsonDocumentSizeForCurrentConfiguration()
@@ -148,7 +150,8 @@ void ESPStepperMotorServer_Configuration::serializeServerConfiguration(JsonDocum
 
 bool ESPStepperMotorServer_Configuration::saveCurrentConfiguationToSpiffs(String filename)
 {
-  if(!this->_isSPIFFSactive){
+  if (!this->_isSPIFFSactive)
+  {
     ESPStepperMotorServer_Logger::logWarningf("Failed to save configuration file '%s' in SPIFFS, since SPIFFS is not mounted\n", filename.c_str());
     return false;
   }
@@ -203,10 +206,12 @@ bool ESPStepperMotorServer_Configuration::loadConfiguationFromSpiffs(String file
     DeserializationError error = deserializeJson(doc, configFile);
     if (error)
       ESPStepperMotorServer_Logger::logWarningf("Failed to read configuration file %s. Will use fallback default configuration\n", filename.c_str());
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
     else
     {
       ESPStepperMotorServer_Logger::logDebug("File loaded and deserialized");
     }
+#endif
     // Copy values from the JsonDocument to the Config
 
     // SERVER CONFIG
@@ -490,7 +495,9 @@ void ESPStepperMotorServer_Configuration::removeStepperConfiguration(byte id)
     ESPStepperMotorServer_PositionSwitch *switchConfig = this->getSwitch(switchIndex);
     if (switchConfig && switchConfig->getStepperIndex() == id)
     {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
       ESPStepperMotorServer_Logger::logDebugf("Found switch configuration (id=%i) that is linked to stepper config (id=%i) to be deleted. Will delete switch config as well\n", switchConfig->getId(), id);
+#endif
       this->removeSwitch(switchIndex);
     }
   }
@@ -500,7 +507,9 @@ void ESPStepperMotorServer_Configuration::removeStepperConfiguration(byte id)
     ESPStepperMotorServer_RotaryEncoder *encoderConfig = this->getRotaryEncoder(encoderIndex);
     if (encoderConfig && encoderConfig->getStepperIndex() == id)
     {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
       ESPStepperMotorServer_Logger::logDebugf("Found encoder configuration (id=%i) that is linked to stepper config (id=%i) to be deleted. Will delete encoder config as well\n", encoderConfig->getId(), id);
+#endif
       this->removeRotaryEncoder(encoderIndex);
     }
   }
