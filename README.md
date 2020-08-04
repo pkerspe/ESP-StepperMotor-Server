@@ -76,7 +76,10 @@ Optional:
 ### Firmware installation
 
 #### Using Arduino IDE
-USING ARDUINO IDE IS NOT SUGGESTED due to multiple issues with the dependencies and much hight manual effort. If you still want to try it, the folllowing steps might work, but you are basically on your own. Do yourself a favour and use a real IDE like Visual Studio Code with PlatformIO (it is free and way more comfortable and pwerfull than the Arduino IDE) :-)
+USING ARDUINO IDE IS NOT SUGGESTED due to multiple issues with the dependencies and much higher manual effort to get everything running.
+If you still want to try it, the folllowing steps might work, but you are basically on your own here.
+Do yourself a favour and use a real IDE like Visual Studio Code with PlatformIO (it is free and way more comfortable and pwerfull than the Arduino IDE) :-)
+
 1. Download and install the [Arduino IDE](https://www.arduino.cc/en/main/software)
 2. open the library manager and search for "ESP-StepperMotor-Server", select the latest version and click on "install"
 3. if asked to install the reuquired dependencies confirm to install all dependencies as well
