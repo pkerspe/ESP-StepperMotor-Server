@@ -63,7 +63,8 @@ ESPStepperMotorServer *ESPStepperMotorServer::anchor = NULL;
 
 ESPStepperMotorServer::ESPStepperMotorServer(const ESPStepperMotorServer &espStepperMotorServer)
 {
-  this->serverConfiguration = new ESPStepperMotorServer_Configuration(espStepperMotorServer.serverConfiguration->_configFilePath);
+  this->startSPIFFS();
+  this->serverConfiguration = new ESPStepperMotorServer_Configuration(espStepperMotorServer.serverConfiguration->_configFilePath, this->isSPIFFSactive);
   *this->serverConfiguration = *espStepperMotorServer.serverConfiguration;
 
   if (espStepperMotorServer.webInterfaceHandler)
@@ -121,7 +122,7 @@ ESPStepperMotorServer::ESPStepperMotorServer(byte serverMode, byte logLevel)
   ESPStepperMotorServer_Logger::setLogLevel(logLevel);
   startSPIFFS();
   //get config instance which tries to load config from SPIFFS by default
-  this->serverConfiguration = new ESPStepperMotorServer_Configuration(this->defaultConfigurationFilename);
+  this->serverConfiguration = new ESPStepperMotorServer_Configuration(this->defaultConfigurationFilename, this->isSPIFFSactive);
 
   this->enabledServices = serverMode;
   if ((this->enabledServices & ESPServerWebserverEnabled) == ESPServerWebserverEnabled)
@@ -446,6 +447,7 @@ void ESPStepperMotorServer::startSPIFFS()
   ESPStepperMotorServer_Logger::logDebug("Checking SPIFFS for existance and free space");
   if (SPIFFS.begin())
   {
+    this->isSPIFFSactive = true;
     if (ESPStepperMotorServer_Logger::getLogLevel() >= ESPServerLogLevel_DEBUG)
     {
       ESPStepperMotorServer_Logger::logDebug("SPIFFS started");
@@ -454,6 +456,7 @@ void ESPStepperMotorServer::startSPIFFS()
   }
   else
   {
+    this->isSPIFFSactive = false;
     if (this->isWebserverEnabled)
     {
       ESPStepperMotorServer_Logger::logWarning("Unable to activate SPIFFS. Files for web interface cannot be loaded");

@@ -38,9 +38,10 @@
 //
 // constructor for the stepper server configuration class
 //
-ESPStepperMotorServer_Configuration::ESPStepperMotorServer_Configuration(const char *configFilePath)
+ESPStepperMotorServer_Configuration::ESPStepperMotorServer_Configuration(const char *configFilePath, bool isSPIFFSactive)
 {
   this->_configFilePath = configFilePath;
+  this->_isSPIFFSactive = isSPIFFSactive;
   this->loadConfiguationFromSpiffs();
   if (ESPStepperMotorServer_Logger::getLogLevel() >= ESPServerLogLevel_DEBUG)
   {
@@ -147,6 +148,11 @@ void ESPStepperMotorServer_Configuration::serializeServerConfiguration(JsonDocum
 
 bool ESPStepperMotorServer_Configuration::saveCurrentConfiguationToSpiffs(String filename)
 {
+  if(!this->_isSPIFFSactive){
+    ESPStepperMotorServer_Logger::logWarningf("Failed to save configuration file '%s' in SPIFFS, since SPIFFS is not mounted\n", filename.c_str());
+    return false;
+  }
+
   if (filename == "")
   {
     filename = this->_configFilePath;
@@ -187,7 +193,7 @@ bool ESPStepperMotorServer_Configuration::loadConfiguationFromSpiffs(String file
   filename = (filename == "") ? this->_configFilePath : filename;
   filename = (filename.startsWith("/")) ? filename : "/" + filename;
 
-  if (SPIFFS.exists(filename))
+  if (this->_isSPIFFSactive && SPIFFS.exists(filename))
   {
     ESPStepperMotorServer_Logger::logInfof("Loading configuration file %s from SPIFFS\n", filename.c_str());
     File configFile = SPIFFS.open(filename, FILE_READ);
@@ -318,7 +324,7 @@ bool ESPStepperMotorServer_Configuration::loadConfiguationFromSpiffs(String file
   }
   else
   {
-    ESPStepperMotorServer_Logger::logWarningf("Failed to load configuration file from SPIFFS. File %s not found\n", filename);
+    ESPStepperMotorServer_Logger::logWarningf("Failed to load configuration file from SPIFFS. File %s not found or SPIFFS is not enabled/mounted\n", filename.c_str());
     return false;
   }
 }

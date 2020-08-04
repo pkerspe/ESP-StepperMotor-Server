@@ -59,7 +59,7 @@ class ESPStepperMotorServer_Configuration
   friend class ESPStepperMotorServer;
 
 public:
-  ESPStepperMotorServer_Configuration(const char *configFilePath);
+  ESPStepperMotorServer_Configuration(const char *configFilePath, bool isSPIFFSactive);
   String getCurrentConfigurationAsJSONString(bool prettyPrint = true, bool includePasswords = false);
   unsigned int calculateRequiredJsonDocumentSizeForCurrentConfiguration();
   void printCurrentConfigurationAsJsonToSerial();
@@ -87,8 +87,8 @@ public:
   int wifiMode = 1;
   const char *apName = "ESPStepperMotorServer";
   const char *apPassword = "Aa123456";
-  const char *wifiSsid;
-  const char *wifiPassword;
+  const char *wifiSsid = "undefined";
+  const char *wifiPassword = "undefined";
   //this "cache" should not be private since we need to use it in the ISRs and any getter to retrieve it would slow down processing
   ESPStepperMotorServer_PositionSwitch *configuredEmergencySwitches[ESPServerMaxSwitches] = {NULL};
 
@@ -96,8 +96,9 @@ private:
   //
   // private member variables
   //
-  boolean isCurrentConfigurationSaved = false;
+  bool isCurrentConfigurationSaved = false;
   const char *_configFilePath;
+  bool _isSPIFFSactive = false;
 
   /**** the follwoing variables represent the in-memory configuration settings *******/
   // an array to hold all configured stepper configurations

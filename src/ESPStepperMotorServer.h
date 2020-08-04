@@ -188,6 +188,7 @@ private:
   boolean isRestApiEnabled = false;
   boolean isCLIEnabled = false;
   boolean isServerStarted = false;
+  boolean isSPIFFSactive = false;
 
   ESPStepperMotorServer_Configuration *serverConfiguration;
   ESPStepperMotorServer_WebInterface *webInterfaceHandler;
