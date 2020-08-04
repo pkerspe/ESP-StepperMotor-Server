@@ -34,7 +34,7 @@ void setup()
   Serial.begin(115200);
   // now create a new ESPStepperMotorServer instance (this must be done AFTER the Serial interface has been started)
   // In this example We create the server instance with all modules activated and log level set to INFO (which is the default, you can also use ESPServerLogLevel_DEBUG to set it to debug instead)
-  stepperMotorServer = new ESPStepperMotorServer(ESPServerRestApiEnabled | ESPServerWebserverEnabled | ESPServerSerialEnabled, ESPServerLogLevel_INFO;
+  stepperMotorServer = new ESPStepperMotorServer(ESPServerRestApiEnabled | ESPServerWebserverEnabled | ESPServerSerialEnabled, ESPServerLogLevel_INFO);
   // connect to an existing WiFi network. Make sure you set the vairables wifiName and wifiSecret to match you SSID and wifi pasword (see above before the setup function)
   stepperMotorServer->setWifiCredentials(wifiName, wifiSecret);
   stepperMotorServer->setWifiMode(ESPServerWifiModeClient); //start the server as a wifi client (DHCP client of an existing wifi network)
