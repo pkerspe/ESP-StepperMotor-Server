@@ -11,6 +11,7 @@ Connect one ore more stepper controllers with step and direction input, and opti
   * [Prerequisites and dependencies](#prerequisites-and-dependencies)
 * [Setting up your ESP-StepperMotor-Server](#Setting-up-your-ESP-StepperMotor-Server)
   * [Firmware installation](#Firmware-installation)
+    * [Using Arduino IDE](#using-arduino-ide)
     * [Using PlatformIO](#using-platformio)
   * [Installation of the web user interface](#installation-of-the-web-ui)
   * [Connecting the hardware](#connecting-the-hardware)
@@ -73,6 +74,21 @@ Optional:
 * Rotary encoders to control the motors directly using physical controls
 
 ### Firmware installation
+
+#### Using Arduino IDE
+USING ARDUINO IDE IS NOT SUGGESTED due to multiple issues with the dependencies and much higher manual effort to get everything running.
+If you still want to try it, the folllowing steps might work, but you are basically on your own here.
+Do yourself a favour and use a real IDE like Visual Studio Code with PlatformIO (it is free and way more comfortable and pwerfull than the Arduino IDE) :-)
+
+1. Download and install the [Arduino IDE](https://www.arduino.cc/en/main/software)
+2. open the library manager and search for "ESP-StepperMotor-Server", select the latest version and click on "install"
+3. if asked to install the reuquired dependencies confirm to install all dependencies as well
+4. if dependency installation fails install the following dependencies manually: 
+  * ArduinoJSON (the one from Benoit Blanchon)
+  * ESP-FlexyStepper
+  * at the time of writing this documentation, the following two libraries are not available via the library manager, so they need to be installed manually, if you you cannot find them in the library manager:
+    * ESPAsyncWebServer: [https://github.com/me-no-dev/ESPAsyncWebServer](https://github.com/me-no-dev/ESPAsyncWebServer)
+    * AsyncTCP [https://github.com/me-no-dev/AsyncTCP](https://github.com/me-no-dev/AsyncTCP)
 
 #### Using PlatformIO
 
