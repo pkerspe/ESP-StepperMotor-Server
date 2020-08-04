@@ -636,6 +636,7 @@ void ESPStepperMotorServer_RestAPI::populateStepperDetailsToJsonObject(JsonObjec
 
 void ESPStepperMotorServer_RestAPI::logDebugRequestUrl(AsyncWebServerRequest *request)
 {
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
   if (ESPStepperMotorServer_Logger::isDebugEnabled())
   {
     int params = request->params();
@@ -649,6 +650,7 @@ void ESPStepperMotorServer_RestAPI::logDebugRequestUrl(AsyncWebServerRequest *re
       }
     }
   }
+#endif
 }
 
 // request handlers
