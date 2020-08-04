@@ -168,11 +168,11 @@ You should now see the start screen of the ESP StepperMotor Server:
 When you build the ESP-StepperMotor-Server without any optimizations it takes up a fair amount of the ESP32s flash size (in the standard OTA partition layout).
 If you do not need all modules of the ESP-StepperMotor-Server you can use build flags to reduce the code size significantly.
 The following build flags are supported:
-* ESPStepperMotorServer_COMPILE_NO_WEB: using this flag completely disables the Web Interface, the REST API and the Websocket server. This has the biggest impact on the compiled size, since it also affects the inclusion of the external dependencies of the ESP Async WebServer and AsyncTCP libraries. If you use this flag you will not be able to use the webinterface of the ESP Stepper motor server anymore for configuration and control of the server. You can then only interact with the server using the serial command line interface
-* ESPStepperMotorServer_COMPILE_NO_DEBUG: this flag will remove all debug output and debug functions, leading to a small reduction of the size
-* ESPStepperMotorServer_COMPILE_NO_CLI_HELP: this flag will remove all help texts from the Command lines interfaces help command and by that reducing the size a bit further
+* ```ESPStepperMotorServer_COMPILE_NO_WEB```: using this flag completely disables the Web Interface, the REST API and the Websocket server. This has the biggest impact on the compiled size, since it also affects the inclusion of the external dependencies of the ESP Async WebServer and AsyncTCP libraries. If you use this flag you will not be able to use the webinterface of the ESP Stepper motor server anymore for configuration and control of the server. You can then only interact with the server using the serial command line interface
+* ```ESPStepperMotorServer_COMPILE_NO_DEBUG```: this flag will remove all debug output and debug functions, leading to a small reduction of the size
+* ```ESPStepperMotorServer_COMPILE_NO_CLI_HELP```: this flag will remove all help texts from the Command line interface help command and by that reducing the size a bit further
 
-The following chart shows the impact on file size when disabling one or more features:
+The following chart shows the impact on file size when disabling one or more features (numbers base on a rather small main programm as provided in the examples folder):
 ![compiled size][compiled_size]
 
 To use one or more of these build flags in PlatformIO, simply add the following line to your platformio.ini file of your project (e.g. to disable debug output and the help texts in the Command Line Interface):
