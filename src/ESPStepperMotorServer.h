@@ -148,6 +148,8 @@ public:
   signed char updateSwitchStatusRegister();
   String getIpAddress();
   ESPStepperMotorServer_Configuration *getCurrentServerConfiguration();
+  void requestReboot(String rebootReason);
+  bool isSPIFFSMounted();
 
   //delegator functions only
   void setLogLevel(byte);
@@ -208,6 +210,7 @@ private:
   boolean isCLIEnabled = false;
   boolean isServerStarted = false;
   boolean isSPIFFSactive = false;
+  boolean _isRebootScheduled = false;
 
   ESPStepperMotorServer_Configuration *serverConfiguration;
 

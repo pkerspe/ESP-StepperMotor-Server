@@ -36,6 +36,7 @@
 #include <ESPAsyncWebServer.h>
 #include <ESPStepperMotorServer_Logger.h>
 #include <ESPStepperMotorServer.h>
+#include <Update.h>
 
 //need this forward declaration here due to circular dependency (use in constructor)
 class ESPStepperMotorServer;
@@ -50,6 +51,7 @@ private:
   bool downloadFileToSpiffs(const char *url, const char *targetPath);
   bool checkIfGuiExistsInSpiffs();
 
+  const char *webUiFirmwareUpdate = "/upload.html.gz";
   const char *webUiIndexFile = "/index.html";
   const char *webUiJsFile = "/js/app.js.gz";
   const char *webUiLogoFile = "/img/logo.svg";

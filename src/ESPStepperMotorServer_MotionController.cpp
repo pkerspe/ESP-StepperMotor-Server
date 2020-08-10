@@ -66,22 +66,34 @@ void ESPStepperMotorServer_MotionController::processMotionUpdates(void *paramete
   ESPStepperMotorServer_Configuration *configuration = ref->serverRef->getCurrentServerConfiguration();
   ESP_FlexyStepper **configuredFlexySteppers = configuration->getConfiguredFlexySteppers();
   bool emergencySwitchFlag = false;
+  bool allMovementsCompleted = true;
 #ifndef ESPStepperMotorServer_COMPILE_NO_WEB
   int updateCounter = 0;
 #endif
   while (true)
   {
+    allMovementsCompleted = true;
     //update positions of all steppers / trigger stepping if needed
     for (byte i = 0; i < ESPServerMaxSteppers; i++)
     {
       if (configuredFlexySteppers[i])
       {
-        configuredFlexySteppers[i]->processMovement();
+        if (!configuredFlexySteppers[i]->processMovement())
+        {
+          allMovementsCompleted = false;
+        }
       }
       else
       {
         break;
       }
+    }
+
+    if (allMovementsCompleted && ref->serverRef->_isRebootScheduled)
+    {
+      //going for reboot since all motion is stopped and reboot has been requested
+      Serial.println("Rebooting server now");
+      ESP.restart();
     }
 
     //check for emergency switch
