@@ -184,7 +184,9 @@ private:
   // ISR handling
   static void staticPositionSwitchISR();
   static void staticEmergencySwitchISR();
-  static void staticLimitSwitchISR();
+  static void staticLimitSwitchISR_POS_END();
+  static void staticLimitSwitchISR_POS_BEGIN();
+  static void staticLimitSwitchISR_COMBINED();
   static void staticRotaryEncoderISR();
 
   void internalEmergencySwitchISR();
