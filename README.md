@@ -189,6 +189,8 @@ To figure out the IP Adresse of your ESP-32 module, you can either check your ro
 ### Connecting the hardware
 The following wiring chart shows an example of a setup with an optional emergency/kill switch and two optional homing/limit switches. In a real setup, the homing switches would be attached for example to each end of a linear rail to detect when the object moved by the stepper motor reaches the end of the track.
 
+*NOTE:* in the below wiring diagram the ENABLE pin of the driver is connected to +5V, you need to check your driver if this is required or actually correct. Some drivers are DISABLED if a high signal is present on the ENABLE pin!
+
 ![hardware example setup][connection_setup_example]
 (image created with [fritzing](https://fritzing.org/home/))
 
