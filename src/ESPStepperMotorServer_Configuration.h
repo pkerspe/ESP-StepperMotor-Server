@@ -52,11 +52,14 @@
 
 #define DEFAULT_SERVER_PORT 80
 #define DEFAULT_WIFI_MODE 1
+
+class ESPStepperMotorServer_PositionSwitch;
 //
 // the ESPStepperMotorServer_Configuration class
 class ESPStepperMotorServer_Configuration
 {
   friend class ESPStepperMotorServer;
+  friend class ESPStepperMotorServer_RestAPI;
 
 public:
   ESPStepperMotorServer_Configuration(const char *configFilePath, bool isSPIFFSactive);
@@ -134,6 +137,7 @@ private:
 
   // SWITCH SPECIFIC CONFIGURATION //
   const char *JSON_SECTION_NAME_SWITCH_CONFIGURATIONS = "switchConfigurations";
+  const char *JSON_SECTION_NAME_SWITCH_CONFIGURATION_MACROACTIONS = "macroActions";
 
   // ROTARY ENCODER SPECIFIC CONFIGURATION //
   const char *JSON_SECTION_NAME_ROTARY_ENCODER_CONFIGURATIONS = "rotaryEncoderConfigurations";

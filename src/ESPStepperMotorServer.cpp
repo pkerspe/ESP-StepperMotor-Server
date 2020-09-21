@@ -181,6 +181,9 @@ void ESPStepperMotorServer::requestReboot(String rebootReason)
 void ESPStepperMotorServer::start()
 {
     ESPStepperMotorServer_Logger::logInfof("Starting ESP-StepperMotor-Server (v. %s)\n", this->version);
+    #ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
+    this->printCompileSettings();
+    #endif
 
     if (this->serverConfiguration->wifiMode == ESPServerWifiModeAccessPoint)
     {
@@ -564,7 +567,7 @@ int ESPStepperMotorServer::getSPIFFSFreeSpace()
 }
 
 #ifndef ESPStepperMotorServer_COMPILE_NO_WEB
-//TODO: test this part and implement sending of status updates
+//TODO: test this part and implement usefull behavior
 void ESPStepperMotorServer::onWebSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
 {
     if (type == WS_EVT_CONNECT)
@@ -836,6 +839,10 @@ void ESPStepperMotorServer::setWifiMode(byte wifiMode)
         ESPStepperMotorServer_Logger::logWarning("Invalid WiFi mode given in setWifiMode");
         break;
     }
+}
+
+void ESPStepperMotorServer::printCompileSettings(){
+    ESPStepperMotorServer_Logger::logDebugf("ESPStepperMotorServer compile settings (marcos):\nMax steppers: %i\nMax switches: %i\nMax encoders: %i\n", ESPServerMaxSteppers, ESPServerMaxSwitches, ESPServerMaxRotaryEncoders);
 }
 
 /**

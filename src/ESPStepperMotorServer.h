@@ -39,22 +39,10 @@
 #ifndef ESPStepperMotorServer_h
 #define ESPStepperMotorServer_h
 
-#ifndef ESPServerMaxSwitches
 #define ESPServerMaxSwitches 10
-#endif
-
-#ifndef ESPServerSwitchStatusRegisterCount
 #define ESPServerSwitchStatusRegisterCount 2 //NOTE: this value must be chosen according to the value of ESPServerMaxSwitches: val = ceil(ESPServerMaxSwitches / 8)
-#endif
-
-#ifndef ESPServerMaxSteppers
-#define ESPServerMaxSteppers 5
-#endif
-
-#ifndef ESPServerMaxRotaryEncoders
+#define ESPServerMaxSteppers 6
 #define ESPServerMaxRotaryEncoders 5
-#endif
-
 #define ESPStepperMotorServer_SwitchDisplayName_MaxLength 20
 
 #include <ESP_FlexyStepper.h>
@@ -70,6 +58,7 @@
 #include <ESPStepperMotorServer_CLI.h>
 #include <ESPStepperMotorServer_Configuration.h>
 #include <ESPStepperMotorServer_MotionController.h>
+#include <ESPStepperMotorServer_MacroAction.h>
 #include <ESPStepperMotorServer_PositionSwitch.h>
 #include <ESPStepperMotorServer_StepperConfiguration.h>
 #include <ESPStepperMotorServer_RotaryEncoder.h>
@@ -102,6 +91,7 @@ class ESPStepperMotorServer_CLI;
 class ESPStepperMotorServer_RestAPI;
 class ESPStepperMotorServer_Configuration;
 class ESPStepperMotorServer_MotionController;
+class ESPStepperMotorServer_MacroAction;
 
 #ifndef ESPStepperMotorServer_COMPILE_NO_WEB
 class ESPStepperMotorServer_WebInterface;
@@ -132,6 +122,7 @@ public:
   void setWifiPassword(const char *pwd);
   void setWifiMode(byte wifiMode);
   void printWifiStatus();
+  void printCompileSettings();
   int addOrUpdateStepper(ESPStepperMotorServer_StepperConfiguration *stepper, int stepperIndex = -1);
   int addOrUpdatePositionSwitch(ESPStepperMotorServer_PositionSwitch *posSwitchToAdd, int switchIndex = -1);
   int addOrUpdateRotaryEncoder(ESPStepperMotorServer_RotaryEncoder *rotaryEncoder, int encoderIndex = -1);
@@ -204,7 +195,7 @@ private:
   // private member variables
   //
   byte enabledServices;
-  const char *version = "0.4.0";
+  const char *version = "0.4.1";
   boolean isWebserverEnabled = false;
   boolean isRestApiEnabled = false;
   boolean isCLIEnabled = false;

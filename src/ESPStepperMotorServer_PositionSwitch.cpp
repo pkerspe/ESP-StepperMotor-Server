@@ -34,10 +34,15 @@ byte _ioPinNumber = 255;
 byte _switchType; //bit mask for active state and the general type of switch
 String _positionName = "";
 long _switchPosition = -1;
-ESPStepperMotorServer_Logger _logger = ESPStepperMotorServer_Logger((String) "ESPStepperMotorServer_PositionSwitch");
+ESPStepperMotorServer_Logger _logger = ESPStepperMotorServer_Logger((String)"ESPStepperMotorServer_PositionSwitch");
 
 ESPStepperMotorServer_PositionSwitch::ESPStepperMotorServer_PositionSwitch()
 {
+}
+
+ESPStepperMotorServer_PositionSwitch::~ESPStepperMotorServer_PositionSwitch()
+{
+    this->clearMacroActions();
 }
 
 ESPStepperMotorServer_PositionSwitch::ESPStepperMotorServer_PositionSwitch(byte ioPin, int stepperIndex, byte switchType, String name, long switchPosition)
@@ -55,7 +60,7 @@ void ESPStepperMotorServer_PositionSwitch::setId(byte id)
 }
 
 /**
- * the unique ID of this switch 
+ * the unique ID of this switch
  * NOTE: This ID also matches the array index of the configuration in the allConfiguredSwitches array in the Configuration class
  */
 byte ESPStepperMotorServer_PositionSwitch::getId()
@@ -114,4 +119,31 @@ bool ESPStepperMotorServer_PositionSwitch::isLimitSwitch()
 bool ESPStepperMotorServer_PositionSwitch::isTypeBitSet(byte bitToCheck)
 {
     return this->_switchType & (1 << (bitToCheck - 1));
+}
+
+void ESPStepperMotorServer_PositionSwitch::addMacroAction(ESPStepperMotorServer_MacroAction *macroAction) {
+    this->_macroActions.push_back(macroAction);
+}
+
+std::vector<ESPStepperMotorServer_MacroAction*> ESPStepperMotorServer_PositionSwitch::getMacroActions() {
+    return this->_macroActions;
+}
+
+void ESPStepperMotorServer_PositionSwitch::clearMacroActions() {
+    for(ESPStepperMotorServer_MacroAction *macroAction : this->_macroActions) {
+        delete(macroAction);
+    }
+    this->_macroActions.clear();
+}
+
+bool ESPStepperMotorServer_PositionSwitch::hasMacroActions(){
+    return (this->_macroActions.size() > 0);
+}
+
+int ESPStepperMotorServer_PositionSwitch::serializeMacroActionsToJsonArray(JsonArray macroActionsJsonArray){
+
+    for(ESPStepperMotorServer_MacroAction *macroAction : this->_macroActions) {
+        macroAction->addSerializedInstanceToJsonArray(macroActionsJsonArray);
+    }
+    return this->_macroActions.size();
 }
