@@ -310,7 +310,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
                 return;
             }
 
-            StaticJsonDocument<300> doc;
+            StaticJsonDocument<400> doc;
             JsonObject root = doc.to<JsonObject>();
             JsonObject stepperDetails = root.createNestedObject("stepper");
             this->populateStepperDetailsToJsonObject(stepperDetails, this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex), stepperIndex);
@@ -318,7 +318,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
         }
         else
         {
-            const int docSize = 350 * ESPServerMaxSteppers;
+            const int docSize = 420 * ESPServerMaxSteppers;
             StaticJsonDocument<docSize> doc;
             JsonObject root = doc.to<JsonObject>();
             JsonArray steppers = root.createNestedArray("steppers");
@@ -328,7 +328,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
                 this->populateStepperDetailsToJsonObject(stepperDetails, this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(i), i);
             }
             serializeJson(root, output);
-            //Serial.println(doc.memoryUsage());
+            ESPStepperMotorServer_Logger::logDebugf("ArduinoJSON document size uses %i bytes from alocated %i bytes\n", doc.memoryUsage(), docSize);
         }
 
         AsyncWebServerResponse *response = request->beginResponse(200, "application/json", output);

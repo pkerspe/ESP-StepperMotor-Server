@@ -41,7 +41,7 @@
 
 #define ESPServerMaxSwitches 10
 #define ESPServerSwitchStatusRegisterCount 2 //NOTE: this value must be chosen according to the value of ESPServerMaxSwitches: val = ceil(ESPServerMaxSwitches / 8)
-#define ESPServerMaxSteppers 6
+#define ESPServerMaxSteppers 10
 #define ESPServerMaxRotaryEncoders 5
 #define ESPStepperMotorServer_SwitchDisplayName_MaxLength 20
 
