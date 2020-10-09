@@ -865,6 +865,11 @@ void ESPStepperMotorServer::printWifiStatus()
 {
     ESPStepperMotorServer_Logger::logInfo("ESPStepperMotorServer WiFi details:");
 
+    if (this->serverConfiguration->staticIP != 0)
+    {
+        ESPStepperMotorServer_Logger::logInfof("Static IP address has been configured:\nIP: %s\nGateway: %s\nSubnet Mask:%s\n", this->serverConfiguration->staticIP.toString().c_str(), this->serverConfiguration->gatewayIP.toString().c_str(), this->serverConfiguration->subnetMask.toString().c_str());
+    }
+
     if (this->serverConfiguration->wifiMode == ESPServerWifiModeClient)
     {
         ESPStepperMotorServer_Logger::logInfo("WiFi status: server acts as wifi client in existing network with DHCP");
@@ -900,6 +905,15 @@ void ESPStepperMotorServer::setWifiCredentials(const char *ssid, const char *pwd
     this->setWifiPassword(pwd);
 }
 
+void ESPStepperMotorServer::setStaticIpAddress(IPAddress staticIP, IPAddress gatewayIP, IPAddress subnetMask, IPAddress dns1, IPAddress dns2)
+{
+    this->getCurrentServerConfiguration()->staticIP = staticIP;
+    this->getCurrentServerConfiguration()->gatewayIP = gatewayIP;
+    this->getCurrentServerConfiguration()->subnetMask = subnetMask;
+    this->getCurrentServerConfiguration()->dns1IP = dns1;
+    this->getCurrentServerConfiguration()->dns2IP = dns2;
+}
+
 void ESPStepperMotorServer::startAccessPoint()
 {
     WiFi.softAP(this->serverConfiguration->apName, this->serverConfiguration->apPassword);
@@ -912,6 +926,12 @@ void ESPStepperMotorServer::connectToWifiNetwork()
     {
         ESPStepperMotorServer_Logger::logInfo("Module is already conencted to WiFi network. Will skip WiFi connection procedure");
         return;
+    }
+
+    if (this->serverConfiguration->staticIP != 0)
+    {
+        ESPStepperMotorServer_Logger::logInfof("Static IP address has been configured, will use %s\n", this->serverConfiguration->staticIP.toString().c_str());
+        WiFi.config(this->serverConfiguration->staticIP, this->serverConfiguration->gatewayIP, this->serverConfiguration->subnetMask, this->serverConfiguration->dns1IP, this->serverConfiguration->dns2IP);
     }
 
     if ((this->getCurrentServerConfiguration()->wifiSsid != NULL) && (this->getCurrentServerConfiguration()->wifiSsid[0] == '\0'))

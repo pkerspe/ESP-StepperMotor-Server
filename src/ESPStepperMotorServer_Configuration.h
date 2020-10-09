@@ -36,6 +36,7 @@
 #define ESPStepperMotorServer_Configuration_h
 
 #include <ArduinoJson.h>
+#include <IPAddress.h>
 #include <FS.h>
 #include <ESPStepperMotorServer.h>
 #include <ESPStepperMotorServer_Logger.h>
@@ -92,6 +93,13 @@ public:
   const char *apPassword = "Aa123456";
   const char *wifiSsid = "undefined";
   const char *wifiPassword = "undefined";
+
+  IPAddress staticIP;
+  IPAddress gatewayIP;
+  IPAddress subnetMask;
+  IPAddress dns1IP;
+  IPAddress dns2IP;
+
   //this "cache" should not be private since we need to use it in the ISRs and any getter to retrieve it would slow down processing
   ESPStepperMotorServer_PositionSwitch *configuredEmergencySwitches[ESPServerMaxSwitches] = {NULL};
 
@@ -131,6 +139,14 @@ private:
   const char *JSON_PROPERTY_NAME_WIFI_PASSWORD = "wifiPassword";
   const char *JSON_PROPERTY_NAME_WIFI_AP_NAME = "apName";
   const char *JSON_PROPERTY_NAME_WIFI_AP_PASSWORD = "apPassword";
+
+  //for static IP settings
+  const char *JSON_PROPERTY_NAME_WIFI_STATIC_IP_ADDRESS = "staticIP";
+  const char *JSON_PROPERTY_NAME_WIFI_STATIC_IP_GATEWAY = "gatewayIP";
+  const char *JSON_PROPERTY_NAME_WIFI_STATIC_IP_SUBNETMASK = "subnetMask";
+  const char *JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS1 = "dns1IP";
+  const char *JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS2 = "dns2IP";
+
 
   // STEPPER SPECIFIC CONFIGURATION //
   const char *JSON_SECTION_NAME_STEPPER_CONFIGURATIONS = "stepperConfigurations";

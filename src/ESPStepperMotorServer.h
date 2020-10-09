@@ -121,6 +121,7 @@ public:
   void setWifiSSID(const char *ssid);
   void setWifiPassword(const char *pwd);
   void setWifiMode(byte wifiMode);
+  void setStaticIpAddress(IPAddress staticIP, IPAddress gatewayIP, IPAddress subnetMask, IPAddress dns1 = (uint32_t) 0x00000000, IPAddress dns2 = (uint32_t) 0x00000000);
   void printWifiStatus();
   void printCompileSettings();
   int addOrUpdateStepper(ESPStepperMotorServer_StepperConfiguration *stepper, int stepperIndex = -1);

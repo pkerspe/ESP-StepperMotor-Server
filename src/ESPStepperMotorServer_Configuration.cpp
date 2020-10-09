@@ -94,6 +94,32 @@ void ESPStepperMotorServer_Configuration::serializeServerConfiguration(JsonDocum
     doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_PASSWORD] = (includePasswords) ? this->wifiPassword : "*****";
     doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_AP_NAME] = this->apName;
     doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_AP_PASSWORD] = (includePasswords) ? this->apPassword : "*****";
+
+    ESPStepperMotorServer_Logger::logInfof("Serializing config \n");
+
+    if(this->staticIP != 0){
+        ESPStepperMotorServer_Logger::logInfof("static ip = %s \n", this->staticIP.toString().c_str());
+        doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_ADDRESS] = this->staticIP.toString();
+    }
+
+    if(this->gatewayIP != 0){
+        ESPStepperMotorServer_Logger::logInfof("gateway ip = %s \n", this->gatewayIP.toString().c_str());
+        doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_GATEWAY] = this->gatewayIP.toString();
+    }
+    if(this->subnetMask != 0){
+        ESPStepperMotorServer_Logger::logInfof("subnetMask = %s \n", this->subnetMask.toString().c_str());
+        doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_SUBNETMASK] = this->subnetMask.toString();
+    }
+    if(this->dns1IP != 0){
+        ESPStepperMotorServer_Logger::logInfof("DNS1 ip = %s \n", this->dns1IP.toString().c_str());
+        doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS1] = this->dns1IP.toString();
+    }
+    if(this->dns2IP != 0){
+        ESPStepperMotorServer_Logger::logInfof("DSN2 ip = %s \n", this->dns2IP.toString().c_str());
+        doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS2] = this->dns2IP.toString();
+    }
+
+
     // add all stepper configs
     JsonArray stepperConfigArray = doc.createNestedArray(JSON_SECTION_NAME_STEPPER_CONFIGURATIONS);
     for (byte stepperConfigIndex = 0; stepperConfigIndex < ESPServerMaxSteppers; stepperConfigIndex++)
@@ -230,6 +256,23 @@ bool ESPStepperMotorServer_Configuration::loadConfiguationFromSpiffs(String file
 
         this->wifiSsid = doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_SSID].as<char *>();
         this->wifiPassword = doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_PASSWORD].as<char *>();
+
+        // read static IP settings if any
+        if(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_ADDRESS)){
+            this->staticIP.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_ADDRESS].as<char *>());
+        }
+        if(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_GATEWAY)){
+            this->gatewayIP.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_GATEWAY].as<char *>());
+        }
+        if(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_SUBNETMASK)){
+            this->subnetMask.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_SUBNETMASK].as<char *>());
+        }
+        if(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS1)){
+            this->dns1IP.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS1].as<char *>());
+        }
+        if(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS2)){
+            this->dns2IP.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS2].as<char *>());
+        }
 
         // STEPPER CONFIG
         JsonArray configs = doc[JSON_SECTION_NAME_STEPPER_CONFIGURATIONS].as<JsonArray>();
