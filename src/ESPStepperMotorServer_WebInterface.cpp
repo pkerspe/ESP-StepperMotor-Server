@@ -213,10 +213,11 @@ bool ESPStepperMotorServer_WebInterface::checkIfGuiExistsInSpiffs()
             this->webUiEncoderGraphic, 
             this->webUiEmergencySwitchGraphic, 
             this->webUiStepperGraphic, 
-            this->webUiSwitchGraphic 
+            this->webUiSwitchGraphic,
+            this->webUiFirmwareUpdate
         };
 
-        for (int i = 0; i < 8; i++) //UPDATE COUNTER IF NEW FILES ARE ADDED TO UI
+        for (int i = 0; i < 9; i++) //ALWAYS UPDATE THIS COUNTER IF NEW FILES ARE ADDED TO UI
         {
             if (!SPIFFS.exists(files[i]))
             {
