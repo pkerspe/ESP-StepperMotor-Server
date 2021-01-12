@@ -157,6 +157,8 @@ public:
   // a boolean indicating if a position switch that has been configure as emegrency switch, has been triggered
   volatile boolean emergencySwitchIsActive = false;
 
+  const char *version = "0.4.3";
+
 private:
   void scanWifiNetworks();
   void connectToWifiNetwork();
@@ -198,7 +200,6 @@ private:
   // private member variables
   //
   byte enabledServices;
-  const char *version = "0.4.3";
   boolean isWebserverEnabled = false;
   boolean isRestApiEnabled = false;
   boolean isCLIEnabled = false;
