@@ -205,9 +205,18 @@ bool ESPStepperMotorServer_WebInterface::checkIfGuiExistsInSpiffs()
     else {
         bool uiComplete = true;
         const char *notPresent = "The file %s could not be found on SPIFFS\n";
-        const char *files[] ={ this->webUiIndexFile, this->webUiJsFile, this->webUiLogoFile, this->webUiFaviconFile, this->webUiEncoderGraphic, this->webUiEmergencySwitchGraphic, this->webUiStepperGraphic, this->webUiSwitchGraphic };
+        const char *files[] ={ 
+            this->webUiIndexFile, 
+            this->webUiJsFile, 
+            this->webUiLogoFile, 
+            this->webUiFaviconFile, 
+            this->webUiEncoderGraphic, 
+            this->webUiEmergencySwitchGraphic, 
+            this->webUiStepperGraphic, 
+            this->webUiSwitchGraphic 
+        };
 
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 8; i++) //UPDATE COUNTER IF NEW FILES ARE ADDED TO UI
         {
             if (!SPIFFS.exists(files[i]))
             {
