@@ -157,7 +157,7 @@ public:
   // a boolean indicating if a position switch that has been configure as emegrency switch, has been triggered
   volatile boolean emergencySwitchIsActive = false;
 
-  const char *version = "0.4.3";
+  const char *version = "0.4.4";
 
 private:
   void scanWifiNetworks();
