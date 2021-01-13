@@ -212,6 +212,20 @@ The following devices can be configured:
 ![startup screen][add_switch_dialog]
 ![startup screen][add_rotary_encoder_dialog]
 
+### Other UI masks
+Besides the regular UI views to configure the ESP-StepperMotorServer there are currently to other view you can call directly via specic paths:
+#### The OTA Fimware Update function
+When entering the URL `http://<ip of your esp>:<port>/update` you will see the Dialog to update the firmware of the ESP-StepperMotoroServer over the air (OTA).
+Once you have the Firmware transfered to your ESP32 initially via the physical connection you do not need to recconnect it to your computer for future updates. You can always use the OTA update function to write new versions of the firmware via Wifi the connection.
+For further details on how to create the needed firmware file please refer to your IDE and build chain documentation.
+
+*NOTE: in order to be able to use OTA you need to make sure that you use a flash partition pattern that allows for OTA update. Usually this is the default partition in most IDE settings, so unless you changed the partitioning manually you should be fine anyway.*
+
+#### The self-test page
+When entering the URL `http://<ip of your esp>:<port>/selftest` you will get to a page that outputs information on your current setup / installation status of the ESP-StepperMotorServer. This page is basically for trouble shooting and will be extended over time.
+Whenever you have any issues with your installation you might want to check this page to see if any errors are shown here.
+Currently it will putput information mainly about the SPIFFS (SPI-Flash-File-System) status, since it seems to be a common cause for problems according to the issue list on this project. Thus you should check it to see if any negative results are displayed.
+
 ## API documentation
 
 ### Library API documentation
