@@ -297,8 +297,8 @@ The following commands are available:
 
 <command> [<shortcut>]: <description>
 help [h]:               show a list of all available commands
-moveby [mb]*:           move by an specified amount of units. requires the id of the stepper to move, the amount pf movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. E.g. mb=0&v=-100&u=mm to move the stepper with id 0 by -100 mm
-moveto [mt]*:           move to an absolute position. requires the id of the stepper to move, the amount pf movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. E.g. mt=0&v=100&u=revs to move the stepper with id 0 to the absolute position at 100 revolutions
+moveby [mb]*:           move by an specified amount of units. requires the id of the stepper to move, the amount pf movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. E.g. mb=0&v:-100&u:mm to move the stepper with id 0 by -100 mm
+moveto [mt]*:           move to an absolute position. requires the id of the stepper to move, the amount pf movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. E.g. mt=0&v:100&u:revs to move the stepper with id 0 to the absolute position at 100 revolutions
 config [c]:             print the current configuration to the console as JSON formatted string
 emergencystop [es]:     trigger emergency stop for all connected steppers. This will clear all target positions and stop the motion controller module immediately. In order to proceed normal operation after this command has been issued, you need to call the revokeemergencystop [res] command
 revokeemergencystop [res]:      revoke a previously triggered emergency stop. This must be called before any motions can proceed after a call to the emergencystop command
@@ -333,7 +333,7 @@ An example for a command with multiple parameters is the `moveto` command. The s
 The command supports three parameters: the id of the stepper to move (primary parameter), the amount/value for the movement (v parameter) and the unit (u parameter) for the movement (mm, steps or revolutions).
 Example: 
 If you want to move the configured stepper motor with the id 0 by 10 revolutions the command looks as follows:
-`mt=0&v10&u=revs`
+`mt=0&v=10&u=revs`
 
 ### Further documentation
 for further details have a look at 
