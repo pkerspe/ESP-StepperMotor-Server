@@ -141,9 +141,6 @@ ESPStepperMotorServer_RotaryEncoder::ESPStepperMotorServer_RotaryEncoder(char pi
     this->_stepMultiplier = stepMultiplier;
     this->_stepperIndex = stepperIndex;
     this->_encoderIndex = -1;
-    // Set pins to input and enable pullup.
-    pinMode(this->_pinA, INPUT_PULLUP);
-    pinMode(this->_pinB, INPUT_PULLUP);
     // Initialise state.
     this->_state = R_START;
 }
@@ -180,7 +177,7 @@ unsigned char ESPStepperMotorServer_RotaryEncoder::getPinBIOPin()
 
 void ESPStepperMotorServer_RotaryEncoder::setStepperIndex(byte stepperMotorIndex)
 {
-    if (stepperMotorIndex >= 0 && stepperMotorIndex <= ESPStepperHighestAllowedIoPin)
+    if (stepperMotorIndex > -1 && stepperMotorIndex <= ESPStepperHighestAllowedIoPin)
     {
         this->_stepperIndex = stepperMotorIndex;
     }

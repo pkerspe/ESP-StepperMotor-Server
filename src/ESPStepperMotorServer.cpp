@@ -1033,13 +1033,13 @@ void ESPStepperMotorServer::setupRotaryEncoderIOPin(ESPStepperMotorServer_Rotary
 {
 //set Pins for encoder
 #ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
-    ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as Pin A input for active high rotary encoder '%s' (%i)\n", rotaryEncoder->getPinAIOPin(), rotaryEncoder->getDisplayName().c_str(), rotaryEncoder->getId());
+    ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as Pin A input with internal pullup for rotary encoder '%s' (%i)\n", rotaryEncoder->getPinAIOPin(), rotaryEncoder->getDisplayName().c_str(), rotaryEncoder->getId());
 #endif
-    pinMode(rotaryEncoder->getPinAIOPin(), INPUT);
+    pinMode(rotaryEncoder->getPinAIOPin(), INPUT_PULLUP);
 #ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
-    ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as Pin B input for active high rotary encoder '%s' (%i)\n", rotaryEncoder->getPinBIOPin(), rotaryEncoder->getDisplayName().c_str(), rotaryEncoder->getId());
+    ESPStepperMotorServer_Logger::logDebugf("Setting up IO pin %i as Pin B input with internal pullup for rotary encoder '%s' (%i)\n", rotaryEncoder->getPinBIOPin(), rotaryEncoder->getDisplayName().c_str(), rotaryEncoder->getId());
 #endif
-    pinMode(rotaryEncoder->getPinBIOPin(), INPUT);
+    pinMode(rotaryEncoder->getPinBIOPin(), INPUT_PULLUP);
 }
 
 /**
@@ -1434,7 +1434,7 @@ void IRAM_ATTR ESPStepperMotorServer::internalRotaryEncoderISR()
             }
             else
             {
-                ESPStepperMotorServer_Logger::logWarningf("Invalid (non config found) stepper server id %i in rotary encoder config with id %i\n", rotaryEncoder->_stepperIndex, i);
+                ESPStepperMotorServer_Logger::logWarningf("Invalid stepper config id %i for rotary enc. (id=%i)\n", rotaryEncoder->_stepperIndex, i);
             }
         }
     }
