@@ -1208,7 +1208,7 @@ void ESPStepperMotorServer::performEmergencyStop(int stepperId)
 {
     this->emergencySwitchIsActive = true;
     //only perform emergency stop for one stepper
-    if (stepperId > -1)
+    if (stepperId > -1 && stepperId != 255)
     {
         ESPStepperMotorServer_StepperConfiguration *stepper = this->serverConfiguration->getStepperConfiguration(stepperId);
         if (stepper)
