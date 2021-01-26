@@ -53,7 +53,7 @@ void ESPStepperMotorServer_MotionController::start()
         "MotionControl",                                              /* String with name of task. */
         10000,                                                        /* Stack size in bytes. */
         this,                                                         /* Parameter passed as input of the task */
-        1,                                                            /* Priority of the task. */
+        2,                                                            /* Priority of the task. */
         &this->xHandle);                                              /* Task handle. */
     //esp_task_wdt_delete(this->xHandle);
     ESPStepperMotorServer_Logger::logInfo("Motion Controller task started");
