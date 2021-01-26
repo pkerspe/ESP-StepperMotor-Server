@@ -16,6 +16,7 @@ Connect one ore more stepper controllers with step and direction input, and opti
   * [Reducing code size](#reducing-code-size)  
   * [Installation of the web user interface](#installation-of-the-web-ui)
   * [Connecting the hardware](#connecting-the-hardware)
+  * [Connecting rotary encoders](#connecting-rotary-encoders)
   * [Configuation via the web user interface](#configuation-via-the-web-user-interface)
 * [Other UI masks](#other-ui-masks)
   * [The OTA Fimware Update function](#the-ota-fimware-update-function) 
@@ -196,6 +197,29 @@ The following wiring chart shows an example of a setup with an optional emergenc
 
 ![hardware example setup][connection_setup_example]
 (image created with [fritzing](https://fritzing.org/home/))
+
+### Connecting rotary encoders
+to connect a rotary encoder you need to free IO Pins, one for the A and one for the B pin of your encoder.
+The common pin on the rotary encoder needs to be connected to ground.
+The specified IO Pins on the ESP32 will be configured as INPUT with internal pullup resistor automatically.
+PLEASE NOTE: once you turn the rotary encoder the current stepper position of the connected stepper motor will be incremented/decremented by the amount of steps you configured in the multiplier field and set as the new target position.
+This might not be what you want it to behave, but currently it is the way it is developed. I might implement an additional option that will allow you to increase/decrease the current target position of the stepper motor with each increment on the rotary encoder.
+Simply spoken: no matter how quick you turn the rotary encoder it will always just cause the stepper to move an amount of configured steps from its CURRENT physical position when the last signal from the rotary encoder has been received.
+For now you could change this behaviour by chaning the following lines in the ESPStepperMotorServer.cpp file:
+
+`stepperConfig->_flexyStepper->setTargetPositionRelativeInSteps(1 * rotaryEncoder->_stepMultiplier);` 
+
+to
+
+ `stepperConfig->_flexyStepper->setTargetPositionInSteps(stepperConfig->_flexyStepper->getTargetPositionInSteps() + 1 * rotaryEncoder->_stepMultiplier);` 
+
+and the line
+
+`stepperConfig->_flexyStepper->setTargetPositionRelativeInSteps(newPosition);` 
+
+to
+
+`stepperConfig->_flexyStepper->setTargetPositionInSteps(stepperConfig->_flexyStepper->getTargetPositionInSteps() + newPosition);`
 
 ### Configuation via the web user interface
 After you installed everything on the hardware side, you can open the web UI to setup/configure the server.
