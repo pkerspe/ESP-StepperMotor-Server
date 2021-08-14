@@ -292,6 +292,10 @@ The following is an excerpt of the endpoints being provided:
 | METHOD | PATH | DESCRIPTION |
 |---|---|---|
 |GET |`/api/status`|get the current stepper server status report including the following information: version string of the server, wifi information (wifi mode, IP address), spiffs information (total space and free space)|
+
+   // endpoint trigger movement for stepper until home is reached (indicated by kill switch)
+    // post parameters: stepperid, switchid
+|POST |`/api/steppers/returnhome`|endpoint to trigger homing of the stepper motor. This is a non blocking call, meaning the API will directly return even though the stepper motor is still performing the homing movement. IMPORTANT: this function must only be called if you previously configured a homing / limit switch for this tepper motor, otherwise the stepper will start jogging for a long time (a hard limit of max 2000000000 steps is hardwired in the ESP_FlexyStepper.cpp class) before coming to a halt. Required post parameters: id (id of the stepper motor to home)|    
 |POST|`/api/steppers/moveby`|endpoint to set a new RELATIVE target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value. Optional post parameters: speed, acel, decel|
 |POST |`/api/steppers/position`|endpoint to set a new absolute target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value. Optional post parameters: speed, acel, decel|
 | GET |`/api/steppers` or `/api/steppers?id=<id>`|endpoint to list all configured steppers or a specific one if "id" query parameter is given

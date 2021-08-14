@@ -60,6 +60,11 @@ private:
   void populateRotaryEncoderDetailsToJsonObject(JsonObject &detailsObjecToPopulate, ESPStepperMotorServer_RotaryEncoder *rotaryEncoder, int index);
   
   void logDebugRequestUrl(AsyncWebServerRequest *request);
+
+  //movement related endpoints
+  void handleHomingRequest(AsyncWebServerRequest *request);
+  //for other endpoints see ESPStepperMotorServer_RestAPI.cpp in function registerRestEndpoints
+
   // SWITCH CONFIGURATION ENDPOINT HANDLER
   void handlePostSwitchRequest(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total, int switchIndex = -1);
   int handleDeleteSwitchRequest(AsyncWebServerRequest *request, boolean sendReponse);
