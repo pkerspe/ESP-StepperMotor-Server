@@ -292,7 +292,15 @@ The following is an excerpt of the endpoints being provided:
 | METHOD | PATH | DESCRIPTION |
 |---|---|---|
 |GET |`/api/status`|get the current stepper server status report including the following information: version string of the server, wifi information (wifi mode, IP address), spiffs information (total space and free space)|
-|POST |`/api/steppers/returnhome`|endpoint to trigger homing of the stepper motor. This is a non blocking call, meaning the API will directly return even though the stepper motor is still performing the homing movement. *IMPORTANT*: this function must only be called if you previously configured a homing / limit switch for this stepper motor, otherwise the stepper will start jogging for a long time (a hard limit of max 2000000000 steps is hardwired in the ESP_FlexyStepper.cpp class) before coming to a halt. Required post parameters: id (id of the stepper motor to home)|    
+|POST |`/api/steppers/returnhome`|endpoint to trigger homing of the stepper motor. This is a non blocking call, meaning the API will directly return even though the stepper motor is still performing the homing movement. *IMPORTANT*: this function must only be called if you previously configured a homing / limit switch for this stepper motor, otherwise the stepper will start jogging for a long time (a default limit of 2000000000 steps is configured, but can be overwritte) before coming to a halt. 
+Required post parameters:  
+- id (id of the stepper motor to pefrom the homing command for)
+ - speed: the speed in steps per second to perform the homing command with
+ Optional POST parameters: 
+ - switchId:  the id of the configured switch to use as limit switch, if parameter is omited the position switch from the configurtration of the stepper motor will be used, if none is configured, operation will fail)
+ - accel: the acceleration for the homing procdeure in steps/sec^2, if ommitted the previously defined acceleration in the flexy stepper instance will be used
+ - maxSteps: this parameter defines the maximum number of steps to perform before cancelling the homing procedure. This is kind of a safeguard to prevent endless spinning of the stepper motor. Defaults to 2000000000 steps
+|    
 |POST|`/api/steppers/moveby`|endpoint to set a new RELATIVE target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value. Optional post parameters: speed, acel, decel|
 |POST |`/api/steppers/position`|endpoint to set a new absolute target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value. Optional post parameters: speed, acel, decel|
 | GET |`/api/steppers` or `/api/steppers?id=<id>`|endpoint to list all configured steppers or a specific one if "id" query parameter is given

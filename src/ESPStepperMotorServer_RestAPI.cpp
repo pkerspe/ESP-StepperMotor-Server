@@ -627,7 +627,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
  * Optional POST parameters: 
  *      switchId:  the id of the configured switch to use as limit switch, if parameter is omited the position switch from the configurtration of the stepper motor will be used, if none is configured, operation will fail)
  *      accel: the acceleration for the homing procdeure in steps/sec^2, if ommitted the previously defined acceleration in the flexy stepper instance will be used
- *      maxSteps: this parameter defines the maximum number of steps to perform before cancelling the homing procedure. This is kind of a safeguard to prevent endless spinning of the stepper motor. Defaults to 2,000,000,000 steps
+ *      maxSteps: this parameter defines the maximum number of steps to perform before cancelling the homing procedure. This is kind of a safeguard to prevent endless spinning of the stepper motor. Defaults to 2000000000 steps
  */
 void ESPStepperMotorServer_RestAPI::handleHomingRequest(AsyncWebServerRequest *request)
 {
@@ -688,6 +688,7 @@ void ESPStepperMotorServer_RestAPI::handleHomingRequest(AsyncWebServerRequest *r
     ESPStepperMotorServer_PositionSwitch *switchConfig;
     signed char directionTowardHome = 1;
     byte gpioPinForSwitch = 0;
+    //TOOD: implement proper ISR handling for custom switch parameter if not linked to existing stepper
     if (request->hasParam("switchid"))
     {
         int switchIndex = request->getParam("switchid")->value().toInt();
