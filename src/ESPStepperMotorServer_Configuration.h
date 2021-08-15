@@ -79,9 +79,11 @@ public:
   void setRotaryEncoder(ESPStepperMotorServer_RotaryEncoder *encoder, byte id);
   void removeStepperConfiguration(byte id);
   void removeSwitch(byte id);
+    
   void removeRotaryEncoder(byte id);
   ESPStepperMotorServer_StepperConfiguration *getStepperConfiguration(unsigned char id);
   ESPStepperMotorServer_PositionSwitch *getSwitch(byte id);
+  ESPStepperMotorServer_PositionSwitch *getFirstConfiguredLimitSwitchForStepper(unsigned char id);
   ESPStepperMotorServer_RotaryEncoder *getRotaryEncoder(unsigned char id);
   ESP_FlexyStepper **getConfiguredFlexySteppers();
   // a cache containing all IO pins that are used by switches. The indexes matches the indexes in the configuredSwitches (=switch ID)

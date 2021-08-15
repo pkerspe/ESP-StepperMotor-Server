@@ -107,7 +107,7 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
 
     // POST /api/steppers/returnhome
     // endpoint trigger movement for stepper until home is reached (indicated by kill switch)
-    // post parameters: stepperid, switchid
+    // see documentation of handler function for details
     httpServer->on("/api/steppers/returnhome", HTTP_POST, [this](AsyncWebServerRequest *request)
                    {
                        this->logDebugRequestUrl(request);
@@ -620,36 +620,117 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
 /**
  * handler for the REST endpoint to perform a homing run.
  * This will call the goToLimitAndSetAsHome() function in the flexyStepper instance.
- * It will require that a home switch is configured for this stepper, otherwise stepper will "never" (an absolute limit of 2000000000 steps is configured by default to somewhat limit the movement) come to a halt 
+ * It will require that a home/limit switch is configured for this stepper, otherwise stepper will "never" (an absolute limit of 2000000000 steps is configured by default to somewhat limit the movement) come to a halt 
+ * Required POST parameters: 
+ *      id (id of the stepper motor to pefrom the homing command for)
+ *      speed: the speed in steps per second to perform the homing command with
+ * Optional POST parameters: 
+ *      switchId:  the id of the configured switch to use as limit switch, if parameter is omited the position switch from the configurtration of the stepper motor will be used, if none is configured, operation will fail)
+ *      accel: the acceleration for the homing procdeure in steps/sec^2, if ommitted the previously defined acceleration in the flexy stepper instance will be used
+ *      maxSteps: this parameter defines the maximum number of steps to perform before cancelling the homing procedure. This is kind of a safeguard to prevent endless spinning of the stepper motor. Defaults to 2,000,000,000 steps
  */
 void ESPStepperMotorServer_RestAPI::handleHomingRequest(AsyncWebServerRequest *request)
 {
     this->logDebugRequestUrl(request);
 
-    if (request->hasParam("id"))
+    if (!request->hasParam("id"))
     {
-        int stepperIndex = request->getParam("id")->value().toInt();
-        ESPStepperMotorServer_StepperConfiguration *stepper = this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex);
-        if (stepper == NULL)
-        {
-            request->send(404, "application/json", "{\"error\": \"No stepper configuration found for given stepper id\"}");
-            return;
-        }
-        /*
-        int switchIndex = request->getParam("switchid")->value().toInt();
-        ESPStepperMotorServer_PositionSwitch *switchConfig = this->_stepperMotorServer->getCurrentServerConfiguration()->getSwitch(switchIndex);
-        if (switchConfig == NULL)
-        {
-            request->send(404, "application/json", "{\"error\": \"No switch configuration found for given switch id\"}");
-            return;
-        }*/
-
-        stepper->getFlexyStepper()->goToLimitAndSetAsHome();
-
-        request->send(204);
+        request->send(400, "application/json", "{\"error\": \"Missing stepper id parameter\"}");
         return;
     }
-    request->send(400, "application/json", "{\"error\": \"Missing stepperid paramter\"}");
+
+    int stepperIndex = request->getParam("id")->value().toInt();
+    ESPStepperMotorServer_StepperConfiguration *stepperConfiguration = this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex);
+    if (stepperConfiguration == NULL)
+    {
+        request->send(404, "application/json", "{\"error\": \"No stepper configuration found for given stepper id\"}");
+        return;
+    }
+
+    float speedInStepsPerSecond = 0;
+    if (request->hasParam("speed"))
+    {
+        speedInStepsPerSecond = request->getParam("speed")->value().toFloat();
+        if (speedInStepsPerSecond <= 0)
+        {
+            request->send(400, "application/json", "{\"error\": \"Value for homing speed (in steps/second) must be larger than 0\"}");
+            return;
+        }
+    }
+    else
+    {
+        request->send(400, "application/json", "{\"error\": \"Missing parameter for speed (in steps/second)\"}");
+        return;
+    }
+
+    float accelInStepPerSecondSquare = 0;
+    if (request->hasParam("accel"))
+    {
+        accelInStepPerSecondSquare = request->getParam("accel")->value().toFloat();
+        if (accelInStepPerSecondSquare <= 0)
+        {
+            request->send(400, "application/json", "{\"error\": \"Acceleration value must be larger than 0\"}");
+            return;
+        }
+    }
+
+    unsigned int maxSteps = 2000000000;
+    if (request->hasParam("maxSteps"))
+    {
+        maxSteps = request->getParam("maxSteps")->value().toInt();
+        if (maxSteps < 1)
+        {
+            request->send(400, "application/json", "{\"error\": \"Max number of steps during homing must be larger than 0\"}");
+            return;
+        }
+    }
+
+    ESPStepperMotorServer_PositionSwitch *switchConfig;
+    signed char directionTowardHome = 1;
+    byte gpioPinForSwitch = 0;
+    if (request->hasParam("switchid"))
+    {
+        int switchIndex = request->getParam("switchid")->value().toInt();
+        switchConfig = this->_stepperMotorServer->getCurrentServerConfiguration()->getSwitch(switchIndex);
+        if (switchConfig == NULL)
+        {
+            request->send(400, "application/json", "{\"error\": \"No switch configuration found for given switch id\"}");
+            return;
+        }
+        gpioPinForSwitch = switchConfig->getIoPinNumber();
+        //TODO: this detection is not exactely precise, since the switch could also be a combined Begin / End switch
+        if (switchConfig->isTypeBitSet(SWITCHTYPE_LIMITSWITCH_POS_BEGIN_BIT))
+        {
+            directionTowardHome = -1;
+        }
+    }
+    else
+    {
+        //Try to find pin by looking for configured limit switches of type homing switch for selected stepper motor config
+        switchConfig = this->_stepperMotorServer->getCurrentServerConfiguration()->getFirstConfiguredLimitSwitchForStepper(stepperIndex);
+        if (switchConfig == NULL)
+        {
+            request->send(400, "application/json", "{\"error\": \"No existing limit switch configuration found the stepper with the given id\"}");
+            return;
+        }
+        gpioPinForSwitch = switchConfig->getIoPinNumber();
+    }
+
+    ESPStepperMotorServer_Logger::logDebugf("Received homing request for stepper with id %i and limit switch on GPIO %i. Homing speed to be set to %.2f steps per second. Max step limit set to %i\n", stepperIndex, gpioPinForSwitch, speedInStepsPerSecond, maxSteps);
+
+    ESP_FlexyStepper *stepper = stepperConfiguration->getFlexyStepper();
+    if (speedInStepsPerSecond > 0)
+    {
+        stepper->setSpeedInStepsPerSecond(speedInStepsPerSecond);
+    }
+    if (accelInStepPerSecondSquare > 0)
+    {
+        stepper->setAccelerationInStepsPerSecondPerSecond(accelInStepPerSecondSquare);
+    }
+    stepper->setDirectionToHome(directionTowardHome);
+    stepper->goToLimitAndSetAsHome(NULL, maxSteps);
+    request->send(200, "application/json", "{\"status\": \"homing procedure started\"}");
+    return;
 }
 
 void ESPStepperMotorServer_RestAPI::populateSwitchDetailsToJsonObject(JsonObject &switchDetails, ESPStepperMotorServer_PositionSwitch *positionSwitch, int index)

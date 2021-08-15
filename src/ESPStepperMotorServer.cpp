@@ -707,16 +707,17 @@ void ESPStepperMotorServer::startWebserver()
         DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE");
         DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
 
-        httpServer->onNotFound([](AsyncWebServerRequest *request) {
-            if (request->method() == HTTP_OPTIONS)
-            {
-                request->send(200);
-            }
-            else
-            {
-                request->send(404, "text/html", "<html><body><h1>ESP-StepperMotor-Server</h1><p>The requested file could not be found.<br/>Either you have a typo in your URL or the web User Interface is not installed in the SPIFFS of your ESP. In the later case please Upload the User Interface files to SPIFFS before proceeding.</p><p>For more details refer to the <a href=\"https://github.com/pkerspe/ESP-StepperMotor-Server/blob/master/README.md\">installation manual</a></body></html>");
-            }
-        });
+        httpServer->onNotFound([](AsyncWebServerRequest *request)
+                               {
+                                   if (request->method() == HTTP_OPTIONS)
+                                   {
+                                       request->send(200);
+                                   }
+                                   else
+                                   {
+                                       request->send(404, "text/html", "<html><body><h1>ESP-StepperMotor-Server</h1><p>The requested file could not be found.<br/>Either you have a typo in your URL or the web User Interface is not installed in the SPIFFS of your ESP. In the later case please Upload the User Interface files to SPIFFS before proceeding.</p><p>For more details refer to the <a href=\"https://github.com/pkerspe/ESP-StepperMotor-Server/blob/master/README.md\">installation manual</a></body></html>");
+                                   }
+                               });
 
         httpServer->begin();
         ESPStepperMotorServer_Logger::logInfof("Webserver started, you can now open the user interface on http://%s:%i/\n", this->getIpAddress().c_str(), this->serverConfiguration->serverPort);
@@ -1241,7 +1242,8 @@ void ESPStepperMotorServer::revokeEmergencyStop()
 
 /**
  * Update the switch status register by reading all configured IO pins.
- * Returns the pin Number of the last IO pin where a change has been detected for since last the update of the register
+ * Returns the pin Number of the last IO pin where a change has been detected for since last the update of the register.
+ * -1 is returned if not change could be detected / no switch is configured
  */
 signed char ESPStepperMotorServer::updateSwitchStatusRegister()
 {
@@ -1252,23 +1254,23 @@ signed char ESPStepperMotorServer::updateSwitchStatusRegister()
     //iterate over all configured position switch IO pins and read state and write to status registers
     for (int switchIndex = 0; switchIndex < ESPServerMaxSwitches; switchIndex++)
     {
-        byte ioPin = allSwitchIoPins[switchIndex];
+        signed char ioPin = allSwitchIoPins[switchIndex];
         if (ioPin > -1)
         {
             if (switchIndex > 7) //write to next register if needed
             {
                 registerIndex = (byte)(ceil)((switchIndex + 1) / 8);
             }
-            byte previousPinState = ((buttonStatus[registerIndex] & (1 << (switchIndex - 1))) > 0);
+            byte previousPinState = bitRead(buttonStatus[registerIndex], switchIndex % 8);
             byte currentPinState = digitalRead(ioPin);
+
             if (currentPinState == HIGH && previousPinState == LOW)
             {
 #ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
                 if (ESPStepperMotorServer_Logger::isDebugEnabled())
                     ESPStepperMotorServer_Logger::logDebugf("Setting bit %i to high in register for switch %i with io pin %i\n", (switchIndex % 8), switchIndex, ioPin);
 #endif
-
-                bitSet(buttonStatus[registerIndex], switchIndex % 8);
+                bitSet(this->buttonStatus[registerIndex], switchIndex % 8);
                 changedSwitchIndex = switchIndex;
             }
             else if (currentPinState == LOW && previousPinState == HIGH)
@@ -1277,7 +1279,6 @@ signed char ESPStepperMotorServer::updateSwitchStatusRegister()
                 if (ESPStepperMotorServer_Logger::isDebugEnabled())
                     ESPStepperMotorServer_Logger::logDebugf("Setting bit %i to low in register for switch %i with io pin %i\n", (switchIndex % 8), switchIndex, ioPin);
 #endif
-
                 bitClear(buttonStatus[registerIndex], switchIndex % 8);
                 changedSwitchIndex = switchIndex;
             }
@@ -1356,8 +1357,8 @@ void IRAM_ATTR ESPStepperMotorServer::internalEmergencySwitchISR()
  */
 void IRAM_ATTR ESPStepperMotorServer::internalSwitchISR(byte switchType)
 {
-    byte changedStausSwitchId = this->updateSwitchStatusRegister();
-    if (switchType == SWITCHTYPE_LIMITSWITCH_POS_BEGIN_BIT || switchType == SWITCHTYPE_LIMITSWITCH_POS_END_BIT || switchType == SWITCHTYPE_LIMITSWITCH_COMBINED_BEGIN_END_BIT)
+    signed char changedStausSwitchId = this->updateSwitchStatusRegister();
+    if (changedStausSwitchId > -1 && (switchType == SWITCHTYPE_LIMITSWITCH_POS_BEGIN_BIT || switchType == SWITCHTYPE_LIMITSWITCH_POS_END_BIT || switchType == SWITCHTYPE_LIMITSWITCH_COMBINED_BEGIN_END_BIT))
     {
         ESPStepperMotorServer_Configuration *configuration = this->serverConfiguration;
         ESPStepperMotorServer_PositionSwitch *switchConfig = configuration->allConfiguredSwitches[changedStausSwitchId];
@@ -1366,9 +1367,9 @@ void IRAM_ATTR ESPStepperMotorServer::internalSwitchISR(byte switchType)
             bool isActiveHigh = switchConfig->_switchType & (1 << (SWITCHTYPE_STATE_ACTIVE_HIGH_BIT - 1)); //we do not use the helper function isActiveHigh due to performance reasons
             bool inputState = digitalRead(switchConfig->_ioPinNumber);
             ESPStepperMotorServer_StepperConfiguration *stepper = configuration->getStepperConfiguration(switchConfig->_stepperIndex);
-            if ((inputState && isActiveHigh) || (!inputState && !isActiveHigh))
+            if (stepper)
             {
-                if (stepper)
+                if ((inputState && isActiveHigh) || (!inputState && !isActiveHigh))
                 {
                     switch (switchType)
                     {
@@ -1382,22 +1383,19 @@ void IRAM_ATTR ESPStepperMotorServer::internalSwitchISR(byte switchType)
                         stepper->_flexyStepper->setLimitSwitchActive(ESP_FlexyStepper::LIMIT_SWITCH_COMBINED_BEGIN_AND_END);
                         break;
                     }
-                }
 #ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
-                if (ESPStepperMotorServer_Logger::isDebugEnabled())
-                    ESPStepperMotorServer_Logger::logDebugf("Limit switch '%s' has been triggered (IO pin status is %i)\n", switchConfig->getPositionName().c_str(), inputState);
+                    if (ESPStepperMotorServer_Logger::isDebugEnabled())
+                        ESPStepperMotorServer_Logger::logDebugf("Limit switch '%s' has been triggered (IO pin status is %i)\n", switchConfig->getPositionName().c_str(), inputState);
 #endif
-            }
-            else
-            {
-                if (stepper)
+                }
+                else
                 {
                     stepper->_flexyStepper->clearLimitSwitchActive();
-                }
 #ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
-                if (ESPStepperMotorServer_Logger::isDebugEnabled())
-                    ESPStepperMotorServer_Logger::logDebugf("Limit switch '%s' has been released (IO pin status is %i)\n", switchConfig->getPositionName().c_str(), inputState);
+                    if (ESPStepperMotorServer_Logger::isDebugEnabled())
+                        ESPStepperMotorServer_Logger::logDebugf("Limit switch '%s' has been released (IO pin status is %i)\n", switchConfig->getPositionName().c_str(), inputState);
 #endif
+                }
             }
         }
         else

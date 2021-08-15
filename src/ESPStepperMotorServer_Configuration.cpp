@@ -43,12 +43,12 @@ ESPStepperMotorServer_Configuration::ESPStepperMotorServer_Configuration(const c
     this->_configFilePath = configFilePath;
     this->_isSPIFFSactive = isSPIFFSactive;
     this->loadConfiguationFromSpiffs();
-    #ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
     if (ESPStepperMotorServer_Logger::getLogLevel() >= ESPServerLogLevel_DEBUG)
     {
         this->printCurrentConfigurationAsJsonToSerial();
     }
-    #endif
+#endif
 }
 
 unsigned int ESPStepperMotorServer_Configuration::calculateRequiredJsonDocumentSizeForCurrentConfiguration()
@@ -97,28 +97,32 @@ void ESPStepperMotorServer_Configuration::serializeServerConfiguration(JsonDocum
 
     ESPStepperMotorServer_Logger::logInfof("Serializing config \n");
 
-    if(this->staticIP != 0){
+    if (this->staticIP != 0)
+    {
         ESPStepperMotorServer_Logger::logInfof("static ip = %s \n", this->staticIP.toString().c_str());
         doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_ADDRESS] = this->staticIP.toString();
     }
 
-    if(this->gatewayIP != 0){
+    if (this->gatewayIP != 0)
+    {
         ESPStepperMotorServer_Logger::logInfof("gateway ip = %s \n", this->gatewayIP.toString().c_str());
         doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_GATEWAY] = this->gatewayIP.toString();
     }
-    if(this->subnetMask != 0){
+    if (this->subnetMask != 0)
+    {
         ESPStepperMotorServer_Logger::logInfof("subnetMask = %s \n", this->subnetMask.toString().c_str());
         doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_SUBNETMASK] = this->subnetMask.toString();
     }
-    if(this->dns1IP != 0){
+    if (this->dns1IP != 0)
+    {
         ESPStepperMotorServer_Logger::logInfof("DNS1 ip = %s \n", this->dns1IP.toString().c_str());
         doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS1] = this->dns1IP.toString();
     }
-    if(this->dns2IP != 0){
+    if (this->dns2IP != 0)
+    {
         ESPStepperMotorServer_Logger::logInfof("DSN2 ip = %s \n", this->dns2IP.toString().c_str());
         doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS2] = this->dns2IP.toString();
     }
-
 
     // add all stepper configs
     JsonArray stepperConfigArray = doc.createNestedArray(JSON_SECTION_NAME_STEPPER_CONFIGURATIONS);
@@ -153,7 +157,8 @@ void ESPStepperMotorServer_Configuration::serializeServerConfiguration(JsonDocum
             nestedSwitchConfig["stepperIndex"] = switchConfig->getStepperIndex();
             nestedSwitchConfig["switchType"] = switchConfig->getSwitchType();
             nestedSwitchConfig["switchPosition"] = switchConfig->getSwitchPosition();
-            if (switchConfig->hasMacroActions()) {
+            if (switchConfig->hasMacroActions())
+            {
                 JsonArray macroActionsJsonArray = nestedSwitchConfig.createNestedArray(JSON_SECTION_NAME_SWITCH_CONFIGURATION_MACROACTIONS);
                 switchConfig->serializeMacroActionsToJsonArray(macroActionsJsonArray);
             }
@@ -236,12 +241,12 @@ bool ESPStepperMotorServer_Configuration::loadConfiguationFromSpiffs(String file
         DeserializationError error = deserializeJson(doc, configFile);
         if (error)
             ESPStepperMotorServer_Logger::logWarningf("Failed to read configuration file %s. Will use fallback default configuration\n", filename.c_str());
-        #ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
         else
         {
             ESPStepperMotorServer_Logger::logDebug("File loaded and deserialized");
         }
-        #endif
+#endif
         // Copy values from the JsonDocument to the Config
 
         // SERVER CONFIG
@@ -258,19 +263,24 @@ bool ESPStepperMotorServer_Configuration::loadConfiguationFromSpiffs(String file
         this->wifiPassword = doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_PASSWORD].as<char *>();
 
         // read static IP settings if any
-        if(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_ADDRESS)){
+        if (doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_ADDRESS))
+        {
             this->staticIP.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_ADDRESS].as<char *>());
         }
-        if(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_GATEWAY)){
+        if (doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_GATEWAY))
+        {
             this->gatewayIP.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_GATEWAY].as<char *>());
         }
-        if(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_SUBNETMASK)){
+        if (doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_SUBNETMASK))
+        {
             this->subnetMask.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_SUBNETMASK].as<char *>());
         }
-        if(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS1)){
+        if (doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS1))
+        {
             this->dns1IP.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS1].as<char *>());
         }
-        if(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS2)){
+        if (doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS2))
+        {
             this->dns2IP.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS2].as<char *>());
         }
 
@@ -326,10 +336,13 @@ bool ESPStepperMotorServer_Configuration::loadConfiguationFromSpiffs(String file
                     ((value) ? value : "undefined"),
                     (switchConfigEntry["switchPosition"] | 0));
                 //check for macro actions
-                if (switchConfigEntry[JSON_SECTION_NAME_SWITCH_CONFIGURATION_MACROACTIONS]) {
+                if (switchConfigEntry[JSON_SECTION_NAME_SWITCH_CONFIGURATION_MACROACTIONS])
+                {
                     JsonArray macroActionsJsonArray = switchConfigEntry[JSON_SECTION_NAME_SWITCH_CONFIGURATION_MACROACTIONS].as<JsonArray>();
-                    if (macroActionsJsonArray) {
-                        for (JsonVariant macroActionJson : macroActionsJsonArray) {
+                    if (macroActionsJsonArray)
+                    {
+                        for (JsonVariant macroActionJson : macroActionsJsonArray)
+                        {
                             switchConfig->addMacroAction(ESPStepperMotorServer_MacroAction::fromJsonObject(macroActionJson));
                         }
                     }
@@ -534,6 +547,19 @@ ESPStepperMotorServer_PositionSwitch *ESPStepperMotorServer_Configuration::getSw
     return this->allConfiguredSwitches[id];
 }
 
+ESPStepperMotorServer_PositionSwitch *ESPStepperMotorServer_Configuration::getFirstConfiguredLimitSwitchForStepper(unsigned char steperConfigId)
+{
+    for (byte i = 0; i < ESPServerMaxSwitches; i++)
+    {
+        ESPStepperMotorServer_PositionSwitch *positionSwitch = this->configuredLimitSwitches[i];
+        if (positionSwitch != NULL && positionSwitch->getStepperIndex() == steperConfigId)
+        {
+            return positionSwitch;
+        }
+    }
+    return NULL;
+}
+
 ESPStepperMotorServer_RotaryEncoder *ESPStepperMotorServer_Configuration::getRotaryEncoder(unsigned char id)
 {
     if (id >= ESPServerMaxRotaryEncoders)
@@ -552,9 +578,9 @@ void ESPStepperMotorServer_Configuration::removeStepperConfiguration(byte id)
         ESPStepperMotorServer_PositionSwitch *switchConfig = this->getSwitch(switchIndex);
         if (switchConfig && switchConfig->getStepperIndex() == id)
         {
-            #ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
             ESPStepperMotorServer_Logger::logDebugf("Found switch configuration (id=%i) that is linked to stepper config (id=%i) to be deleted. Will delete switch config as well\n", switchConfig->getId(), id);
-            #endif
+#endif
             this->removeSwitch(switchIndex);
         }
     }
@@ -564,9 +590,9 @@ void ESPStepperMotorServer_Configuration::removeStepperConfiguration(byte id)
         ESPStepperMotorServer_RotaryEncoder *encoderConfig = this->getRotaryEncoder(encoderIndex);
         if (encoderConfig && encoderConfig->getStepperIndex() == id)
         {
-            #ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
+#ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
             ESPStepperMotorServer_Logger::logDebugf("Found encoder configuration (id=%i) that is linked to stepper config (id=%i) to be deleted. Will delete encoder config as well\n", encoderConfig->getId(), id);
-            #endif
+#endif
             this->removeRotaryEncoder(encoderIndex);
         }
     }
@@ -590,7 +616,7 @@ void ESPStepperMotorServer_Configuration::updateSwitchCaches()
     //reset all caches first
     for (byte i = 0; i < ESPServerMaxSwitches; i++)
     {
-        //TODO: check if this is appropriate, currently it casues kernel panic
+        //TODO: check if this is appropriate, currently it causes kernel panic
         //delete (this->configuredEmergencySwitches[i]);
         this->configuredEmergencySwitches[i] = NULL;
         //TODO: check if this delete call is appropriate, currently it casues kernel panic

@@ -38,6 +38,7 @@
 #include <ESPStepperMotorServer_PositionSwitch.h>
 #include <ESPStepperMotorServer_Logger.h>
 #include <ESPStepperMotorServer.h>
+#include <ESP_FlexyStepper.h>
 
 //just declare class here for compiler, since we have a circular dependency
 class ESPStepperMotorServer;

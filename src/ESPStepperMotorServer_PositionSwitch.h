@@ -42,6 +42,17 @@ public:
     int getStepperIndex(void);
 
     byte getIoPinNumber(void);
+    
+    /**
+     * return the type of this switch if set.
+     * It indicates whether the switch as limit, position or emergency switch
+     * See constants 
+     *  SWITCHTYPE_LIMITSWITCH_POS_BEGIN_BIT
+     *  SWITCHTYPE_LIMITSWITCH_POS_END_BIT
+     *  SWITCHTYPE_LIMITSWITCH_COMBINED_BEGIN_END_BIT
+     *  SWITCHTYPE_POSITION_SWITCH_BIT
+     *  SWITCHTYPE_EMERGENCY_STOP_SWITCH_BIT
+     */
     byte getSwitchType(void);
 
     String getPositionName(void);
