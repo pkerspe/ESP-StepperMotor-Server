@@ -701,9 +701,9 @@ void ESPStepperMotorServer_RestAPI::handleHomingRequest(AsyncWebServerRequest *r
 
     byte gpioPinForSwitch = 0;
     //TOOD: implement proper ISR handling for custom switch parameter if not linked to existing stepper
-    if (request->hasParam("switchid"))
+    if (request->hasParam("switchId"))
     {
-        int switchIndex = request->getParam("switchid")->value().toInt();
+        int switchIndex = request->getParam("switchId")->value().toInt();
         switchConfig = this->_stepperMotorServer->getCurrentServerConfiguration()->getSwitch(switchIndex);
         if (switchConfig == NULL)
         {
