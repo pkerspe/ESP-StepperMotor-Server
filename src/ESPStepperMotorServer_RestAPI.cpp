@@ -687,6 +687,18 @@ void ESPStepperMotorServer_RestAPI::handleHomingRequest(AsyncWebServerRequest *r
 
     ESPStepperMotorServer_PositionSwitch *switchConfig;
     signed char directionTowardHome = 1;
+
+    signed char forcedDirectionTowardHome = 0;
+    if (request->hasParam("direction"))
+    {
+        forcedDirectionTowardHome = request->getParam("direction")->value().toInt();
+        if (forcedDirectionTowardHome != 1 && forcedDirectionTowardHome != -1)
+        {
+            request->send(400, "application/json", "{\"error\": \"Invalid direction value given. Allowed values are 1 and -1\"}");
+            return;
+        }
+    }
+
     byte gpioPinForSwitch = 0;
     //TOOD: implement proper ISR handling for custom switch parameter if not linked to existing stepper
     if (request->hasParam("switchid"))
@@ -715,6 +727,11 @@ void ESPStepperMotorServer_RestAPI::handleHomingRequest(AsyncWebServerRequest *r
             return;
         }
         gpioPinForSwitch = switchConfig->getIoPinNumber();
+        // determine direction section for the case no explicit switch ID was provided
+        if (switchConfig->isTypeBitSet(SWITCHTYPE_LIMITSWITCH_POS_BEGIN_BIT))
+        {
+            directionTowardHome = -1;
+        }
     }
 
     ESPStepperMotorServer_Logger::logDebugf("Received homing request for stepper with id %i and limit switch on GPIO %i. Homing speed to be set to %.2f steps per second. Max step limit set to %i\n", stepperIndex, gpioPinForSwitch, speedInStepsPerSecond, maxSteps);
@@ -728,7 +745,15 @@ void ESPStepperMotorServer_RestAPI::handleHomingRequest(AsyncWebServerRequest *r
     {
         stepper->setAccelerationInStepsPerSecondPerSecond(accelInStepPerSecondSquare);
     }
-    stepper->setDirectionToHome(directionTowardHome);
+
+    if (forcedDirectionTowardHome != 0)
+    {
+        stepper->setDirectionToHome(forcedDirectionTowardHome);
+    }
+    else
+    {
+        stepper->setDirectionToHome(directionTowardHome);
+    }
     stepper->goToLimitAndSetAsHome(NULL, maxSteps);
     request->send(200, "application/json", "{\"status\": \"homing procedure started\"}");
     return;
