@@ -2,7 +2,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/d9bf5e50c7334b71a9dfba7367b3b18e)](https://app.codacy.com/manual/pkerspe/ESP-StepperMotor-Server?utm_source=github.com&utm_medium=referral&utm_content=pkerspe/ESP-StepperMotor-Server&utm_campaign=Badge_Grade_Dashboard) 
 
 Turn your ESP32 into a standalone stepper motor control server with easy to use webinterface.
-Connect one ore more stepper controllers with step and direction input, and optionally some limit-switches to the IO-pins of your ESP module and controll the stepper motor via an easy to use web interface, via REST API or via a serial control interface.
+Connect one ore more stepper controllers with step and direction input, and optionally some limit-switches to the IO-pins of your ESP module and control the stepper motor via an easy to use web interface, via REST API or via a serial control interface.
 
 ## Table of contents
 
@@ -34,9 +34,9 @@ Connect one ore more stepper controllers with step and direction input, and opti
 
 ## Introduction
 
-This library started as a fork for the [FlexyStepper library](https://github.com/Stan-Reifel/FlexyStepper). While the FlexyStepper Library is a general Arduino compatible library this fork had a focus on the ESP32 modules from Espressif. Soon this library became much more than a modfied version of FlexyStepper but turned into a stand alone application to turn a regular ESP32 module into a stepper motor control server.
+This library started as a fork for the [FlexyStepper library](https://github.com/Stan-Reifel/FlexyStepper). While the FlexyStepper Library is a general Arduino compatible library this fork had a focus on the ESP32 modules from Espressif. Soon this library became much more than a modfied version of FlexyStepper but turned into a stand-alone application to turn a regular ESP32 module into a stepper motor control server.
 The core part that controls the stepper motor drivers is now based on a modified version of FlexyStepper, called [ESP-FlexyStepper](https://github.com/pkerspe/ESP-FlexyStepper).
-Since the ESP-32 modules contain a WiFi module they are perfectly suited for web controlled stepper server and since they have enough memory and processing power they are ideal as low cost, low energy consumption standalone server component, that allows configuration and controlling of one to many stepper motor drivers with limit-switches and outputs (e.g. for Relays and LEDs).
+Since the ESP-32 modules contain a WIFI module they are perfectly suited for web-controlled stepper server and since they have enough memory and processing power they are ideal as low cost, low energy consumption standalone server component, that allows configuration and controlling of one to many stepper motor drivers with limit-switches and outputs (e.g. for Relays and LEDs).
 
 Once the ESP Stepper Motor Server has been uploaded to the ESP module, all further configuration and controlling can be done vie the web UI without the need to code another line in the Arduino or PlatformIO IDE.
 
@@ -44,7 +44,7 @@ Once the ESP Stepper Motor Server has been uploaded to the ESP module, all furth
 
 This library is not ideal if you are looking for a solution to control your CNC Router. It does not support Gerber commands (GRBL) in general or fully synchronized multi axis movements (it can move multiple axis at the same time though since it generates all step signals for all connected stepper drivers asynchronous).
 If you need a solution for you CNC project, you might want to look into the [Grbl_Esp32](https://github.com/bdring/Grbl_Esp32) (for ESP32 specifically) or [grbl](https://github.com/gnea/grbl) (for Arduino in general) Libraries. 
-But if you are looking for an easy way to setup and control one or more stepper motors independly and adding limit switches and rotary encoders to conrol them, then this project here might be just what you are looking for.
+But if you are looking for an easy way to setup and control one or more stepper motors independently and adding limit switches and rotary encoders to control them, then this project here might be just what you are looking for.
 
 ### Prerequisites and dependencies
 
@@ -54,9 +54,9 @@ In order to compile your project with the ESP-StepperMotor-Server Library, the f
 *   [ArduinoJSON (NOTE: must version 6.x, version 5 will not work)](https://arduinojson.org)
 *   [ESP-FlexyStepper](https://github.com/pkerspe/ESP-FlexyStepper)
 *   FS file system wrapper: should be installed with the ESP32 libraries already if you setup your IDE for these modules
-*   WiFi: should be installed with the ESP32 libraries already when you setup your IDE for these modules
+*   WIFI: should be installed with the ESP32 libraries already when you setup your IDE for these modules
 
-When using PlatformIO add these dependencies to you platfromio.ini project file and let PlatfromIO install the required dependencies for you:
+When using PlatformIO add these dependencies to you platformio.ini project file and let PlatformIO install the required dependencies for you:
 ```ini
 lib_deps = ESP-StepperMotor-Server
 ```
@@ -68,30 +68,30 @@ If you use PlatformIO you can simply setup your project with the provided paltfo
 ## Setting up your ESP-StepperMotor-Server
 
 In order to get started you need the following elements:
-* A *ESP32* board of your choice (boards with USB-Serial Chips are recommended for the ease of programming them, ohter boards just work as well, yet you have to figure out how to flash the firmware yourself, since this proces will not be covered in this manual)
+* An *ESP32* board of your choice (boards with USB-Serial Chips are recommended for the ease of programming them, other boards just work as well, yet you have to figure out how to flash the firmware yourself, since this process will not be covered in this manual)
 * A configured, Arduino compatible IDE ([Arduino](https://www.arduino.cc/en/Main/Software) or [PlatformIO](http://platformio.org))
 * A *stepper motor*
-* A *power supply* that fits to your stepper motors and drivers specs
+* A *power supply* that fits to your stepper motors and drivers' specs
 * A *stepper driver* board that fits to your stepper motors specs
 
 Optional:
-* Switches for limit/homing, position and emegency stop functionality
+* Switches for limit/homing, position and emergency stop functionality
 * Rotary encoders to control the motors directly using physical controls
 
 ### Firmware installation
 
 #### Using Arduino IDE
 USING ARDUINO IDE IS NOT SUGGESTED due to multiple issues with the dependencies and much higher manual effort to get everything running.
-If you still want to try it, the folllowing steps might work, but you are basically on your own here.
-Do yourself a favour and use a real IDE like Visual Studio Code with PlatformIO (it is free and way more comfortable and pwerfull than the Arduino IDE) :-)
+If you still want to try it, the following steps might work, but you are basically on your own here.
+Do yourself a favor and use a real IDE like Visual Studio Code with PlatformIO (it is free and way more comfortable and powerfull than the Arduino IDE) :-)
 
 1. Download and install the [Arduino IDE](https://www.arduino.cc/en/main/software)
 2. open the library manager and search for "ESP-StepperMotor-Server", select the latest version and click on "install"
-3. if asked to install the reuquired dependencies confirm to install all dependencies as well
+3. if asked to install the required dependencies confirm to install all dependencies as well
 4. if dependency installation fails install the following dependencies manually: 
   * ArduinoJSON (the one from Benoit Blanchon)
   * ESP-FlexyStepper
-  * at the time of writing this documentation, the following two libraries are not available via the library manager, so they need to be installed manually, if you you cannot find them in the library manager:
+  * at the time of writing this documentation, the following two libraries are not available via the library manager, so they need to be installed manually, if you cannot find them in the library manager:
     * ESPAsyncWebServer: [https://github.com/me-no-dev/ESPAsyncWebServer](https://github.com/me-no-dev/ESPAsyncWebServer)
     * AsyncTCP [https://github.com/me-no-dev/AsyncTCP](https://github.com/me-no-dev/AsyncTCP)
 
