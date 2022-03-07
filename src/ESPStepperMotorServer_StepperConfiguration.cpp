@@ -171,6 +171,12 @@ void ESPStepperMotorServer_StepperConfiguration::setBrakeReleaseDelayMs(long del
     this->_flexyStepper->setBrakeReleaseDelayMs(delay);
 }
 
+void ESPStepperMotorServer_StepperConfiguration::setBrakePinActiveState(byte activeState)
+{
+    this->_brakePinActiveState = activeState;
+    this->_flexyStepper->setBrakePin(this->_brakeIoPin, this->_brakePinActiveState);
+}
+
 // motion configurateion settings
 void ESPStepperMotorServer_StepperConfiguration::setStepsPerRev(unsigned int stepsPerRev)
 {

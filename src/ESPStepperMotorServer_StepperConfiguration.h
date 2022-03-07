@@ -115,6 +115,7 @@ public:
   long getBrakeReleaseDelayMs();
 
   void setBrakeIoPin(byte, byte);
+  void setBrakePinActiveState(byte);
   void setBrakeEngageDelayMs(long);
   void setBrakeReleaseDelayMs(long);
 

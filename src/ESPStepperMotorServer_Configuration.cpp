@@ -94,6 +94,7 @@ void ESPStepperMotorServer_Configuration::serializeServerConfiguration(JsonDocum
     doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_PASSWORD] = (includePasswords) ? this->wifiPassword : "*****";
     doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_AP_NAME] = this->apName;
     doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_AP_PASSWORD] = (includePasswords) ? this->apPassword : "*****";
+    doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_CPUCORE_FOR_MOTIONCONTROLLER_SERVICE] = this->motionControllerCpuCore;
 
     ESPStepperMotorServer_Logger::logInfof("Serializing config \n");
 
@@ -120,7 +121,7 @@ void ESPStepperMotorServer_Configuration::serializeServerConfiguration(JsonDocum
     }
     if (this->dns2IP != 0)
     {
-        ESPStepperMotorServer_Logger::logInfof("DSN2 ip = %s \n", this->dns2IP.toString().c_str());
+        ESPStepperMotorServer_Logger::logInfof("DNS2 ip = %s \n", this->dns2IP.toString().c_str());
         doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS2] = this->dns2IP.toString();
     }
 
@@ -140,6 +141,10 @@ void ESPStepperMotorServer_Configuration::serializeServerConfiguration(JsonDocum
             nestedStepperConfig["stepsPerMM"] = stepperConfig->getStepsPerMM();
             nestedStepperConfig["microsteppingDivisor"] = stepperConfig->getMicrostepsPerStep();
             nestedStepperConfig["rpmLimit"] = stepperConfig->getRpmLimit();
+            nestedStepperConfig["breakPin"] = stepperConfig->getBrakeIoPin();
+            nestedStepperConfig["breakPinActiveState"] = stepperConfig->getBrakePinActiveState();
+            nestedStepperConfig["breakEngageDelay"] = stepperConfig->getBrakeEngageDelayMs();
+            nestedStepperConfig["breakReleaseDelay"] = stepperConfig->getBrakeReleaseDelayMs();
         }
     }
 
@@ -259,6 +264,9 @@ bool ESPStepperMotorServer_Configuration::loadConfiguationFromSpiffs(String file
         value = doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_AP_PASSWORD];
         this->apPassword = (value) ? value.as<char *>() : "Aa123456";
 
+        value = doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_CPUCORE_FOR_MOTIONCONTROLLER_SERVICE];
+        this->motionControllerCpuCore = (value) ? value.as<int>() : 0;
+
         this->wifiSsid = doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_SSID].as<char *>();
         this->wifiPassword = doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_PASSWORD].as<char *>();
 
@@ -304,6 +312,13 @@ bool ESPStepperMotorServer_Configuration::loadConfiguationFromSpiffs(String file
                     (stepperConfigEntry["stepsPerMM"] | 100),
                     (stepperConfigEntry["microsteppingDivisor"] | ESPSMS_MICROSTEPS_OFF),
                     (stepperConfigEntry["rpmLimit"] | 1000));
+                
+                //check if break pin is used at all
+                if(stepperConfig->getBrakeIoPin() != stepperConfig->ESPServerStepperUnsetIoPinNumber){
+                    stepperConfig->setBrakeIoPin(stepperConfigEntry["breakPin"] | stepperConfig->ESPServerStepperUnsetIoPinNumber, stepperConfigEntry["breakPinActiveState"] | 1);
+                    stepperConfig->setBrakeEngageDelayMs(stepperConfigEntry["breakEngageDelay"] | 0);
+                    stepperConfig->setBrakeReleaseDelayMs(stepperConfigEntry["breakReleaseDelay"] | -1);
+                }
                 if (stepperConfigEntry["id"])
                 {
                     this->setStepperConfiguration(stepperConfig, stepperConfigEntry["id"]);

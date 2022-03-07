@@ -95,6 +95,7 @@ public:
   const char *apPassword = "Aa123456";
   const char *wifiSsid = "undefined";
   const char *wifiPassword = "undefined";
+  int motionControllerCpuCore = 0;
 
   IPAddress staticIP;
   IPAddress gatewayIP;
@@ -141,6 +142,7 @@ private:
   const char *JSON_PROPERTY_NAME_WIFI_PASSWORD = "wifiPassword";
   const char *JSON_PROPERTY_NAME_WIFI_AP_NAME = "apName";
   const char *JSON_PROPERTY_NAME_WIFI_AP_PASSWORD = "apPassword";
+  const char *JSON_PROPERTY_NAME_CPUCORE_FOR_MOTIONCONTROLLER_SERVICE = "motionControllerCpuCore";
 
   //for static IP settings
   const char *JSON_PROPERTY_NAME_WIFI_STATIC_IP_ADDRESS = "staticIP";
