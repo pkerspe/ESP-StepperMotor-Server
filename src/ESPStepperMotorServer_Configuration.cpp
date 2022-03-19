@@ -228,6 +228,7 @@ bool ESPStepperMotorServer_Configuration::saveCurrentConfiguationToSpiffs(String
 
     // Close the file
     file.close();
+ 
     return success;
 }
 
@@ -313,12 +314,11 @@ bool ESPStepperMotorServer_Configuration::loadConfiguationFromSpiffs(String file
                     (stepperConfigEntry["microsteppingDivisor"] | ESPSMS_MICROSTEPS_OFF),
                     (stepperConfigEntry["rpmLimit"] | 1000));
                 
-                //check if break pin is used at all
-                if(stepperConfig->getBrakeIoPin() != stepperConfig->ESPServerStepperUnsetIoPinNumber){
-                    stepperConfig->setBrakeIoPin(stepperConfigEntry["breakPin"] | stepperConfig->ESPServerStepperUnsetIoPinNumber, stepperConfigEntry["breakPinActiveState"] | 1);
-                    stepperConfig->setBrakeEngageDelayMs(stepperConfigEntry["breakEngageDelay"] | 0);
-                    stepperConfig->setBrakeReleaseDelayMs(stepperConfigEntry["breakReleaseDelay"] | -1);
-                }
+                //set break settings
+                stepperConfig->setBrakeIoPin(stepperConfigEntry["breakPin"] | stepperConfig->ESPServerStepperUnsetIoPinNumber, stepperConfigEntry["breakPinActiveState"] | 1);
+                stepperConfig->setBrakeEngageDelayMs(stepperConfigEntry["breakEngageDelay"] | 0);
+                stepperConfig->setBrakeReleaseDelayMs(stepperConfigEntry["breakReleaseDelay"] | -1);
+
                 if (stepperConfigEntry["id"])
                 {
                     this->setStepperConfiguration(stepperConfig, stepperConfigEntry["id"]);

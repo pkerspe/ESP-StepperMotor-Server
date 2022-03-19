@@ -10,7 +10,7 @@
         "type": "git",
         "url": "https://github.com/pkerspe/ESP-StepperMotor-Server.git"
     },
-    "version": "0.4.7",
+    "version": "0.4.8",
     "license": "MIT",
     "frameworks": "arduino",
     "platforms": [
@@ -28,7 +28,7 @@
         },
         {
             "name": "ArduinoJSON",
-            "version": "6.15.2",
+            "version": "6.19.2",
             "platforms": "arduino"
         },
         {
