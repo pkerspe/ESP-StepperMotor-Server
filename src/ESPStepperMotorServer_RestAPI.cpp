@@ -393,16 +393,16 @@ void ESPStepperMotorServer_RestAPI::registerRestEndpoints(AsyncWebServer *httpSe
                                request->send(404);
                                return;
                            }
-                           request->send(200, "application/json", (String) "{ status: " + this->_stepperMotorServer->getPositionSwitchStatus(switchIndex) + (String) "}");
+                           request->send(200, "application/json", (String) "{ \"status\": \"" + this->_stepperMotorServer->getPositionSwitchStatus(switchIndex) + (String) "\"}");
                        }
                        else
                        {
-                           String output = "{ status: ";
+                           String output = "{ \"status\": \"";
                            for (int i = ESPServerSwitchStatusRegisterCount - 1; i >= 0; i--)
                            {
                                this->_stepperMotorServer->getFormattedPositionSwitchStatusRegister(i, output);
                            }
-                           request->send(200, "application/json", output + "}");
+                           request->send(200, "application/json", output + "\"}");
                        }
                    });
 
