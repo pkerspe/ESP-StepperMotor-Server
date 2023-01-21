@@ -2,7 +2,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/d9bf5e50c7334b71a9dfba7367b3b18e)](https://app.codacy.com/manual/pkerspe/ESP-StepperMotor-Server?utm_source=github.com&utm_medium=referral&utm_content=pkerspe/ESP-StepperMotor-Server&utm_campaign=Badge_Grade_Dashboard) 
 
 Turn your ESP32 into a standalone stepper motor control server with easy to use webinterface.
-Connect one ore more stepper controllers with step and direction input, and optionally some limit-switches to the IO-pins of your ESP module and control the stepper motor via an easy to use web interface, via REST API or via a serial control interface.
+Connect one or more stepper controllers with step and direction input, and optionally some limit-switches to the IO-pins of your ESP module and control the stepper motor via a comfortable web interface, via REST API or via a serial control interface.
 
 ## Table of contents
 
@@ -17,7 +17,7 @@ Connect one ore more stepper controllers with step and direction input, and opti
   * [Installation of the web user interface](#installation-of-the-web-ui)
   * [Connecting the hardware](#connecting-the-hardware)
   * [Connecting rotary encoders](#connecting-rotary-encoders)
-  * [Configuation via the web user interface](#configuation-via-the-web-user-interface)
+  * [Configuration via the web user interface](#configuration-via-the-web-user-interface)
 * [Other UI masks](#other-ui-masks)
   * [The OTA Fimware Update function](#the-ota-fimware-update-function) 
   * [The self-test page](#the-self-test-page)
@@ -36,7 +36,7 @@ Connect one ore more stepper controllers with step and direction input, and opti
 
 This library started as a fork for the [FlexyStepper library](https://github.com/Stan-Reifel/FlexyStepper). While the FlexyStepper Library is a general Arduino compatible library this fork had a focus on the ESP32 modules from Espressif. Soon this library became much more than a modfied version of FlexyStepper but turned into a stand-alone application to turn a regular ESP32 module into a stepper motor control server.
 The core part that controls the stepper motor drivers is now based on a modified version of FlexyStepper, called [ESP-FlexyStepper](https://github.com/pkerspe/ESP-FlexyStepper).
-Since the ESP-32 modules contain a WIFI module they are perfectly suited for web-controlled stepper server and since they have enough memory and processing power they are ideal as low cost, low energy consumption standalone server component, that allows configuration and controlling of one to many stepper motor drivers with limit-switches and outputs (e.g. for Relays and LEDs).
+Since the ESP-32 modules contain a WIFI module they are perfectly suited for web-controlled stepper server and since they have enough memory and processing power, they are ideal as low cost, low energy consumption standalone server component, that allows configuration and controlling of one to many stepper motor drivers with limit-switches and outputs (e.g. for Relays and LEDs).
 
 Once the ESP Stepper Motor Server has been uploaded to the ESP module, all further configuration and controlling can be done vie the web UI without the need to code another line in the Arduino or PlatformIO IDE.
 
@@ -61,13 +61,13 @@ When using PlatformIO add these dependencies to you platformio.ini project file 
 lib_deps = ESP-StepperMotor-Server
 ```
 
-When using Arduino you need to install these libraries using the Library Manager.
+When using Arduino, you need to install these libraries using the Library Manager.
 
 If you use PlatformIO you can simply setup your project with the provided paltformio.ini file in this repository
 
 ## Setting up your ESP-StepperMotor-Server
 
-In order to get started you need the following elements:
+To get started you need the following elements:
 * An *ESP32* board of your choice (boards with USB-Serial Chips are recommended for the ease of programming them, other boards just work as well, yet you have to figure out how to flash the firmware yourself, since this process will not be covered in this manual)
 * A configured, Arduino compatible IDE ([Arduino](https://www.arduino.cc/en/Main/Software) or [PlatformIO](http://platformio.org))
 * A *stepper motor*
@@ -83,7 +83,7 @@ Optional:
 #### Using Arduino IDE
 USING ARDUINO IDE IS NOT SUGGESTED due to multiple issues with the dependencies and much higher manual effort to get everything running.
 If you still want to try it, the following steps might work, but you are basically on your own here.
-Do yourself a favor and use a real IDE like Visual Studio Code with PlatformIO (it is free and way more comfortable and powerfull than the Arduino IDE) :-)
+Do yourself a favor and use a real IDE like Visual Studio Code with PlatformIO (it is free and way more comfortable and powerful than the Arduino IDE) :-)
 
 1. Download and install the [Arduino IDE](https://www.arduino.cc/en/main/software)
 2. open the library manager and search for "ESP-StepperMotor-Server", select the latest version and click on "install"
@@ -97,7 +97,7 @@ Do yourself a favor and use a real IDE like Visual Studio Code with PlatformIO (
 
 #### Using PlatformIO
 
-[PlatformIO](http://platformio.org) is an open source ecosystem for IoT development with cross platform build system, library manager and full support for Espressif ESP32 development. It is based on the free Visual Studio Code from Microsoft, but still works on most popular host OS: Mac OS X, Windows, Linux 32/64, Linux ARM (like Raspberry Pi, BeagleBone, CubieBoard).
+[PlatformIO](http://platformio.org) is an open-source ecosystem for IoT development with cross platform build system, library manager and full support for Espressif ESP32 development. It is based on the free Visual Studio Code from Microsoft, but still works on most popular host OS: Mac OS X, Windows, Linux 32/64, Linux ARM (like Raspberry Pi, BeagleBone, CubieBoard).
 
 1. Install [PlatformIO IDE](http://platformio.org/platformio-ide)
 2. Create new project using "PlatformIO Home > New Project"
@@ -112,7 +112,7 @@ lib_deps = ESP-StepperMotor-Server
 
 monitor_speed = 115200
 ```
-5. now you can open the main.cpp file and include the ESP-StepperMotor-Server and create an instance of the server with a minimal configuration that connects to an existing WiFi like this:
+5. now you can open the main.cpp file and include the ESP-StepperMotor-Server and create an instance of the server with a minimal configuration that connects to an existing WIFI like this:
 ```#include <Arduino.h>
 #include <ESPStepperMotorServer.h>
 
@@ -134,7 +134,7 @@ void loop()
 {
 }
 ```
-*NOTE:* Replace `<your wifi ssid>` with the name of your WiFI and `<your wifi password>` with your WiFi password in the example code above
+*NOTE:* Replace `<your wifi ssid>` with the name of your WiFI and `<your wifi password>` with your WIFI password in the example code above
 This is the absolute minimum example how to start the server. For further examples and more inline documentation see the provided example sketches.
 
 6. [Build/compile and upload the project](http://docs.platformio.org/en/latest/tutorials/espressif32/arduino_debugging_unit_testing.html#compiling-and-uploading-the-firmware) to your connected ESP32 module and open the console Monitor in PlatformIO (or connect to the board using your prefered serial terminal console) to see the output of the ESP-StepperMotor-Server starting up.
@@ -144,15 +144,16 @@ In the output on the serial monitor you should see that some output similar to t
 [INFO] 2 switch configuration entries loaded from config file
 [INFO] 2 rotary encoder configuration entries loaded from config file
 [INFO] Starting ESP-StepperMotor-Server (v. 0.0.6)
-[INFO] Trying to connect to WiFi with SSID '<your wifi SSID could be here>' ....
+[INFO] Trying to connect to WIFI with SSID '<your wifi SSID could be here>' ....
 [INFO] Connected to network with IP address XXX.XXX.XXX.XXX
 ...
 [INFO] Starting webserver on port YY
 [INFO] Webserver started, you can now open the user interface on http://XXX.XXX.XXX.XXX:YY/
 ...
 ```
-During Startup the ESP32 will check if the User Interface is installed on the ESP32s SPI Flash File System (SPIFFS). If it cannot find one ore more required files it will attemtp to download the files via WiFi from the git hub repository (if the SPIFFS has ben initialized at leas once before). In case your WiFi does not provide an open internet connection, you need to upload the files manually using he "Upload File System image" Task from PlatformIO. More Details can be found in the section [Insallation of the Web UI](#insallation-of-the-web-ui)
-If the UI is installed on the SPIFFS you should see the following (or a similar) output in the serial console after the Wifi Connection has been established:
+During Startup the ESP32 will check if the User Interface is installed on the ESP32s SPI Flash File System (SPIFFS). If it cannot find one or more required files it will attempt to download the files via the WIFI connection from the github repository (if the SPIFFS has been initialized at least once before). 
+More Details can be found in the section [Installation of the Web UI](#insallation-of-the-web-ui)
+Once the UI is installed on the SPIFFS you should see the following (or a similar) output in the serial console after the Wifi Connection has been established:
 ```[INFO] Listing files in root folder of SPIFFS:
 [INFO] File: /index.html (615) -1
 [INFO] File: /js/app.js.gz (266875) -1
@@ -163,7 +164,7 @@ If the UI is installed on the SPIFFS you should see the following (or a similar)
 [INFO] File: /favicon.ico.gz (1565) -1
 ```
 
-Now that it is started, you can open the UI in a browser on you PC connected to the same WiFi network, by typing the IP Address you saw in the serial console before into the address bar of your browser prefixed with "http://".
+Now that the server has started, you can open the UI in a browser on your PC connected to the same WIFI network, by typing the IP Address you saw in the serial console before into the address bar of your browser prefixed with "http://".
 
 You should now see the start screen of the ESP StepperMotor Server:
 ![startup screen][startup_screen]
@@ -172,20 +173,25 @@ You should now see the start screen of the ESP StepperMotor Server:
 When you build the ESP-StepperMotor-Server without any optimizations it takes up a fair amount of the ESP32s flash size (in the standard OTA partition layout).
 If you do not need all modules of the ESP-StepperMotor-Server you can use build flags to reduce the code size significantly.
 The following build flags are supported:
-* ```ESPStepperMotorServer_COMPILE_NO_WEB```: using this flag completely disables the Web Interface, the REST API and the Websocket server. This has the biggest impact on the compiled size, since it also affects the inclusion of the external dependencies of the ESP Async WebServer and AsyncTCP libraries. If you use this flag you will not be able to use the webinterface of the ESP Stepper motor server anymore for configuration and control of the server. You can then only interact with the server using the serial command line interface
+* ```ESPStepperMotorServer_COMPILE_NO_WEB```: using this flag completely disables the Web Interface, the REST API and the Websocket server. This has the biggest impact on the compiled size, since it also affects the inclusion of the external dependencies of the ESP Async WebServer and AsyncTCP libraries. If you use this flag, you will not be able to use the webinterface of the ESP Stepper motor server anymore for configuration and control of the server. You can then only interact with the server using the serial command line interface
 * ```ESPStepperMotorServer_COMPILE_NO_DEBUG```: this flag will remove all debug output and debug functions, leading to a small reduction of the size
 * ```ESPStepperMotorServer_COMPILE_NO_CLI_HELP```: this flag will remove all help texts from the Command line interface help command and by that reducing the size a bit further
 
-The following chart shows the impact on file size when disabling one or more features (numbers base on a rather small main programm as provided in the examples folder and are also just a guideline since these statistics have been create with version 0.4.6, due to changes in the dependency libraries but also due to new features in this libaray itself, the overall size might increase or decrease):
+The following chart shows the impact on file size when disabling one or more features (numbers base on a rather small main program as provided in the examples folder and are also just a guideline since these statistics have been create with version 0.4.6, due to changes in the dependency libraries but also due to new features in this library itself, the overall size might increase or decrease):
 ![compiled size][compiled_size]
 
-To use one or more of these build flags in PlatformIO, simply add the following line to your platformio.ini file of your project (e.g. to disable debug output and the help texts in the Command Line Interface):
+To use one or more of these build flags in PlatformIO, simply add the following line to your `platformio.ini` file of your project (e.g. to disable debug output and the help texts in the Command Line Interface):
 ```
 build_flags = -D ESPStepperMotorServer_COMPILE_NO_DEBUG -D ESPStepperMotorServer_COMPILE_NO_CLI_HELP
 ```
 
 ### Installation of the Web UI
-Once you uploaded the compiled sketch to your ESP32 (don't forget to enter your SSID and WIFI Password in the sketch!) the ESP will connect to the WIFI and check if the UI files are already installed in the SPI Flash File System (SPIFFS) of the ESP. If not, it will try to download it.
+Once you uploaded the compiled sketch to your ESP32 (don't forget to enter your SSID and WIFI Password in the sketch!) the ESP will connect to the WIFI with the specified SSID and check if the UI files are already installed in the SPI Flash File System (SPIFFS) of the ESP. If not, it will try to download it.
+In case your WIFI does not provide an open internet connection, you need to upload the files manually using he "Upload File System image" task from PlatformIO. 
+Make sure your `data` folder in your platformIO project exists and contains the required files and folders for the User Interface.
+You can find all UI files in a separate GitHub repository for the User Interface: https://github.com/pkerspe/ESP-StepperMotor-Server-UI/tree/master/data
+Hint: If you want to customize the user interface of the Stepper Motor Server, you can clone the [repository](https://github.com/pkerspe/ESP-StepperMotor-Server-UI) and modify the User interface that is based on vue.js and build your own version using `npm run build` and then copy the output to the data folder of your ESP32 Stepper Motor Server project.
+
 Once all is done you can enter the IP address of you ESP32 module in the browser and you will see the UI of the Stepper Motor Server, where you can configure the stepper motors and controls.
 
 To figure out the IP address of your ESP-32 module, you can either check your routers admin UI or you can connect to the serial port of the ESP-32 and check the output. Once the connection to you WIFI has been established, the module will print the IP address to the serial console.
@@ -204,7 +210,7 @@ The common pin on the rotary encoder needs to be connected to ground.
 The specified IO Pins on the ESP32 will be configured as INPUT with internal pullup resistor automatically.
 PLEASE NOTE: once you turn the rotary encoder the current stepper position of the connected stepper motor will be incremented/decremented by the number of steps you configured in the multiplier field and set as the new target position.
 This might not be what you want it to behave, but currently it is the way it is developed. I might implement an additional option that will allow you to increase/decrease the current target position of the stepper motor with each increment on the rotary encoder.
-Simply spoken: no matter how quick you turn the rotary encoder it will always just cause the stepper to move an amount of configured steps from its CURRENT physical position when the last signal from the rotary encoder has been received.
+Simply spoken: no matter how quick you turn the rotary encoder it will always just cause the stepper to move a number of configured steps from its CURRENT physical position when the last signal from the rotary encoder has been received.
 For now, you could change this behavior by changing the following lines in the ESPStepperMotorServer.cpp file:
 
 `stepperConfig->_flexyStepper->setTargetPositionRelativeInSteps(1 * rotaryEncoder->_stepMultiplier);` 
@@ -221,7 +227,7 @@ to
 
 `stepperConfig->_flexyStepper->setTargetPositionInSteps(stepperConfig->_flexyStepper->getTargetPositionInSteps() + newPosition);`
 
-### Configuation via the web user interface
+### Configuration via the web user interface
 After you installed everything on the hardware side, you can open the web UI to setup/configure the server.
 In the navigation on the left side click on "SETUP" to open the configuration page.
 
@@ -251,7 +257,7 @@ For further details on how to create the needed firmware file please refer to yo
 ### The self-test page
 When entering the URL `http://<ip of your esp>:<port>/selftest` you will get to a page that outputs information on your current setup / installation status of the ESP-StepperMotorServer. This page is basically for trouble shooting and will be extended over time.
 Whenever you have any issues with your installation you might want to check this page to see if any errors are shown here.
-Currently it will output information mainly about the SPIFFS (SPI-Flash-File-System) status, since it seems to be a common cause for problems according to the issue list on this project. Thus you should check it to see if any negative results are displayed.
+Currently it will output information mainly about the SPIFFS (SPI-Flash-Filesystem) status, since it seems to be a common cause for problems according to the issue list on this project. Thus, you should check it to see if any negative results are displayed.
 
 ## API documentation
 
@@ -268,7 +274,7 @@ this is the main class and the one you want to start with.
 |`void setAccessPointName(const char *accessPointSSID)`|Set the name of the Access Point (SSID) to create by the server|`const char *accessPointSSID`: the name of the access point to open up. Only used when the server is configured to start in AP mode by using `setWifiMode(ESPServerWifiModeAccessPoint)` is used. The default value is 'ESP-StepperMotor-Server'|
 |`void setAccessPointPassword(const char *accessPointPassword)`|Set the password needed to connect to the Access Point created by the server. Only used when the server is configured to start in AP mode by using `setWifiMode(ESPServerWifiModeAccessPoint)` is used. The default value is 'Aa123456'|`const char *accessPointPassword`|
 |`void setWifiCredentials(const char *ssid, const char *pwd)`|Set the wifi credentials for your local WIFI to connect to. Only used when the server is configured in WIFI Client mode by using `setWifiMode(ESPServerWifiModeClient)`|`const char *ssid`: the name of the WIFI to connect to. `const char *pwd`: the password for the WIFI to connect to|
-|`void setWifiMode(byte wifiMode)`|Set the WIFI mode to start the server in. It can either operate in WiFi Client or Access Point mode. As a client it connects to an existing WIFI network. Requires the WIFI access credentials to be set using the `setWifiCredentials` function. In Access Point mode, the server opens it's own WIFI network and waits for clients to connect. You can specify the AP Name and Password using the `setAccessPointName` and `setAccessPointPassword` functions (otherwise default values will be used, for details see documentation of the mentioned functions and parameters)|`byte wifiMode`: the mode to use. Supported values should be provided with the constants `ESPServerWifiModeClient` and `ESPServerWifiModeAccessPoint`. To disable the WiFi modes completely use `ESPServerWifiDisabled`|
+|`void setWifiMode(byte wifiMode)`|Set the WIFI mode to start the server in. It can either operate in WIFI Client or Access Point mode. As a client it connects to an existing WIFI network. Requires the WIFI access credentials to be set using the `setWifiCredentials` function. In Access Point mode, the server opens it's own WIFI network and waits for clients to connect. You can specify the AP Name and Password using the `setAccessPointName` and `setAccessPointPassword` functions (otherwise default values will be used, for details see documentation of the mentioned functions and parameters)|`byte wifiMode`: the mode to use. Supported values should be provided with the constants `ESPServerWifiModeClient` and `ESPServerWifiModeAccessPoint`. To disable the WIFI modes completely use `ESPServerWifiDisabled`|
 |`void setStaticIpAddress(IPAddress staticIP, IPAddress gatewayIP, IPAddress subnetMask, IPAddress dns1, IPAddress dns2)`|Set a static IP Address, gateway IP and subnet mask. The primary and secondary DNS Server arguments are optional and can be omitted|
 |`void printWifiStatus()`|prints current WIFI connection details to the serial console. This should be called only AFTER the server has been started, since the connection to the WIFI network or setup of an Access Point is only done after calling the `start()` function of the server|none|
 |`int addOrUpdateStepper(ESPStepperMotorServer_StepperConfiguration *stepper, int stepperIndex = -1)`|Add a new stepper motor to the server configuration or update an existing one with a given id. This function returns the ID of the newly created stepper configuration for further reference. If an existing configuration has been updated, the id of the updated configuration is returned (same as provided `stepperIndex` parameter value)|`ESPStepperMotorServer_StepperConfiguration *stepper,`: pointer to a configured `ESPStepperMotorServer_StepperConfiguration` instance. Optional `int stepperIndex`: if set this parameter indicates the configuration ID of an existing stepper configuration, that shall be overwritten/replace with the new one supplied using the `stepper` parameter|
@@ -282,17 +288,17 @@ this is the main class and the one you want to start with.
 |`void stop()`|start the ESP-StepperMotor-Server. Basically un-do all the stuff that has been done during the start-up sequence|none|
 |`byte getPositionSwitchStatus(int positionSwitchIndex)`|Get the switch status of a specific switch. Return 1 if the switch is currently triggered, 0 if it is not|`int positionSwitchIndex`|
 |`void getButtonStatusRegister(byte buffer[ESPServerSwitchStatusRegisterCount])`|Populate the given byte buffer with the switch status for each configrued button (1 = button is tiggered, 0 = button is not triggered)|`byte buffer[]`: a byte array to populate with the status register contents for all configured switches (basically the current switch status in regards to being active/incate)|
-|`String getIpAddress()`|get the current IP address of the server. Only Available if connected to a WiFi or if started in AP mode|none|
+|`String getIpAddress()`|get the current IP address of the server. Only Available if connected to a WIFI or if started in AP mode|none|
 |`ESPStepperMotorServer_Configuration *getCurrentServerConfiguration()`|get the pointer of the ESPStepperMotorServer_Configuration instance that represents the current server complete configuration|none|
 
 ### REST API documentation
-Besides the web based User Interface the ESP StepperMotor Server offers a REST API to control all aspects of the server that can also be controlled via the web UI (in fact the web UI uses the REST API for all operations).
+Besides the web-based User Interface the ESP StepperMotor Server offers a REST API to control all aspects of the server that can also be controlled via the web UI (in fact the web UI uses the REST API for all operations).
 
 The following is an excerpt of the endpoints being provided:
 | METHOD | PATH | DESCRIPTION |
 |---|---|---|
 |GET |`/api/status`|get the current stepper server status report including the following information: version string of the server, wifi information (wifi mode, IP address), spiffs information (total space and free space)|
-|POST |`/api/steppers/returnhome`|endpoint to trigger homing of the stepper motor. This is a non blocking call, meaning the API will directly return even though the stepper motor is still performing the homing movement.<br /><br />*IMPORTANT:* this function should only be called if you previously configured a homing / limit switch for this stepper motor, otherwise the stepper will start jogging for a long time (a default limit of 2000000000 steps is configured, but can be overwritten with a POST parameter) before coming to a halt.<br/><br />*Required post parameters:*<br />__id__: the id of the stepper motor to pefrom the homing command for)<br />__speed__: the speed in steps per second to perform the homing command with<br /><br />*Optional POST parameters:*<br/>__switchId__: define the configuration id of the position switch to use as limit switch. __NOTE__: this switch should be assigned to the stepper motor, so you should not provide the id of a position switch that is not linked to the stepper driver defined in the mandatory __id__ parameter. Ideally the switch is also configured as a limit type switch.<br />__direction__: the homing direction for the stepper movement. Could be either 1 or -1. If parameter is not given the direction will be determined from the limit switch configuration (depending on the switch type "begin" or "end")<br/>__accel__: the acceleration for the homing procedure in steps/sec^2, if ommitted the previously defined acceleration in the flexy stepper instance will be used<br />__maxSteps__: this parameter defines the maximum number of steps to perform before cancelling the homing procedure. This is kind of a safeguard to prevent endless spinning of the stepper motor. Defaults to 2000000000 steps|    
+|POST |`/api/steppers/returnhome`|endpoint to trigger homing of the stepper motor. This is a non-blocking call, meaning the API will directly return even though the stepper motor is still performing the homing movement.<br /><br />*IMPORTANT:* this function should only be called if you previously configured a homing / limit switch for this stepper motor, otherwise the stepper will start jogging for a long time (a default limit of 2000000000 steps is configured, but can be overwritten with a POST parameter) before coming to a halt.<br/><br />*Required post parameters:*<br />__id__: the id of the stepper motor to pefrom the homing command for)<br />__speed__: the speed in steps per second to perform the homing command with<br /><br />*Optional POST parameters:*<br/>__switchId__: define the configuration id of the position switch to use as limit switch. __NOTE__: this switch should be assigned to the stepper motor, so you should not provide the id of a position switch that is not linked to the stepper driver defined in the mandatory __id__ parameter. Ideally the switch is also configured as a limit type switch.<br />__direction__: the homing direction for the stepper movement. Could be either 1 or -1. If parameter is not given the direction will be determined from the limit switch configuration (depending on the switch type "begin" or "end")<br/>__accel__: the acceleration for the homing procedure in steps/sec^2, if ommitted the previously defined acceleration in the flexy stepper instance will be used<br />__maxSteps__: this parameter defines the maximum number of steps to perform before cancelling the homing procedure. This is kind of a safeguard to prevent endless spinning of the stepper motor. Defaults to 2000000000 steps|    
 |POST|`/api/steppers/moveby`|endpoint to set a new RELATIVE target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value. Optional post parameters: speed, acel, decel|
 |POST |`/api/steppers/position`|endpoint to set a new absolute target position for the stepper motor in either mm, revs or steps. Required post parameters: id, unit, value. Optional post parameters: speed, acel, decel|
 | GET |`/api/steppers` or `/api/steppers?id=<id>`|endpoint to list all configured steppers or a specific one if "id" query parameter is given
@@ -304,10 +310,10 @@ The following is an excerpt of the endpoints being provided:
 | POST |`/api/switches`|endpoint to add a new switch configuration|
 | PUT |`/api/switches?id=<id>`|endpoint to update an existing switch configuration|
 | DELETE |`/api/switches?id=<id>`|delete a specific switch configuration|
-| GET |`/api/config`|get the JSON represenation of the current server configuration with all configured steppers, switches and encoders. This is the in memory configuration (current is-state) which might differ from the persisted configuration. To persist the current configuration see `GET /api/config/save`|
+| GET |`/api/config`|get the JSON represenation of the current server configuration with all configured steppers, switches and encoders. This is the in-memory configuration (current is-state) which might differ from the persisted configuration. To persist the current configuration see `GET /api/config/save`|
 | GET |`/api/config/save`|save the current in-memory configuration of the server to the [SPIFFS](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/spiffs.html) into the `config.json` file. You can download this file using the URL schema `http://<ip of your esp>:<port>/config.json`. Calling this endpoint persists the configuration in its current state to survive also power loss / reboot / reset of the server. This should be called whenver you perform any changes on the configuration that you want to keep even after a reboot/reset of the ESP|
 
-To get a full list of endpoints navigate to the about page in the web ui and click on the REST API documentation link
+To get a full list of endpoints navigate to the about page in the web UI and click on the REST API documentation link
 ![about screen][about_screen]
 
 ### Serial command line interface
@@ -322,7 +328,7 @@ The following commands are available:
 
 <command> [<shortcut>]: <description>
 help [h]:               show a list of all available commands
-moveby [mb]*:           move by an specified amount of units. requires the id of the stepper to move, the amount pf movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. E.g. mb=0&v:-100&u:mm to move the stepper with id 0 by -100 mm
+moveby [mb]*:           move by a specified number of units. requires the id of the stepper to move, the amount pf movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. E.g. mb=0&v:-100&u:mm to move the stepper with id 0 by -100 mm
 moveto [mt]*:           move to an absolute position. requires the id of the stepper to move, the amount pf movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. E.g. mt=0&v:100&u:revs to move the stepper with id 0 to the absolute position at 100 revolutions
 config [c]:             print the current configuration to the console as JSON formatted string
 emergencystop [es]:     trigger emergency stop for all connected steppers. This will clear all target positions and stop the motion controller module immediately. In order to proceed normal operation after this command has been issued, you need to call the revokeemergencystop [res] command
@@ -341,18 +347,18 @@ switchstatus [pss]:     print the status of all input switches as JSON formated 
 setapname [san]*:       set the name of the access point to be opened up by the esp (if in AP mode)
 setappwd [sap]*:        set the password for the access point to be opened by the esp
 sethttpport [shp]*:     set the http port to listen for for the web interface
-setwifissid [sws]*:     set the SSID of the WiFi to connect to (if in client mode)
+setwifissid [sws]*:     set the SSID of the WIFI to connect to (if in client mode)
 setwifipwd [swp]*:      set the password of the Wifi network to connect to")
 
-commmands marked with a * require input parameters.
-Parameters are provided with the command separarted by a = for the primary parameter.
+commands marked with a * require input parameters.
+Parameters are provided with the command separated by a = for the primary parameter.
 Secondary parameters are provided in the format '&<parametername>:<parametervalue'
 ````
 
-In general there are two types of commands:
+In general, there are two types of commands:
 Commands with parameters, and commands without parameters. Some command support also optional parameters.
 Each command also has a shortcut (listed in the `help` output in `[]`) that can be used if you are not so much into typing a lot.
-Commands with parmaeters need to be called following this schema:
+Commands with parameters must be invoced following this schema:
 `<commandname or shortcut name>=<primary parameter>&<optional additional parameter name>:<optional additional parameter value>`
 An example for a command with multiple parameters is the `moveto` command. The shortcut for this command is `mt`.
 The command supports three parameters: the id of the stepper to move (primary parameter), the amount/value for the movement (v parameter) and the unit (u parameter) for the movement (mm, steps or revolutions).
