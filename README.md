@@ -176,7 +176,7 @@ The following build flags are supported:
 * ```ESPStepperMotorServer_COMPILE_NO_DEBUG```: this flag will remove all debug output and debug functions, leading to a small reduction of the size
 * ```ESPStepperMotorServer_COMPILE_NO_CLI_HELP```: this flag will remove all help texts from the Command line interface help command and by that reducing the size a bit further
 
-The following chart shows the impact on file size when disabling one or more features (numbers base on a rather small main programm as provided in the examples folder):
+The following chart shows the impact on file size when disabling one or more features (numbers base on a rather small main programm as provided in the examples folder and are also just a guideline since these statistics have been create with version 0.4.6, due to changes in the dependency libraries but also due to new features in this libaray itself, the overall size might increase or decrease):
 ![compiled size][compiled_size]
 
 To use one or more of these build flags in PlatformIO, simply add the following line to your platformio.ini file of your project (e.g. to disable debug output and the help texts in the Command Line Interface):
