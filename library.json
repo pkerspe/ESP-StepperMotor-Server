@@ -23,12 +23,12 @@
         },
         {
             "name": "ESP-FlexyStepper",
-            "version": "1.4.5",
+            "version": "1.4.6",
             "platforms": "espressif32"
         },
         {
             "name": "ArduinoJSON",
-            "version": "6.19.2",
+            "version": "6.19.4",
             "platforms": "arduino"
         },
         {
