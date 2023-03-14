@@ -2,7 +2,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/d9bf5e50c7334b71a9dfba7367b3b18e)](https://app.codacy.com/manual/pkerspe/ESP-StepperMotor-Server?utm_source=github.com&utm_medium=referral&utm_content=pkerspe/ESP-StepperMotor-Server&utm_campaign=Badge_Grade_Dashboard) 
 
 Turn your ESP32 into a standalone stepper motor control server with easy to use webinterface.
-Connect one or more stepper controllers with step and direction input, and optionally some limit-switches to the IO-pins of your ESP module and control the stepper motor via a comfortable web interface, via REST API or via a serial control interface.
+Connect one or more stepper drivers with step and direction input, and optionally some limit-switches to the IO-pins of your ESP module and control the stepper motor via a comfortable web interface, via REST API or via a serial control interface.
 
 ## Table of contents
 
