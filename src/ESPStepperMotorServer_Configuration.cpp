@@ -260,37 +260,37 @@ bool ESPStepperMotorServer_Configuration::loadConfiguationFromSpiffs(String file
         this->wifiMode = doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_MODE] | DEFAULT_WIFI_MODE;
 
         JsonVariant value = doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_AP_NAME];
-        this->apName = (value) ? value.as<char *>() : "ESP-StepperMotor-Server";
+        this->apName = (value) ? value.as<const char *>() : "ESP-StepperMotor-Server";
 
         value = doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_AP_PASSWORD];
-        this->apPassword = (value) ? value.as<char *>() : "Aa123456";
+        this->apPassword = (value) ? value.as<const char *>() : "Aa123456";
 
         value = doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_CPUCORE_FOR_MOTIONCONTROLLER_SERVICE];
         this->motionControllerCpuCore = (value) ? value.as<int>() : 0;
 
-        this->wifiSsid = doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_SSID].as<char *>();
-        this->wifiPassword = doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_PASSWORD].as<char *>();
+        this->wifiSsid = doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_SSID].as<const char *>();
+        this->wifiPassword = doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_PASSWORD].as<const char *>();
 
         // read static IP settings if any
         if (doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_ADDRESS))
         {
-            this->staticIP.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_ADDRESS].as<char *>());
+            this->staticIP.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_ADDRESS].as<const char *>());
         }
         if (doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_GATEWAY))
         {
-            this->gatewayIP.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_GATEWAY].as<char *>());
+            this->gatewayIP.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_GATEWAY].as<const char *>());
         }
         if (doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_SUBNETMASK))
         {
-            this->subnetMask.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_SUBNETMASK].as<char *>());
+            this->subnetMask.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_SUBNETMASK].as<const char *>());
         }
         if (doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS1))
         {
-            this->dns1IP.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS1].as<char *>());
+            this->dns1IP.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS1].as<const char *>());
         }
         if (doc[JSON_SECTION_NAME_SERVER_CONFIGURATION].containsKey(JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS2))
         {
-            this->dns2IP.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS2].as<char *>());
+            this->dns2IP.fromString(doc[JSON_SECTION_NAME_SERVER_CONFIGURATION][JSON_PROPERTY_NAME_WIFI_STATIC_IP_DNS2].as<const char *>());
         }
 
         // STEPPER CONFIG
@@ -304,7 +304,7 @@ bool ESPStepperMotorServer_Configuration::loadConfiguationFromSpiffs(String file
         {
             for (JsonVariant stepperConfigEntry : configs)
             {
-                const char *value = stepperConfigEntry["name"].as<char *>();
+                const char *value = stepperConfigEntry["name"].as<const char *>();
                 ESPStepperMotorServer_StepperConfiguration *stepperConfig = new ESPStepperMotorServer_StepperConfiguration(
                     (stepperConfigEntry["stepPin"] | 255),
                     (stepperConfigEntry["directionPin"] | 255),
@@ -343,7 +343,7 @@ bool ESPStepperMotorServer_Configuration::loadConfiguationFromSpiffs(String file
         {
             for (JsonVariant switchConfigEntry : configs)
             {
-                const char *value = switchConfigEntry["name"].as<char *>();
+                const char *value = switchConfigEntry["name"].as<const char *>();
                 ESPStepperMotorServer_PositionSwitch *switchConfig = new ESPStepperMotorServer_PositionSwitch(
                     (switchConfigEntry["ioPin"] | 255),
                     (switchConfigEntry["stepperIndex"] | 255),
@@ -387,7 +387,7 @@ bool ESPStepperMotorServer_Configuration::loadConfiguationFromSpiffs(String file
         {
             for (JsonVariant encoderConfigEntry : configs)
             {
-                const char *value = encoderConfigEntry["name"].as<char *>();
+                const char *value = encoderConfigEntry["name"].as<const char *>();
                 //char pinA, char pinB, String displayName, int stepMultiplier, byte stepperIndex
                 ESPStepperMotorServer_RotaryEncoder *encoderConfig = new ESPStepperMotorServer_RotaryEncoder(
                     (encoderConfigEntry["pinA"] | 255),
