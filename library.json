@@ -10,7 +10,7 @@
         "type": "git",
         "url": "https://github.com/pkerspe/ESP-StepperMotor-Server.git"
     },
-    "version": "0.4.8",
+    "version": "0.4.9",
     "license": "MIT",
     "frameworks": "arduino",
     "platforms": [
@@ -23,17 +23,17 @@
         },
         {
             "name": "ESP-FlexyStepper",
-            "version": "1.4.6",
+            "version": "^1.4.7",
             "platforms": "espressif32"
         },
         {
             "name": "ArduinoJSON",
-            "version": "6.19.4",
+            "version": "6.21.2",
             "platforms": "arduino"
         },
         {
             "name": "SPIFFS",
-            "version": "1.0",
+            "version": "2.0.0",
             "platforms": "arduino"
         }
     ],
