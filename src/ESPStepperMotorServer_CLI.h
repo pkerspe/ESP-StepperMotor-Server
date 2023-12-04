@@ -89,6 +89,7 @@ private:
   void cmdSetWifiPassword(char *cmd, char *args);
   void registerCommands();
   void registerNewCommand(commandDetailsStructure commandDetails, void (ESPStepperMotorServer_CLI::*f)(char *, char *));
+  void setMoveSpeedAccelHelper(ESP_FlexyStepper *flexyStepper, char *args);
 
   TaskHandle_t xHandle = NULL;
   ESPStepperMotorServer *serverRef;
