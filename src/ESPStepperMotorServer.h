@@ -140,6 +140,7 @@ public:
   signed char updateSwitchStatusRegister();
   String getIpAddress();
   ESPStepperMotorServer_Configuration *getCurrentServerConfiguration();
+  ESPStepperMotorServer_CLI *getCLIHandler() const;
   void requestReboot(String rebootReason);
   bool isSPIFFSMounted();
 
