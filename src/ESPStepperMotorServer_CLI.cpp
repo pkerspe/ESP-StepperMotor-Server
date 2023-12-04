@@ -84,11 +84,21 @@ void ESPStepperMotorServer_CLI::executeCommand(String cmd)
   char *pureCommand = strtok(cmdCharArray, _CMD_PARAM_SEPRATOR);
   char *arguments = strtok(NULL, "=");
 
+  // first try the built in commands
   for (int i = 0; i < this->commandCounter; i++)
   {
     if (this->allRegisteredCommands[i].command.equals(pureCommand) || this->allRegisteredCommands[i].shortCut.equals(pureCommand))
     {
       (this->*command_functions[i])(pureCommand, arguments);
+      return;
+    }
+  }
+  // next, see if it's a user defined command
+  for (int i = 0; i < this->userCommandCounter; i++)
+  {
+    if (this->allRegisteredUserCommands[i].command.equals(pureCommand) || this->allRegisteredUserCommands[i].shortCut.equals(pureCommand))
+    {
+      (this->user_command_functions[i])(pureCommand, arguments);
       return;
     }
   }
@@ -236,7 +246,39 @@ void ESPStepperMotorServer_CLI::registerNewCommand(commandDetailsStructure comma
   }
   else
   {
-    ESPStepperMotorServer_Logger::logWarningf("The maximum number of CLI commands has been exceeded. You need to increase the MAX_CLI_CMD_COUNTER value to add more then %i commands\n", MAX_CLI_CMD_COUNTER);
+    ESPStepperMotorServer_Logger::logWarningf("The maximum number of CLI commands has been exceeded. You need to increase the MAX_CLI_CMD_COUNTER value to add more than %i commands\n", MAX_CLI_CMD_COUNTER);
+  }
+}
+
+void ESPStepperMotorServer_CLI::registerNewUserCommand(commandDetailsStructure commandDetails, void (*cmdFunction)(char *, char *))
+{
+  if (this->userCommandCounter < MAX_CLI_USER_CMD_COUNTER)
+  {
+    //check if command is already registered as a built in command
+    for (int i = 0; i < this->commandCounter; i++)
+    {
+      if (this->allRegisteredCommands[i].command.equals(commandDetails.command) || this->allRegisteredCommands[i].shortCut.equals(commandDetails.shortCut))
+      {
+        ESPStepperMotorServer_Logger::logWarningf("A command with the same name / shortcut is already registered. Will not add the command '%s' [%s] to the list of registered user commands", commandDetails.command, commandDetails.shortCut);
+        return;
+      }
+    }
+    // next check if it's already registered as a user command
+    for (int i = 0; i < this->userCommandCounter; i++)
+    {
+      if (this->allRegisteredUserCommands[i].command.equals(commandDetails.command) || this->allRegisteredUserCommands[i].shortCut.equals(commandDetails.shortCut))
+      {
+        ESPStepperMotorServer_Logger::logWarningf("A user command with the same name / shortcut is already registered. Will not add the command '%s' [%s] to the list of registered user commands", commandDetails.command, commandDetails.shortCut);
+        return;
+      }
+    }
+    this->allRegisteredUserCommands[this->userCommandCounter] = commandDetails;
+    this->user_command_functions[this->userCommandCounter] = cmdFunction;
+    this->userCommandCounter++;
+  }
+  else
+  {
+    ESPStepperMotorServer_Logger::logWarningf("The maximum number of CLI user commands has been exceeded. You need to increase the MAX_CLI_USER_CMD_COUNTER value to add more than %i commands\n", MAX_CLI_USER_CMD_COUNTER);
   }
 }
 
@@ -324,11 +366,22 @@ void ESPStepperMotorServer_CLI::cmdHelp(char *cmd, char *args)
   Serial.println("\n-------- ESP-StepperMotor-Server-CLI Help -----------\nThe following commands are available:\n");
   Serial.println("<command> [<shortcut>]: <description>");
 #endif
+  Serial.println("Built in commands");
   for (int i = 0; i < this->commandCounter; i++)
   {
     const char *hint = this->allRegisteredCommands[i].hasParameters ? "*" : "";
     const char *tabString = (this->allRegisteredCommands[i].command.length() + this->allRegisteredCommands[i].shortCut.length() < 12) ? "\t" : "";
     Serial.printf("%s [%s]%s:\t%s%s\n", this->allRegisteredCommands[i].command.c_str(), this->allRegisteredCommands[i].shortCut.c_str(), hint, tabString, this->allRegisteredCommands[i].description.c_str());
+  }
+  if (this->userCommandCounter > 0)
+  {
+    Serial.println("User commands");
+    for (int i = 0; i < this->userCommandCounter; i++)
+    {
+      const char *hint = this->allRegisteredUserCommands[i].hasParameters ? "*" : "";
+      const char *tabString = (this->allRegisteredUserCommands[i].command.length() + this->allRegisteredUserCommands[i].shortCut.length() < 12) ? "\t" : "";
+      Serial.printf("%s [%s]%s:\t%s%s\n", this->allRegisteredUserCommands[i].command.c_str(), this->allRegisteredUserCommands[i].shortCut.c_str(), hint, tabString, this->allRegisteredUserCommands[i].description.c_str());
+    }
   }
 #ifndef ESPStepperMotorServer_COMPILE_NO_CLI_HELP
   Serial.println("\ncommmands marked with a * require input parameters.\nParameters are provided with the command separarted by a = for the primary parameter.\nSecondary parameters are provided in the format '&<parametername>:<parametervalue>'\n");

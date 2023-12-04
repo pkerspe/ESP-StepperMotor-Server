@@ -32,6 +32,7 @@
 #define ESPStepperMotorServer_CLI_h
 
 #define MAX_CLI_CMD_COUNTER 50
+#define MAX_CLI_USER_CMD_COUNTER 5
 
 #include <ESPStepperMotorServer.h>
 #include <ESPStepperMotorServer_Logger.h>
@@ -56,6 +57,10 @@ public:
   void executeCommand(String cmd);
   void start();
   void stop();
+  void registerNewUserCommand(commandDetailsStructure commandDetails, void (*f)(char *, char *));
+  int getValidStepperIdFromArg(char *arg);
+  void getParameterValue(const char *args, const char *parameterNameToGetValueFor, char *result);
+  void getUnitWithFallback(char *args, char *unit);
 
 private:
   void cmdHelp(char *cmd, char *args);
@@ -82,18 +87,18 @@ private:
 #endif
   void cmdSetSSID(char *cmd, char *args);
   void cmdSetWifiPassword(char *cmd, char *args);
-  int getValidStepperIdFromArg(char *arg);
-  void getParameterValue(const char *args, const char *parameterNameToGetValueFor, char *result);
   void registerCommands();
   void registerNewCommand(commandDetailsStructure commandDetails, void (ESPStepperMotorServer_CLI::*f)(char *, char *));
-  void getUnitWithFallback(char *args, char *unit);
 
   TaskHandle_t xHandle = NULL;
   ESPStepperMotorServer *serverRef;
   void (ESPStepperMotorServer_CLI::*command_functions[MAX_CLI_CMD_COUNTER + 1])(char *, char *);
+  void (*user_command_functions[MAX_CLI_USER_CMD_COUNTER + 1])(char *, char *);
   //const char *command_details[MAX_CLI_CMD_COUNTER +1 ][4];
   commandDetailsStructure allRegisteredCommands[MAX_CLI_CMD_COUNTER + 1];
+  commandDetailsStructure allRegisteredUserCommands[MAX_CLI_USER_CMD_COUNTER + 1];
   unsigned int commandCounter = 0;
+  unsigned int userCommandCounter = 0;
 
   const char *_CMD_PARAM_SEPRATOR = "=";
   const char *_PARAM_PARAM_SEPRATOR = "&";
