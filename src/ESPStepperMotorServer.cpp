@@ -473,6 +473,15 @@ byte ESPStepperMotorServer::getPositionSwitchStatus(int positionSwitchIndex)
 }
 
 // ---------------------------------------------------------------------------------
+//                          CLI API functions
+// ---------------------------------------------------------------------------------
+
+ESPStepperMotorServer_CLI *ESPStepperMotorServer::getCLIHandler() const
+{
+    return this->cliHandler;
+}
+
+// ---------------------------------------------------------------------------------
 //                          Web Server and REST API functions
 // ---------------------------------------------------------------------------------
 void ESPStepperMotorServer::startSPIFFS()
