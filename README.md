@@ -290,6 +290,7 @@ this is the main class and the one you want to start with.
 |`void getButtonStatusRegister(byte buffer[ESPServerSwitchStatusRegisterCount])`|Populate the given byte buffer with the switch status for each configured button (1 = button is triggered, 0 = button is not triggered)|`byte buffer[]`: a byte array to populate with the status register contents for all configured switches (basically the current switch status in regards to being active/inactive)|
 |`String getIpAddress()`|get the current IP address of the server. Only Available if connected to a WIFI or if started in AP mode|none|
 |`ESPStepperMotorServer_Configuration *getCurrentServerConfiguration()`|get the pointer of the ESPStepperMotorServer_Configuration instance that represents the current server complete configuration|none|
+|`ESPStepperMotorServer_CLI *getCLIHandler() const`|get the pointer of the serial CLI handler instance. This can be used to register custom CLI commands.|none|
 
 ### REST API documentation
 Besides the web-based User Interface the ESP StepperMotor Server offers a REST API to control all aspects of the server that can also be controlled via the web UI (in fact the web UI uses the REST API for all operations).
@@ -327,9 +328,11 @@ The output should look like this (depending on the version and how up2date this 
 The following commands are available:
 
 <command> [<shortcut>]: <description>
+
+Built in commands:
 help [h]:               show a list of all available commands
-moveby [mb]*:           move by a specified number of units. requires the id of the stepper to move, the amount pf movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. E.g. mb=0&v:-100&u:mm to move the stepper with id 0 by -100 mm
-moveto [mt]*:           move to an absolute position. requires the id of the stepper to move, the amount pf movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. E.g. mt=0&v:100&u:revs to move the stepper with id 0 to the absolute position at 100 revolutions
+moveby [mb]*:           move by a specified number of units. requires the id of the stepper to move, the amount of movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. Optionally you can also set the speed in steps/second, acceleration and deceleration, each in steps/second/second). Set speeds, acceleration and deceleration are rememebered until overwritten again. E.g. mb=0&v:-100&u:mm&s:200 to move the stepper with id 0 by -100 mm with a speed of 200 steps per second
+moveto [mt]*:           move to an absolute position. requires the id of the stepper to move, the amount of movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. Optionally you can also set the speed in steps/second, acceleration and deceleration, each in steps/second/second). Set speeds, acceleration and deceleration are rememebered until overwritten again. E.g. mt=0&v:100&u:revs&a:100 to move the stepper with id 0 to the absolute position at 100 revolutions with an acceleration of 100 steps per second^2
 config [c]:             print the current configuration to the console as JSON formatted string
 emergencystop [es]:     trigger emergency stop for all connected steppers. This will clear all target positions and stop the motion controller module immediately. In order to proceed normal operation after this command has been issued, you need to call the `revokeemergencystop` [res] command
 revokeemergencystop [res]:      revoke a previously triggered emergency stop. This must be called before any motions can proceed after a call to the emergency-stop command
@@ -361,10 +364,10 @@ Each command also has a shortcut (listed in the `help` output in `[]`) that can 
 Commands with parameters must be invoked following this schema:
 `<commandname or shortcut name>=<primary parameter>&<optional additional parameter name>:<optional additional parameter value>`
 An example for a command with multiple parameters is the `moveto` command. The shortcut for this command is `mt`.
-The command supports three parameters: the id of the stepper to move (primary parameter), the amount/value for the movement (v parameter) and the unit (u parameter) for the movement (mm, steps or revolutions).
-Example: 
-If you want to move the configured stepper motor with the id 0 by 10 revolutions the command looks as follows:
-`mt=0&v=10&u=revs`
+The command supports six parameters: the id of the stepper to move (primary parameter), the amount/value for the movement (v parameter), the unit (u parameter) for the movement (mm, steps or revolutions), the speed (s parameter) in steps per second, the acceleration (a parameter) in steps per second per second and the deceleration (d parameter) in steps per second per second.
+Example:
+If you want to move the configured stepper motor with the id 0 by 10 revolutions with a speed of 100 steps per second the command looks as follows:
+`mt=0&v:10&u:revs&s:100`
 
 ### Further documentation
 for further details have a look at 

@@ -189,8 +189,8 @@ void ESPStepperMotorServer_CLI::registerCommands()
   this->registerNewCommand({String("setwifipwd"), String("swp"), emptyHelp, true}, &ESPStepperMotorServer_CLI::cmdSetWifiPassword);
 #else
   this->registerNewCommand({String("help"), String("h"), String("show a list of all available commands"), false}, &ESPStepperMotorServer_CLI::cmdHelp);
-  this->registerNewCommand({String("moveby"), String("mb"), String("move by an specified amount of units. requires the id of the stepper to move, the amount pf movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. Optionally you can also set the speed in steps/second, acceleration and deceleration, each in steps/second/second). Set speeds, acceleration and deceleration are rememebered until overwritten again. E.g. mb=0&v:-100&u:mm&s:200 to move the stepper with id 0 by -100 mm with a speed of 200 steps per second"), true}, &ESPStepperMotorServer_CLI::cmdMoveBy);
-  this->registerNewCommand({String("moveto"), String("mt"), String("move to an absolute position. requires the id of the stepper to move, the amount pf movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. Optionally you can also set the speed in steps/second, acceleration and deceleration, each in steps/second/second). Set speeds, acceleration and deceleration are rememebered until overwritten again. E.g. mt=0&v:100&u:revs&a:100 to move the stepper with id 0 to the absolute position at 100 revolutions with an acceleration of 100 steps per second^2"), true}, &ESPStepperMotorServer_CLI::cmdMoveTo);
+  this->registerNewCommand({String("moveby"), String("mb"), String("move by a specified number of units. requires the id of the stepper to move, the amount of movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. Optionally you can also set the speed in steps/second, acceleration and deceleration, each in steps/second/second). Set speeds, acceleration and deceleration are rememebered until overwritten again. E.g. mb=0&v:-100&u:mm&s:200 to move the stepper with id 0 by -100 mm with a speed of 200 steps per second"), true}, &ESPStepperMotorServer_CLI::cmdMoveBy);
+  this->registerNewCommand({String("moveto"), String("mt"), String("move to an absolute position. requires the id of the stepper to move, the amount of movement and also optional the unit for the movement (mm, steps, revs). If no unit is specified steps will be assumed as unit. Optionally you can also set the speed in steps/second, acceleration and deceleration, each in steps/second/second). Set speeds, acceleration and deceleration are rememebered until overwritten again. E.g. mt=0&v:100&u:revs&a:100 to move the stepper with id 0 to the absolute position at 100 revolutions with an acceleration of 100 steps per second^2"), true}, &ESPStepperMotorServer_CLI::cmdMoveTo);
   this->registerNewCommand({String("config"), String("c"), String("print the current configuration to the console as JSON formatted string"), false}, &ESPStepperMotorServer_CLI::cmdPrintConfig);
   this->registerNewCommand({String("emergencystop"), String("es"), String("trigger emergency stop for all connected steppers. This will clear all target positions and stop the motion controller module immediately. In order to proceed normal operation after this command has been issued, you need to call the revokeemergencystop [res] command"), false}, &ESPStepperMotorServer_CLI::cmdEmergencyStop);
   this->registerNewCommand({String("revokeemergencystop"), String("res"), String("revoke a previously triggered emergency stop. This must be called before any motions can proceed after a call to the emergencystop command"), false}, &ESPStepperMotorServer_CLI::cmdRevokeEmergencyStop);
@@ -366,7 +366,7 @@ void ESPStepperMotorServer_CLI::cmdHelp(char *cmd, char *args)
   Serial.println("\n-------- ESP-StepperMotor-Server-CLI Help -----------\nThe following commands are available:\n");
   Serial.println("<command> [<shortcut>]: <description>");
 #endif
-  Serial.println("Built in commands");
+  Serial.println("\nBuilt in commands:");
   for (int i = 0; i < this->commandCounter; i++)
   {
     const char *hint = this->allRegisteredCommands[i].hasParameters ? "*" : "";
@@ -375,7 +375,7 @@ void ESPStepperMotorServer_CLI::cmdHelp(char *cmd, char *args)
   }
   if (this->userCommandCounter > 0)
   {
-    Serial.println("User commands");
+    Serial.println("\nUser commands:");
     for (int i = 0; i < this->userCommandCounter; i++)
     {
       const char *hint = this->allRegisteredUserCommands[i].hasParameters ? "*" : "";
