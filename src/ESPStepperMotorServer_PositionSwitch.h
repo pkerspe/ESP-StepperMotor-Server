@@ -6,6 +6,7 @@
 #include <ArduinoJson.h>
 #include <ESPStepperMotorServer_Logger.h>
 #include <ESPStepperMotorServer_MacroAction.h>
+#include <vector>
 
 #define SWITCHTYPE_STATE_ACTIVE_HIGH_BIT 1
 #define SWITCHTYPE_STATE_ACTIVE_LOW_BIT 2

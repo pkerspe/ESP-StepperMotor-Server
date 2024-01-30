@@ -3,7 +3,8 @@
 
 #include <ArduinoJson.h>
 #include <ESP_FlexyStepper.h>
-#include <ESPStepperMotorServer.h>
+
+class ESPStepperMotorServer;
 
 enum MacroActionType {
     moveTo, moveBy, setSpeed, setAcceleration, setDeceleration, setHome, setLimitA, setLimitB, setOutputHigh, setOutputLow, triggerEmergencyStop, releaseEmergencyStop

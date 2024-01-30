@@ -1,4 +1,5 @@
 #include <ESPStepperMotorServer_MacroAction.h>
+#include "ESPStepperMotorServer.h"
 
 ESPStepperMotorServer_MacroAction::ESPStepperMotorServer_MacroAction(MacroActionType actionType, int val1, long val2) {
     this->actionType = actionType;
