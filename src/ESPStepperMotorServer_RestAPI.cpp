@@ -828,7 +828,7 @@ void ESPStepperMotorServer_RestAPI::logDebugRequestUrl(AsyncWebServerRequest *re
         ESPStepperMotorServer_Logger::logDebug((String)request->methodToString() + " called" + request->url() + ((params > 0) ? " with parameters: " : ""), (params == 0));
         for (int i = 0; i < params; i++)
         {
-            AsyncWebParameter *p = request->getParam(i);
+            const AsyncWebParameter *p = request->getParam(i);
             if (!p->isFile() && !p->isPost())
             {
                 ESPStepperMotorServer_Logger::logDebug(p->name() + "=" + p->value() + ((i < params - 1) ? ", " : ""), (i == params - 1), true);
@@ -923,22 +923,22 @@ void ESPStepperMotorServer_RestAPI::handlePostStepperRequest(AsyncWebServerReque
     }
 }
 
-int ESPStepperMotorServer_RestAPI::handleDeleteStepperRequest(AsyncWebServerRequest *request, boolean sendReponse)
+int ESPStepperMotorServer_RestAPI::handleDeleteStepperRequest(AsyncWebServerRequest *request, boolean sendResponse)
 {
     if (request->hasParam("id"))
     {
-        int stepperIndex = request->getParam(0)->value().toInt();
+        int stepperIndex = request->getParam("id")->value().toInt();
         if (stepperIndex < 0 || stepperIndex >= ESPServerMaxSteppers || this->_stepperMotorServer->getCurrentServerConfiguration()->getStepperConfiguration(stepperIndex) != NULL)
         {
             this->_stepperMotorServer->removeStepper(stepperIndex);
-            if (sendReponse)
+            if (sendResponse)
             {
                 request->send(204);
             }
             return 204;
         }
     }
-    if (sendReponse)
+    if (sendResponse)
     {
         request->send(404, "application/json", "{\"error\": \"Invalid stepper id\"}");
     }
@@ -1024,44 +1024,44 @@ void ESPStepperMotorServer_RestAPI::handlePostRotaryEncoderRequest(AsyncWebServe
     }
 }
 
-int ESPStepperMotorServer_RestAPI::handleDeleteRotaryEncoderRequest(AsyncWebServerRequest *request, boolean sendReponse)
+int ESPStepperMotorServer_RestAPI::handleDeleteRotaryEncoderRequest(AsyncWebServerRequest *request, boolean sendResponse)
 {
     if (request->hasParam("id"))
     {
-        int encoderIndex = request->getParam(0)->value().toInt();
+        int encoderIndex = request->getParam("id")->value().toInt();
         if (this->_stepperMotorServer->getCurrentServerConfiguration()->getRotaryEncoder(encoderIndex) != NULL)
         {
             this->_stepperMotorServer->removeRotaryEncoder(encoderIndex);
-            if (sendReponse)
+            if (sendResponse)
             {
                 request->send(204);
             }
             return 204;
         }
     }
-    if (sendReponse)
+    if (sendResponse)
     {
         request->send(404, "application/json", "{\"error\": \"Invalid rotary encoder id\"}");
     }
     return 404;
 }
 
-int ESPStepperMotorServer_RestAPI::handleDeleteSwitchRequest(AsyncWebServerRequest *request, boolean sendReponse)
+int ESPStepperMotorServer_RestAPI::handleDeleteSwitchRequest(AsyncWebServerRequest *request, boolean sendResponse)
 {
     if (request->hasParam("id"))
     {
-        int switchIndex = request->getParam(0)->value().toInt();
+        int switchIndex = request->getParam("id")->value().toInt();
         if (this->_stepperMotorServer->getCurrentServerConfiguration()->getSwitch(switchIndex))
         {
             this->_stepperMotorServer->removePositionSwitch(switchIndex);
-            if (sendReponse)
+            if (sendResponse)
             {
                 request->send(204);
             }
             return 204;
         }
     }
-    if (sendReponse)
+    if (sendResponse)
     {
         request->send(404, "application/json", "{\"error\": \"Invalid position switch id\"}");
     }

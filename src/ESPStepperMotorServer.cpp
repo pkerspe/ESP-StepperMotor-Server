@@ -35,7 +35,7 @@
 //    Near the top of the program, add:
 //        include "ESPStepperMotorServer.h"
 //
-//    e.g. to start the server and enable the web based uster interface, the REST API and the serial server use:
+//    e.g. to start the server and enable the web based user interface, the REST API and the serial server use:
 //        ESPStepperMotorServer server(ESPServerRestApiEnabled|ESPServerWebserverEnabled|ESPServerSerialEnabled);
 //    eg. to only start the web user interface and disable the rest API and serial server use:
 //        ESPStepperMotorServer server(ESPServerWebserverEnabled);
@@ -61,53 +61,53 @@
 
 ESPStepperMotorServer *ESPStepperMotorServer::anchor = NULL;
 
-ESPStepperMotorServer::ESPStepperMotorServer(const ESPStepperMotorServer &espStepperMotorServer)
-{
-    this->startSPIFFS();
-    this->serverConfiguration = new ESPStepperMotorServer_Configuration(espStepperMotorServer.serverConfiguration->_configFilePath, this->isSPIFFSactive);
-    *this->serverConfiguration = *espStepperMotorServer.serverConfiguration;
+// ESPStepperMotorServer::ESPStepperMotorServer(const ESPStepperMotorServer &espStepperMotorServer)
+// {
+//     this->startSPIFFS();
+//     this->serverConfiguration = new ESPStepperMotorServer_Configuration(espStepperMotorServer.serverConfiguration->_configFilePath, this->isSPIFFSactive);
+//     *this->serverConfiguration = *espStepperMotorServer.serverConfiguration;
 
-#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
-    if (espStepperMotorServer.webInterfaceHandler)
-    {
-        this->webInterfaceHandler = new ESPStepperMotorServer_WebInterface(this);
-        *this->webInterfaceHandler = *espStepperMotorServer.webInterfaceHandler;
-    }
+// #ifndef ESPStepperMotorServer_COMPILE_NO_WEB
+//     if (espStepperMotorServer.webInterfaceHandler)
+//     {
+//         this->webInterfaceHandler = new ESPStepperMotorServer_WebInterface(this);
+//         *this->webInterfaceHandler = *espStepperMotorServer.webInterfaceHandler;
+//     }
 
-    if (espStepperMotorServer.restApiHandler)
-    {
-        this->restApiHandler = new ESPStepperMotorServer_RestAPI(this);
-        *this->restApiHandler = *espStepperMotorServer.restApiHandler;
-    }
-#endif
+//     if (espStepperMotorServer.restApiHandler)
+//     {
+//         this->restApiHandler = new ESPStepperMotorServer_RestAPI(this);
+//         *this->restApiHandler = *espStepperMotorServer.restApiHandler;
+//     }
+// #endif
 
-    if (espStepperMotorServer.cliHandler)
-    {
-        this->cliHandler = new ESPStepperMotorServer_CLI(this);
-        *this->cliHandler = *espStepperMotorServer.cliHandler;
-    }
+//     if (espStepperMotorServer.cliHandler)
+//     {
+//         this->cliHandler = new ESPStepperMotorServer_CLI(this);
+//         *this->cliHandler = *espStepperMotorServer.cliHandler;
+//     }
 
-    if (espStepperMotorServer.motionControllerHandler)
-    {
-        this->motionControllerHandler = new ESPStepperMotorServer_MotionController(this);
-        *this->motionControllerHandler = *espStepperMotorServer.motionControllerHandler;
-    }
+//     if (espStepperMotorServer.motionControllerHandler)
+//     {
+//         this->motionControllerHandler = new ESPStepperMotorServer_MotionController(this);
+//         *this->motionControllerHandler = *espStepperMotorServer.motionControllerHandler;
+//     }
 
-#ifndef ESPStepperMotorServer_COMPILE_NO_WEB
-    if (espStepperMotorServer.httpServer)
-    {
-        this->httpServer = new AsyncWebServer(this->serverConfiguration->serverPort);
-        *this->httpServer = *espStepperMotorServer.httpServer;
-    }
+// #ifndef ESPStepperMotorServer_COMPILE_NO_WEB
+//     if (espStepperMotorServer.httpServer)
+//     {
+//         this->httpServer = new AsyncWebServer(this->serverConfiguration->serverPort);
+//         *this->httpServer = *espStepperMotorServer.httpServer;
+//     }
 
-    if (espStepperMotorServer.webSockerServer)
-    {
-        // check if needed, since in startWebserver it will be intialized again (~line 611)
-        this->webSockerServer = new AsyncWebSocket("/ws");
-        *this->webSockerServer = *espStepperMotorServer.webSockerServer;
-    }
-#endif
-}
+//     if (espStepperMotorServer.webSocketServer)
+//     {
+//         // check if needed, since in startWebserver it will be intialized again (~line 611)
+//         this->webSocketServer = new AsyncWebSocket("/ws");
+//         *this->webSocketServer = *espStepperMotorServer.webSocketServer;
+//     }
+// #endif
+// }
 
 ESPStepperMotorServer::~ESPStepperMotorServer()
 {
@@ -487,24 +487,24 @@ ESPStepperMotorServer_CLI *ESPStepperMotorServer::getCLIHandler() const
 void ESPStepperMotorServer::startSPIFFS()
 {
 #ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
-    ESPStepperMotorServer_Logger::logDebug("Checking SPIFFS for existance and free space");
+    ESPStepperMotorServer_Logger::logDebug("Checking LittleFS for existence and free space");
 #endif
-    bool spiffsBeginSuccess = SPIFFS.begin();
-    if (!spiffsBeginSuccess)
+    bool littleFsBeginSuccess = LittleFS.begin();
+    if (!littleFsBeginSuccess)
     {
-        ESPStepperMotorServer_Logger::logWarning("SPIFFS cannot be mounted, trying to format SPIFFS");
-        if (SPIFFS.format())
+        ESPStepperMotorServer_Logger::logWarning("LittleFS cannot be mounted, trying to format LittleFS");
+        if (LittleFS.format())
         {
-            ESPStepperMotorServer_Logger::logInfo("SPIFFS formatted, trying to mount again");
-            spiffsBeginSuccess = SPIFFS.begin();
+            ESPStepperMotorServer_Logger::logInfo("LittleFS formatted, trying to mount again");
+            littleFsBeginSuccess = LittleFS.begin();
         }
         else
         {
-            ESPStepperMotorServer_Logger::logWarning("SPIFFS formatting failed");
+            ESPStepperMotorServer_Logger::logWarning("LittleFS formatting failed");
         }
     }
 
-    if (spiffsBeginSuccess)
+    if (littleFsBeginSuccess)
     {
         this->isSPIFFSactive = true;
 #ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
@@ -520,7 +520,7 @@ void ESPStepperMotorServer::startSPIFFS()
         this->isSPIFFSactive = false;
         if (this->isWebserverEnabled)
         {
-            ESPStepperMotorServer_Logger::logWarning("Unable to activate SPIFFS. Files for web interface cannot be loaded");
+            ESPStepperMotorServer_Logger::logWarning("Unable to activate LittleFS. Files for web interface cannot be loaded");
         }
     }
 }
@@ -534,14 +534,14 @@ void ESPStepperMotorServer::printSPIFFSStats()
 {
     if (this->isSPIFFSMounted())
     {
-        Serial.println("SPIFFS stats:");
-        Serial.printf("Total bytes: %i\n", (int)SPIFFS.totalBytes());
-        Serial.printf("bytes used: %i\n", (int)SPIFFS.usedBytes());
+        Serial.println("LittleFS stats:");
+        Serial.printf("Total bytes: %i\n", (int)LittleFS.totalBytes());
+        Serial.printf("bytes used: %i\n", (int)LittleFS.usedBytes());
         Serial.printf("bytes free: %i\n", getSPIFFSFreeSpace());
     }
     else
     {
-        Serial.println("printSPIFFSStats: SPIFFS not mounted");
+        Serial.println("printSPIFFSStats: LittleFS not mounted");
     }
 }
 
@@ -549,7 +549,7 @@ void ESPStepperMotorServer::printSPIFFSRootFolderContents()
 {
     if (this->isSPIFFSMounted())
     {
-        File root = SPIFFS.open("/");
+        File root = LittleFS.open("/");
 
         if (!root)
         {
@@ -577,7 +577,7 @@ int ESPStepperMotorServer::getSPIFFSFreeSpace()
 {
     if (this->isSPIFFSMounted())
     {
-        return ((int)SPIFFS.totalBytes() - (int)SPIFFS.usedBytes());
+        return ((int)LittleFS.totalBytes() - (int)LittleFS.usedBytes());
     }
     else
     {
@@ -699,9 +699,9 @@ void ESPStepperMotorServer::startWebserver()
         httpServer = new AsyncWebServer(this->serverConfiguration->serverPort);
         ESPStepperMotorServer_Logger::logInfof("Starting webserver on port %i\n", this->serverConfiguration->serverPort);
 
-        webSockerServer = new AsyncWebSocket("/ws");
-        webSockerServer->onEvent(std::bind(&ESPStepperMotorServer::onWebSocketEvent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6));
-        httpServer->addHandler(webSockerServer);
+        webSocketServer = new AsyncWebSocket("/ws");
+        webSocketServer->onEvent(std::bind(&ESPStepperMotorServer::onWebSocketEvent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6));
+        httpServer->addHandler(webSocketServer);
 
         if (isWebserverEnabled)
         {
@@ -735,9 +735,9 @@ void ESPStepperMotorServer::startWebserver()
 void ESPStepperMotorServer::sendSocketMessageToAllClients(const char *message, size_t len)
 {
     // try sending message if clients are connected at all and if buffer is not already full
-    if (this->webSockerServer->count() > 0 && this->webSockerServer->availableForWriteAll())
+    if (this->webSocketServer->count() > 0 && this->webSocketServer->availableForWriteAll())
     {
-        this->webSockerServer->textAll(message, len);
+        this->webSocketServer->textAll(message, len);
     }
 }
 #endif
@@ -772,10 +772,10 @@ void ESPStepperMotorServer::getServerStatusAsJsonString(String &statusString)
     wifiStatus["mode"] = (this->serverConfiguration->wifiMode == ESPServerWifiModeAccessPoint) ? "ap" : "client";
     wifiStatus["ip"] = (this->serverConfiguration->wifiMode == ESPServerWifiModeAccessPoint) ? WiFi.dnsIP().toString() : WiFi.localIP().toString();
 
-    JsonObject spiffsStatus = root.createNestedObject("spiffss");
+    JsonObject spiffsStatus = root.createNestedObject("littlefs");
     if (this->isSPIFFSMounted())
     {
-        spiffsStatus["total_space"] = (int)SPIFFS.totalBytes();
+        spiffsStatus["total_space"] = (int)LittleFS.totalBytes();
         spiffsStatus["free_space"] = this->getSPIFFSFreeSpace();
     }
     else

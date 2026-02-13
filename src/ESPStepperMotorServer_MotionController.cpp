@@ -113,7 +113,7 @@ void ESPStepperMotorServer_MotionController::processMotionUpdates(void *paramete
     {
       updateCounter++;
       //we only send sproadically to reduce load and processing times
-      if (updateCounter % 200000 == 0 && ref->serverRef->webSockerServer->count() > 0)
+      if (updateCounter % 200000 == 0 && ref->serverRef->webSocketServer->count() > 0)
       {
         String positionsString = String("{");
         char segmentBuffer[500];

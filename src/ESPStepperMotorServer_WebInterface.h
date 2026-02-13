@@ -37,6 +37,7 @@
 #include <ESPStepperMotorServer_Logger.h>
 #include <ESPStepperMotorServer.h>
 #include <Update.h>
+#include <LittleFS.h>
 
 //need this forward declaration here due to circular dependency (use in constructor)
 class ESPStepperMotorServer;

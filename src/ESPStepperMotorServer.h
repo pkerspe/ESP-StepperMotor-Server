@@ -46,7 +46,7 @@
 #define ESPStepperMotorServer_SwitchDisplayName_MaxLength 20
 
 #include <ESP_FlexyStepper.h>
-#include <SPIFFS.h>
+#include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
 
@@ -214,7 +214,7 @@ private:
   ESPStepperMotorServer_WebInterface *webInterfaceHandler;
   ESPStepperMotorServer_RestAPI *restApiHandler;
   AsyncWebServer *httpServer;
-  AsyncWebSocket *webSockerServer;
+  AsyncWebSocket *webSocketServer;
 #endif
 
   ESPStepperMotorServer_CLI *cliHandler;

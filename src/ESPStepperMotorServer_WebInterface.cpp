@@ -54,9 +54,9 @@ void ESPStepperMotorServer_WebInterface::registerWebInterfaceUrls(AsyncWebServer
 
     //OTA update form
     this->_httpServer->on("/update", HTTP_GET, [this](AsyncWebServerRequest *request) {
-        if (SPIFFS.exists(this->webUiFirmwareUpdate))
+        if (LittleFS.exists(this->webUiFirmwareUpdate))
         {
-            AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiFirmwareUpdate, "text/html");
+            AsyncWebServerResponse *response = request->beginResponse(LittleFS, this->webUiFirmwareUpdate, "text/html");
             response->addHeader("Content-Encoding", "gzip");
             request->send(response);
         }
@@ -126,14 +126,14 @@ void ESPStepperMotorServer_WebInterface::registerWebInterfaceUrls(AsyncWebServer
     if (this->_serverRef->isSPIFFSMounted() && checkIfGuiExistsInSpiffs())
     {
         this->_httpServer->on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
-            request->send(SPIFFS, this->webUiIndexFile);
+            request->send(LittleFS, this->webUiIndexFile);
         });
         this->_httpServer->on(this->webUiIndexFile, HTTP_GET, [this](AsyncWebServerRequest *request) {
-            request->send(SPIFFS, this->webUiIndexFile);
+            request->send(LittleFS, this->webUiIndexFile);
         });
 
         this->_httpServer->on(this->webUiFaviconFile, HTTP_GET, [this](AsyncWebServerRequest *request) {
-            AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiFaviconFile, "image/x-icon");
+            AsyncWebServerResponse *response = request->beginResponse(LittleFS, this->webUiFaviconFile, "image/x-icon");
             //response->addHeader("Content-Encoding", "gzip");
             request->send(response);
         });
@@ -141,7 +141,7 @@ void ESPStepperMotorServer_WebInterface::registerWebInterfaceUrls(AsyncWebServer
         this->_httpServer->on(this->_serverRef->defaultConfigurationFilename, HTTP_GET, [this](AsyncWebServerRequest *request) {
           //FIME: currently this streams the json config including the WiFi Credentials, which might be a security risk.
           //TODO: replace wifi passwords in config with placeholder (maybe add config flag to API to allowed disabling the security feature in the future)
-          AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->_serverRef->defaultConfigurationFilename, "application/json", true);
+          AsyncWebServerResponse *response = request->beginResponse(LittleFS, this->_serverRef->defaultConfigurationFilename, "application/json", true);
           request->send(response);
         });
         */
@@ -150,7 +150,7 @@ void ESPStepperMotorServer_WebInterface::registerWebInterfaceUrls(AsyncWebServer
             request->redirect(this->webUiJsFile);
         });
         this->_httpServer->on(this->webUiJsFile, HTTP_GET, [this](AsyncWebServerRequest *request) {
-            AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiJsFile, "text/javascript");
+            AsyncWebServerResponse *response = request->beginResponse(LittleFS, this->webUiJsFile, "text/javascript");
             response->addHeader("Content-Encoding", "gzip");
             request->send(response);
         });
@@ -161,23 +161,23 @@ void ESPStepperMotorServer_WebInterface::registerWebInterfaceUrls(AsyncWebServer
             response->print("<!DOCTYPE html><html lang=\"en\"><head><title>ESP-StepperMotorServer Test Page</title><link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css\" crossorigin=\"anonymous\"></head><body>");
             response->print("<div class=\"container\"><h1>ESP-StepperMotorServer self test</h1><p>Testing environment:</p><ul>");
             response->printf("<li>Server Version: <strong>%s</strong>", this->_serverRef->version);
-            response->printf("<li>SPIFFS Initialized: %s</li>", (this->_serverRef->isSPIFFSMounted()) ? "<span class=\"badge badge-success\">true</span>" : "<span class=\"badge badge-danger\">false</span>");
+            response->printf("<li>LittleFS Initialized: %s</li>", (this->_serverRef->isSPIFFSMounted()) ? "<span class=\"badge badge-success\">true</span>" : "<span class=\"badge badge-danger\">false</span>");
             if (!this->_serverRef->isSPIFFSMounted())
             {
-                response->print("ERROR: SPIFFS not initialized & mounted, in case you are intending to use the WEB UI, you need to make sure the SPI Flash Filesystem has been properly initialized on your ESP32");
+                response->print("ERROR: LittleFS not initialized & mounted, in case you are intending to use the WEB UI, you need to make sure the LittleFS Filesystem has been properly initialized on your ESP32");
             }
             else
             {
                 response->printf("<li>WEB UI installed completely: %s</li>", (this->checkIfGuiExistsInSpiffs()) ? "<span class=\"badge badge-success\">true</span>" : "<span class=\"badge badge-danger\">false</span>");
 
-                File root = SPIFFS.open("/");
+                File root = LittleFS.open("/");
                 if (!root)
                 {
-                    response->print("ERROR: Failed to open root folder on SPIFFS for reading");
+                    response->print("ERROR: Failed to open root folder on LittleFS for reading");
                 }
                 if (root.isDirectory())
                 {
-                    response->print("<li>Listing files in root folder of SPIFFS:<ul>");
+                    response->print("<li>Listing files in root folder of LittleFS:<ul>");
                     File file = root.openNextFile();
                     while (file)
                     {
@@ -199,27 +199,27 @@ void ESPStepperMotorServer_WebInterface::registerWebInterfaceUrls(AsyncWebServer
 
         // register image paths with caching header present
         this->_httpServer->on(this->webUiLogoFile, HTTP_GET, [this](AsyncWebServerRequest *request) {
-            AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiLogoFile, "image/svg+xml");
+            AsyncWebServerResponse *response = request->beginResponse(LittleFS, this->webUiLogoFile, "image/svg+xml");
             response->addHeader("Cache-Control", "max-age=36000, public");
             request->send(response);
         });
         this->_httpServer->on(this->webUiStepperGraphic, HTTP_GET, [this](AsyncWebServerRequest *request) {
-            AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiStepperGraphic, "image/svg+xml");
+            AsyncWebServerResponse *response = request->beginResponse(LittleFS, this->webUiStepperGraphic, "image/svg+xml");
             response->addHeader("Cache-Control", "max-age=36000, public");
             request->send(response);
         });
         this->_httpServer->on(this->webUiEncoderGraphic, HTTP_GET, [this](AsyncWebServerRequest *request) {
-            AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiEncoderGraphic, "image/svg+xml");
+            AsyncWebServerResponse *response = request->beginResponse(LittleFS, this->webUiEncoderGraphic, "image/svg+xml");
             response->addHeader("Cache-Control", "max-age=36000, public");
             request->send(response);
         });
         this->_httpServer->on(this->webUiEmergencySwitchGraphic, HTTP_GET, [this](AsyncWebServerRequest *request) {
-            AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiEmergencySwitchGraphic, "image/svg+xml");
+            AsyncWebServerResponse *response = request->beginResponse(LittleFS, this->webUiEmergencySwitchGraphic, "image/svg+xml");
             response->addHeader("Cache-Control", "max-age=36000, public");
             request->send(response);
         });
         this->_httpServer->on(this->webUiSwitchGraphic, HTTP_GET, [this](AsyncWebServerRequest *request) {
-            AsyncWebServerResponse *response = request->beginResponse(SPIFFS, this->webUiSwitchGraphic, "image/svg+xml");
+            AsyncWebServerResponse *response = request->beginResponse(LittleFS, this->webUiSwitchGraphic, "image/svg+xml");
             response->addHeader("Cache-Control", "max-age=36000, public");
             request->send(response);
         });
@@ -245,13 +245,13 @@ bool ESPStepperMotorServer_WebInterface::checkIfGuiExistsInSpiffs()
 
     if (!this->_serverRef->isSPIFFSMounted())
     {
-        ESPStepperMotorServer_Logger::logWarning("SPIFFS is not mounted, UI files not found");
+        ESPStepperMotorServer_Logger::logWarning("LittleFS is not mounted, UI files not found");
         return false;
     }
     else
     {
         bool uiComplete = true;
-        const char *notPresent = "The file %s could not be found on SPIFFS\n";
+        const char *notPresent = "The file %s could not be found on LittleFS\n";
         const char *files[] = {
             this->webUiIndexFile,
             this->webUiJsFile,
@@ -265,7 +265,7 @@ bool ESPStepperMotorServer_WebInterface::checkIfGuiExistsInSpiffs()
 
         for (int i = 0; i < 9; i++) //ALWAYS UPDATE THIS COUNTER IF NEW FILES ARE ADDED TO UI
         {
-            if (!SPIFFS.exists(files[i]))
+            if (!LittleFS.exists(files[i]))
             {
                 ESPStepperMotorServer_Logger::logInfof(notPresent, files[i]);
                 if (this->_serverRef->getCurrentServerConfiguration()->wifiMode == ESPServerWifiModeClient && WiFi.isConnected())
@@ -307,12 +307,12 @@ bool ESPStepperMotorServer_WebInterface::checkIfGuiExistsInSpiffs()
     }
 }
 
-// Perform an HTTP GET request to a remote page to download a file to SPIFFS
+// Perform an HTTP GET request to a remote page to download a file to LittleFS
 bool ESPStepperMotorServer_WebInterface::downloadFileToSpiffs(const char *url, const char *targetPath)
 {
     if (!this->_serverRef->isSPIFFSMounted())
     {
-        ESPStepperMotorServer_Logger::logWarningf("donwloading of %s was canceled since SPIFFS is not mounted\n");
+        ESPStepperMotorServer_Logger::logWarningf("downloading of %s was canceled since LittleFS is not mounted\n");
         return false;
     }
     else
@@ -340,7 +340,7 @@ bool ESPStepperMotorServer_WebInterface::downloadFileToSpiffs(const char *url, c
 #ifndef ESPStepperMotorServer_COMPILE_NO_DEBUG
             ESPStepperMotorServer_Logger::logDebug("opening file for writing");
 #endif
-            File f = SPIFFS.open(targetPath, "w+");
+            File f = LittleFS.open(targetPath, "w+");
 
             // read all data from server
             while (http.connected() && (len > 0 || len == -1))
@@ -372,7 +372,7 @@ bool ESPStepperMotorServer_WebInterface::downloadFileToSpiffs(const char *url, c
             http.end(); //Close connection
         }
 
-        return SPIFFS.exists(targetPath);
+        return LittleFS.exists(targetPath);
     }
 }
 

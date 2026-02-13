@@ -101,7 +101,7 @@ private:
   unsigned int commandCounter = 0;
   unsigned int userCommandCounter = 0;
 
-  const char *_CMD_PARAM_SEPRATOR = "=";
+  const char *_CMD_PARAM_SEPARATOR = "=";
   const char *_PARAM_PARAM_SEPRATOR = "&";
   const char *_PARAM_VALUE_SEPRATOR = ":";
 };

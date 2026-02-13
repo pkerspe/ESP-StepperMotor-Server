@@ -81,7 +81,7 @@ void ESPStepperMotorServer_CLI::executeCommand(String cmd)
 {
   char cmdCharArray[cmd.length() + 1];
   strcpy(cmdCharArray, cmd.c_str());
-  char *pureCommand = strtok(cmdCharArray, _CMD_PARAM_SEPRATOR);
+  char *pureCommand = strtok(cmdCharArray, _CMD_PARAM_SEPARATOR);
   char *arguments = strtok(NULL, "=");
 
   // first try the built in commands
@@ -125,7 +125,7 @@ void ESPStepperMotorServer_CLI::processSerialInput(void *parameter)
         commandLine[charsRead] = NULLCHAR; //null terminate our command char array
         if (charsRead > 0)
         {
-          charsRead = 0; //charsRead behaves like 'static' in this taks, so have to reset
+          charsRead = 0; //charsRead behaves like 'static' in this task, so have to reset
           try
           {
             ref->executeCommand(String(commandLine));

@@ -32,6 +32,7 @@
 // SOFTWARE.
 
 #include "ESPStepperMotorServer_Configuration.h"
+#include <LittleFS.h>
 
 #define RESERVED_JSON_SIZE_ESPStepperMotorServer_Configuration 300
 
@@ -206,12 +207,12 @@ bool ESPStepperMotorServer_Configuration::saveCurrentConfiguationToSpiffs(String
     this->serializeServerConfiguration(doc, true);
 
     // Delete existing file, otherwise the configuration is appended to the file
-    SPIFFS.remove(filename);
+    LittleFS.remove(filename);
     // Open file for writing
-    File file = SPIFFS.open(filename, FILE_WRITE);
+    File file = LittleFS.open(filename, FILE_WRITE);
     if (!file)
     {
-        ESPStepperMotorServer_Logger::logWarningf("Failed to create new configuration file '%s' in SPIFFS\n", filename.c_str());
+        ESPStepperMotorServer_Logger::logWarningf("Failed to create new configuration file '%s' in LittleFS\n", filename.c_str());
         return false;
     }
     bool success = false;
@@ -237,10 +238,10 @@ bool ESPStepperMotorServer_Configuration::loadConfiguationFromSpiffs(String file
     filename = (filename == "") ? this->_configFilePath : filename;
     filename = (filename.startsWith("/")) ? filename : "/" + filename;
 
-    if (this->_isSPIFFSactive && SPIFFS.exists(filename))
+    if (this->_isSPIFFSactive && LittleFS.exists(filename))
     {
-        ESPStepperMotorServer_Logger::logInfof("Loading configuration file %s from SPIFFS\n", filename.c_str());
-        File configFile = SPIFFS.open(filename, FILE_READ);
+        ESPStepperMotorServer_Logger::logInfof("Loading configuration file %s from LittleFS\n", filename.c_str());
+        File configFile = LittleFS.open(filename, FILE_READ);
         DynamicJsonDocument doc(this->calculateRequiredJsonDocumentSizeForCurrentConfiguration());
         this->serializeServerConfiguration(doc);
         // Deserialize the JSON document
@@ -414,7 +415,7 @@ bool ESPStepperMotorServer_Configuration::loadConfiguationFromSpiffs(String file
     }
     else
     {
-        ESPStepperMotorServer_Logger::logWarningf("Failed to load configuration file from SPIFFS. File %s not found or SPIFFS is not enabled/mounted\n", filename.c_str());
+        ESPStepperMotorServer_Logger::logWarningf("Failed to load configuration file from LittleFS. File %s not found or LittleFS is not enabled/mounted\n", filename.c_str());
         return false;
     }
 }
